@@ -1,0 +1,113 @@
+{
+  "project_info": {
+    "project_number": "885538406688",
+    "project_id": "development-71207",
+    "storage_bucket": "development-71207.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:885538406688:android:99b4decc90869a09949745",
+        "android_client_info": {
+          "package_name": "com.example.kahwa"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "885538406688-inai7a06ckb0uobdqcinf0868qpqlui8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDICImXVseNx-wilsIiYKpGLhNh7O2FflI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "885538406688-inai7a06ckb0uobdqcinf0868qpqlui8.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:885538406688:android:9585637b956743c1949745",
+        "android_client_info": {
+          "package_name": "ga.jayp.dareme"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "885538406688-8nree46qfc8apkg6asrehf3i3lf9vaqq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "ga.jayp.dareme",
+            "certificate_hash": "a372bd7c67c2123ffed4e30591570b1d14edce56"
+          }
+        },
+        {
+          "client_id": "885538406688-inai7a06ckb0uobdqcinf0868qpqlui8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDICImXVseNx-wilsIiYKpGLhNh7O2FflI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "885538406688-inai7a06ckb0uobdqcinf0868qpqlui8.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:885538406688:android:208433136a82ae2a949745",
+        "android_client_info": {
+          "package_name": "ga.jayp.freeleb"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "885538406688-dg6fddjgb5fgeo8loiic91ljgp8kpkak.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "ga.jayp.freeleb",
+            "certificate_hash": "a372bd7c67c2123ffed4e30591570b1d14edce56"
+          }
+        },
+        {
+          "client_id": "885538406688-inai7a06ckb0uobdqcinf0868qpqlui8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDICImXVseNx-wilsIiYKpGLhNh7O2FflI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "885538406688-inai7a06ckb0uobdqcinf0868qpqlui8.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
