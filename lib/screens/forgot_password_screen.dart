@@ -21,7 +21,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   late ScrollController _scrollController;
   double _scrollOffset = 0;
 
-  String _email = "";
+  final TextEditingController _emailController = TextEditingController();
+
   String _emailError = "";
   bool _isEmailErrorVisible = false;
   bool _isLoading = false;
@@ -40,6 +41,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   @override
   void dispose() {
     _scrollController.dispose();
+    _emailController.dispose();
     super.dispose();
   }
 
@@ -95,13 +97,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           ),
                         ),
                         InputText(
+                          controller: _emailController,
                           icon: Icons.mail_rounded,
                           hint: "Email Address",
                           keyboardType: TextInputType.emailAddress,
                           textInputAction: TextInputAction.done,
-                          onChanged: (value) {
-                            _email = value;
-                          },
                         ),
                         Visibility(
                           visible: _isEmailErrorVisible,
@@ -129,7 +129,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                       _emailError = "";
                                       _isEmailErrorVisible = false;
                                     });
-                                    if (_email.isEmpty) {
+                                    if (_emailController.text.isEmpty) {
                                       setState(() {
                                         _emailError =
                                             "Email Address cannot be empty";
@@ -142,7 +142,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                       try {
                                         await FirebaseAuth.instance
                                             .sendPasswordResetEmail(
-                                                email: _email);
+                                                email: _emailController.text);
                                         SnackBar snackBar = const SnackBar(
                                           content: Text(
                                             "An email will be sent to you shortly to reset your password",

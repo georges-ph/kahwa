@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:kahwa/utils/colors.dart';
+import 'package:kahwa/utils/typography.dart';
 
 ThemeData lightTheme(BuildContext context) {
   return ThemeData(
@@ -12,6 +13,14 @@ ThemeData lightTheme(BuildContext context) {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(4),
       ),
+    ),
+    chipTheme: ChipThemeData(
+      selectedColor: kRedColor.withOpacity(0.8),
+      labelStyle: Theme.of(context).textTheme.bodyLarge!.copyWith(
+            fontWeight: kRegularFontWeight,
+            color: kWhiteColor,
+          ),
+      backgroundColor: kRedColor.withOpacity(0.2),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: TextButton.styleFrom(

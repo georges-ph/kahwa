@@ -1,6 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_keyboard_size/flutter_keyboard_size.dart';
+import 'package:kahwa/models/user.dart' as user_model;
 import 'package:kahwa/utils/colors.dart';
 import 'package:kahwa/utils/routes.dart';
 import 'package:kahwa/utils/sizes.dart';
@@ -22,9 +24,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
   late ScrollController _scrollController;
   double _scrollOffset = 0;
 
-  String _name = "";
-  String _email = "";
-  String _password = "";
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
   String _nameError = "";
   String _emailError = "";
   String _passwordError = "";
@@ -33,6 +36,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _isEmailErrorVisible = false;
   bool _isPasswordErrorVisible = false;
   bool _isCreator = false;
+
   bool _isLoading = false;
 
   @override
@@ -49,6 +53,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
   @override
   void dispose() {
     _scrollController.dispose();
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
@@ -108,14 +115,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ),
                         verticalSpace(),
                         InputText(
+                          controller: _nameController,
                           icon: Icons.person_rounded,
                           hint: "Name",
                           keyboardType: TextInputType.name,
                           textInputAction: TextInputAction.next,
                           textCapitalization: TextCapitalization.words,
-                          onChanged: (value) {
-                            _name = value;
-                          },
                         ),
                         Visibility(
                           visible: _isNameErrorVisible,
@@ -134,13 +139,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ),
                         verticalSpace(height: 16),
                         InputText(
+                          controller: _emailController,
                           icon: Icons.mail_rounded,
                           hint: "Email Address",
                           keyboardType: TextInputType.emailAddress,
                           textInputAction: TextInputAction.next,
-                          onChanged: (value) {
-                            _email = value;
-                          },
                         ),
                         Visibility(
                           visible: _isEmailErrorVisible,
@@ -159,6 +162,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ),
                         verticalSpace(height: 16),
                         InputText(
+                          controller: _passwordController,
                           icon: Icons.lock_rounded,
                           hint: "Password",
                           suffixIcon: _isPasswordVisible
@@ -166,9 +170,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               : Icons.visibility_off_rounded,
                           obscureText: _isPasswordVisible,
                           textInputAction: TextInputAction.done,
-                          onChanged: (value) {
-                            _password = value;
-                          },
                           suffixOnTap: () {
                             setState(() {
                               _isPasswordVisible = !_isPasswordVisible;
@@ -191,6 +192,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           ),
                         ),
                         CheckboxListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 4,
+                          ),
                           title: Text(
                             "I am a creator",
                             style: Theme.of(context).textTheme.labelLarge,
@@ -216,16 +220,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                       _isEmailErrorVisible = false;
                                       _isPasswordErrorVisible = false;
                                     });
-                                    if (_name.isEmpty ||
-                                        _email.isEmpty ||
-                                        _password.isEmpty) {
-                                      if (_name.isEmpty) {
+                                    if (_nameController.text.isEmpty ||
+                                        _emailController.text.isEmpty ||
+                                        _passwordController.text.isEmpty) {
+                                      if (_nameController.text.isEmpty) {
                                         setState(() {
                                           _nameError = "Name cannot be empty";
                                           _isNameErrorVisible = true;
                                         });
                                       }
-                                      if (_email.isEmpty) {
+                                      if (_emailController.text.isEmpty) {
                                         setState(() {
                                           _emailError =
                                               "Email Address cannot be empty";
@@ -233,7 +237,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                         });
                                       }
 
-                                      if (_password.isEmpty) {
+                                      if (_passwordController.text.isEmpty) {
                                         setState(() {
                                           _passwordError =
                                               "Password cannot be empty";
@@ -246,18 +250,73 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                       setState(() {
                                         _isLoading = true;
                                       });
+
                                       final credential = await FirebaseAuth
                                           .instance
                                           .createUserWithEmailAndPassword(
-                                        email: _email,
-                                        password: _password,
+                                        email: _emailController.text,
+                                        password: _passwordController.text,
                                       );
-                                      await credential.user
-                                          ?.updateDisplayName(_name);
+
+                                      await credential.user?.updateDisplayName(
+                                          _nameController.text);
+
                                       await credential.user
                                           ?.sendEmailVerification();
+
+                                      // final dynamicLinkParams =
+                                      //     DynamicLinkParameters(
+                                      //   link: Uri.parse(
+                                      //       "https://kahwa.page.link/${credential.user!.uid}"),
+                                      //   uriPrefix: "https://kahwa.page.link/",
+                                      //   androidParameters: AndroidParameters(
+                                      //     packageName: "com.example.kahwa",
+                                      //     fallbackUrl:
+                                      //         Uri.parse("https://jundbits.ga/"),
+                                      //   ),
+                                      //   socialMetaTagParameters:
+                                      //       SocialMetaTagParameters(
+                                      //           title: _nameController.text,
+                                      //           description:
+                                      //               "Support ${_nameController.text} by buying them a kahwa",
+                                      //           imageUrl: Uri.parse(
+                                      //             "https://firebasestorage.googleapis.com/v0/b/development-71207.appspot.com/o/kahwa%2Ffenjen.png?alt=media&token=3f476325-20d9-4f4d-9924-d39438a40c1d",
+                                      //           )),
+                                      // );
+
+                                      // final dynamicLink =
+                                      //     await FirebaseDynamicLinks.instance
+                                      //         .buildShortLink(
+                                      //   dynamicLinkParams,
+                                      //   shortLinkType:
+                                      //       ShortDynamicLinkType.unguessable,
+                                      // );
+
+                                      // String linkId = dynamicLink.shortUrl
+                                      //     .toString()
+                                      //     .split("https://kahwa.page.link/")[1];
+
+                                      user_model.User user = user_model.User(
+                                        name: _nameController.text,
+                                        email: _emailController.text,
+                                        image: null,
+                                        id: credential.user!.uid,
+                                        kahwa_lbp: 1000,
+                                        kahwa_usd: 1,
+                                        phone: null,
+                                        creator: _isCreator,
+                                        // link_id: linkId,
+                                      );
+
+                                      await FirebaseFirestore.instance
+                                          .collection("kahwa")
+                                          .doc("AppCollections")
+                                          .collection("Users")
+                                          .doc(credential.user!.uid)
+                                          .set(user.toMap());
+
                                       Navigator.pushReplacementNamed(
-                                          context, routeProfile);
+                                          context, routeSplash);
                                     } on FirebaseAuthException catch (e) {
                                       if (e.code == "invalid-email" ||
                                           e.code == "email-already-in-use") {
