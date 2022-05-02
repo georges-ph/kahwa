@@ -3,16 +3,20 @@
 import 'package:kahwa/enums/currency.dart';
 
 class Donation {
-  final int? kahwa_price;
-  final int? kahwas;
+  String? supported_id;
+  String? creator_id;
+  int? kahwa_price;
+  int? kahwas;
   // enum
-  final Currency? currency;
-  final bool? pay_fee;
-  final String? message;
-  final bool? keep_private;
-  final int? total;
+  Currency? currency;
+  bool? pay_fee;
+  String? message;
+  bool? keep_private;
+  num? total;
 
   Donation({
+    this.supported_id,
+    this.creator_id,
     this.kahwa_price,
     this.kahwas,
     this.currency,
@@ -24,6 +28,8 @@ class Donation {
 
   Map<String, dynamic> toMap() {
     return {
+      'supported_id': supported_id,
+      'creator_id': creator_id,
       'kahwa_price': kahwa_price,
       'kahwas': kahwas,
       'currency': currency?.name,
@@ -36,15 +42,17 @@ class Donation {
 
   factory Donation.fromMap(Map<String, dynamic> map) {
     return Donation(
+      supported_id: map['supported_id'],
+      creator_id: map['creator_id'],
       kahwa_price: map['kahwa_price']?.toInt(),
       kahwas: map['kahwas']?.toInt(),
       currency: map['currency'] != null
-          ? Currency?.values[map['currency'] ?? 0]
+          ? Currency.values[map['currency'] ?? 0]
           : null,
       pay_fee: map['pay_fee'],
       message: map['message'],
       keep_private: map['keep_private'],
-      total: map['total']?.toInt(),
+      total: map['total'],
     );
   }
 }

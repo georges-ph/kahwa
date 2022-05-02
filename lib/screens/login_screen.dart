@@ -22,13 +22,15 @@ class _LogInScreenState extends State<LogInScreen> {
   late ScrollController _scrollController;
   double _scrollOffset = 0;
 
-  String _email = "";
-  String _password = "";
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
   String _emailError = "";
   String _passwordError = "";
   bool _isPasswordVisible = true;
   bool _isEmailErrorVisible = false;
   bool _isPasswordErrorVisible = false;
+
   bool _isLoading = false;
 
   @override
@@ -45,6 +47,8 @@ class _LogInScreenState extends State<LogInScreen> {
   @override
   void dispose() {
     _scrollController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
@@ -102,13 +106,11 @@ class _LogInScreenState extends State<LogInScreen> {
                           ),
                         ),
                         InputText(
+                          controller: _emailController,
                           icon: Icons.mail_rounded,
                           hint: "Email Address",
                           keyboardType: TextInputType.emailAddress,
                           textInputAction: TextInputAction.next,
-                          onChanged: (value) {
-                            _email = value;
-                          },
                         ),
                         Visibility(
                           visible: _isEmailErrorVisible,
@@ -127,6 +129,7 @@ class _LogInScreenState extends State<LogInScreen> {
                         ),
                         verticalSpace(height: 16),
                         InputText(
+                          controller: _passwordController,
                           icon: Icons.lock_rounded,
                           hint: "Password",
                           suffixIcon: _isPasswordVisible
@@ -134,9 +137,6 @@ class _LogInScreenState extends State<LogInScreen> {
                               : Icons.visibility_off_rounded,
                           obscureText: _isPasswordVisible,
                           textInputAction: TextInputAction.done,
-                          onChanged: (value) {
-                            _password = value;
-                          },
                           suffixOnTap: () {
                             setState(() {
                               _isPasswordVisible = !_isPasswordVisible;
@@ -178,16 +178,17 @@ class _LogInScreenState extends State<LogInScreen> {
                                       _isEmailErrorVisible = false;
                                       _isPasswordErrorVisible = false;
                                     });
-                                    if (_email.isEmpty || _password.isEmpty) {
-                                      if (_email.isEmpty) {
+
+                                    if (_emailController.text.isEmpty ||
+                                        _passwordController.text.isEmpty) {
+                                      if (_emailController.text.isEmpty) {
                                         setState(() {
                                           _emailError =
                                               "Email Address cannot be empty";
                                           _isEmailErrorVisible = true;
                                         });
                                       }
-
-                                      if (_password.isEmpty) {
+                                      if (_passwordController.text.isEmpty) {
                                         setState(() {
                                           _passwordError =
                                               "Password cannot be empty";
@@ -196,16 +197,19 @@ class _LogInScreenState extends State<LogInScreen> {
                                       }
                                       return;
                                     }
+
                                     try {
                                       setState(() {
                                         _isLoading = true;
                                       });
+
                                       final credential = await FirebaseAuth
                                           .instance
                                           .signInWithEmailAndPassword(
-                                        email: _email,
-                                        password: _password,
+                                        email: _emailController.text,
+                                        password: _passwordController.text,
                                       );
+
                                       Navigator.pushReplacementNamed(
                                           context, routeProfile);
                                     } on FirebaseAuthException catch (e) {

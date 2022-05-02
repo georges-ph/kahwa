@@ -1,23 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:kahwa/utils/colors.dart';
 
 class PriceInputText extends StatelessWidget {
   const PriceInputText({
     Key? key,
-    required this.price,
-    this.formatLbp = false,
-    required this.onChanged,
+    required this.controller,
   }) : super(key: key);
 
-  final int price;
-  final bool? formatLbp;
-  final Function(String) onChanged;
+  final TextEditingController controller;
 
   @override
   Widget build(BuildContext context) {
-    var formatter = NumberFormat();
-
     return Expanded(
       child: Container(
         decoration: ShapeDecoration(
@@ -27,16 +20,13 @@ class PriceInputText extends StatelessWidget {
           ),
         ),
         child: TextField(
-          controller: TextEditingController()
-            ..text =
-                formatLbp == true ? formatter.format(price) : price.toString(),
-          onChanged: (value) => onChanged(value),
-          textAlign: TextAlign.center,
+          controller: controller,
           keyboardType: TextInputType.number,
+          textAlign: TextAlign.center,
           decoration: InputDecoration(
             hintText: 0.toString(),
-            isDense: true,
             border: InputBorder.none,
+            isDense: true,
             contentPadding: const EdgeInsets.all(4),
           ),
         ),

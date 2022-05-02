@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:kahwa/screens/donate/donate_screens.dart';
-import 'package:kahwa/screens/forgot_password/forgot_password_screen.dart';
-import 'package:kahwa/screens/login/login_screen.dart';
-import 'package:kahwa/screens/profile/profile_screen.dart';
-import 'package:kahwa/screens/sign_up/sign_up_screen.dart';
-import 'package:kahwa/screens/splash/splash_screen.dart';
+import 'package:kahwa/screens/donate_screens.dart';
+import 'package:kahwa/screens/forgot_password_screen.dart';
+import 'package:kahwa/screens/login_screen.dart';
+import 'package:kahwa/screens/profile_screen.dart';
+import 'package:kahwa/screens/sign_up_screen.dart';
+import 'package:kahwa/screens/splash_screen.dart';
 
 const routeSplash = "/";
 const routeSignUp = "/sign-up";

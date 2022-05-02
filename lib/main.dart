@@ -4,11 +4,12 @@ import 'package:kahwa/firebase_options.dart';
 import 'package:kahwa/utils/routes.dart';
 import 'package:kahwa/utils/themes.dart';
 
-Future<void> main() async {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
   runApp(const MyApp());
 }
 
