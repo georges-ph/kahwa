@@ -5,6 +5,19 @@ import 'package:kahwa/utils/typography.dart';
 
 ThemeData lightTheme(BuildContext context) {
   return ThemeData(
+    appBarTheme: AppBarTheme(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      titleTextStyle: Theme.of(context).textTheme.headlineSmall!.copyWith(
+            color: kBlackColor,
+          ),
+      iconTheme: const IconThemeData(
+        color: kBlackColor,
+      ),
+      actionsIconTheme: const IconThemeData(
+        color: kGreyColor,
+      ),
+    ),
     colorScheme: Theme.of(context).colorScheme.copyWith(
           primary: kRedColor,
         ),
