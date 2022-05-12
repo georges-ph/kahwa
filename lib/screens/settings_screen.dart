@@ -1,9 +1,7 @@
-// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
-
 import 'package:flutter/material.dart';
-import 'package:kahwa/utils/colors.dart';
 import 'package:kahwa/utils/routes.dart';
 import 'package:kahwa/utils/sizes.dart';
+import 'package:kahwa/widgets/settings_card.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -12,7 +10,7 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Settings"),
+        title: const Text("Settings"),
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(
@@ -46,37 +44,6 @@ class SettingsScreen extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class SettingsCard extends StatelessWidget {
-  const SettingsCard({
-    Key? key,
-    required this.icon,
-    required this.title,
-    required this.onTap,
-  }) : super(key: key);
-
-  final IconData icon;
-  final String title;
-  final Function() onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      onTap: onTap,
-      contentPadding: EdgeInsets.symmetric(
-        horizontal: 24,
-      ),
-      minLeadingWidth: 0,
-      leading: Icon(icon),
-      iconColor: kRedColor,
-      title: Text(title),
-      tileColor: kGreyColor.withOpacity(0.1),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
       ),
     );
   }

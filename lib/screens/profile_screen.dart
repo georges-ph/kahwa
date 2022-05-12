@@ -1,5 +1,3 @@
-// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
-
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -12,6 +10,7 @@ import 'package:kahwa/models/user.dart' as user_model;
 import 'package:kahwa/utils/colors.dart';
 import 'package:kahwa/utils/sizes.dart';
 import 'package:kahwa/utils/typography.dart';
+import 'package:kahwa/widgets/check_color_box.dart';
 import 'package:kahwa/widgets/input_text.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -42,8 +41,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   late user_model.User _userModel;
   late colors_enum.Colors _checkedColor;
-
-  File? _pickedImage;
 
   bool _isImageLoading = false;
   bool _isLoading = false;
@@ -116,7 +113,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           setState(() {
             _isImageLoading = false;
           });
-          SnackBar snackBar = SnackBar(content: Text("Error uploading image"));
+          SnackBar snackBar =
+              const SnackBar(content: Text("Error uploading image"));
           ScaffoldMessenger.of(context).showSnackBar(snackBar);
           break;
       }
@@ -128,7 +126,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _screenSize = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
-        title: Text("Profile"),
+        title: const Text("Profile"),
       ),
       body: FutureBuilder(
         future: _runFuture,
@@ -189,9 +187,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               _isImageLoading = true;
                             });
                           },
-                          child: Icon(Icons.camera_alt_rounded),
+                          child: const Icon(Icons.camera_alt_rounded),
                           style: TextButton.styleFrom(
-                            shape: CircleBorder(),
+                            shape: const CircleBorder(),
                           ),
                         ),
                       ),
@@ -376,42 +374,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           }
           return const Center(child: CircularProgressIndicator());
         },
-      ),
-    );
-  }
-}
-
-class CheckColorBox extends StatelessWidget {
-  const CheckColorBox({
-    Key? key,
-    required this.color,
-    required this.checkedValue,
-    required this.checked,
-  }) : super(key: key);
-
-  final Color color;
-  final bool checkedValue;
-  final Function(bool) checked;
-
-  @override
-  Widget build(BuildContext context) {
-    bool _checked = checkedValue;
-    return GestureDetector(
-      onTap: () {
-        _checked = !_checked;
-        checked(_checked);
-      },
-      child: Container(
-        width: 40,
-        height: 40,
-        decoration: ShapeDecoration(
-          shape: CircleBorder(),
-          color: color,
-        ),
-        child: Icon(
-          Icons.check_rounded,
-          color: _checked ? kWhiteColor : kTransparentColor,
-        ),
       ),
     );
   }
