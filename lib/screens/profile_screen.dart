@@ -1,8 +1,12 @@
 // ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:kahwa/enums/colors.dart' as colors_enum;
 import 'package:kahwa/models/user.dart' as user_model;
 import 'package:kahwa/utils/colors.dart';
@@ -22,25 +26,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   final FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
+  final FirebaseStorage _firebaseStorage = FirebaseStorage.instance;
 
   late User _user;
   late DocumentReference _appDocument;
+  late final Reference _profilePicturesStorageReference =
+      _firebaseStorage.ref().child("kahwa/Profile Pictures");
 
   late Future<void> _runFuture;
 
-  TextEditingController _nameController = TextEditingController();
-  TextEditingController _aboutMeController = TextEditingController();
-  TextEditingController _websiteController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _aboutMeController = TextEditingController();
+  final TextEditingController _websiteController = TextEditingController();
   // final TextEditingController _linkController = TextEditingController();
-  final TextEditingController _kahwaLbpController = TextEditingController();
-  final TextEditingController _kahwaUsdController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
 
   late user_model.User _userModel;
+  late colors_enum.Colors _checkedColor;
 
+  File? _pickedImage;
+
+  bool _isImageLoading = false;
   bool _isLoading = false;
 
-  colors_enum.Colors _checkedColor = colors_enum.Colors.red;
+  double _uploadProgress = 0;
 
   @override
   void initState() {
@@ -51,28 +59,68 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _nameController.text = _user.displayName!;
   }
 
-  Future<void> _getUserData() async {
-    DocumentSnapshot<Map<String, dynamic>> userDocument =
-        await _appDocument.collection("Users").doc(_user.uid).get();
-    _userModel =
-        user_model.User.fromMap(userDocument.data() as Map<String, dynamic>);
-
-    // _linkController.text = "kahwa.page.link/${_userModel.link_id}";
-    _kahwaLbpController.text = _userModel.kahwa_lbp.toString();
-    _kahwaUsdController.text = _userModel.kahwa_usd.toString();
-    _phoneController.text = _userModel.phone ?? "";
-  }
-
   @override
   void dispose() {
     _nameController.dispose();
     _aboutMeController.dispose();
     _websiteController.dispose();
     // _linkController.dispose();
-    _kahwaLbpController.dispose();
-    _kahwaUsdController.dispose();
-    _phoneController.dispose();
     super.dispose();
+  }
+
+  Future<void> _getUserData() async {
+    DocumentSnapshot<Map<String, dynamic>> userDocument =
+        await _appDocument.collection("Users").doc(_user.uid).get();
+    _userModel =
+        user_model.User.fromMap(userDocument.data() as Map<String, dynamic>);
+
+    _aboutMeController.text = _userModel.about ?? "";
+    _websiteController.text = _userModel.website ?? "";
+    _checkedColor = _userModel.color ?? colors_enum.Colors.red;
+    // _linkController.text = "kahwa.page.link/${_userModel.link_id}";
+  }
+
+  Future<void> _pickImage() async {
+    // Pick image
+    final image = await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (image == null) return;
+    final tempImage = File(image.path);
+
+    // Upload image
+    final userReference =
+        _profilePicturesStorageReference.child("${_user.uid}.jpg");
+    userReference.putFile(tempImage).snapshotEvents.listen((taskSnapshot) {
+      switch (taskSnapshot.state) {
+        case TaskState.running:
+          final progress =
+              taskSnapshot.bytesTransferred / taskSnapshot.totalBytes;
+
+          setState(() {
+            _uploadProgress = progress;
+          });
+          break;
+
+        case TaskState.success:
+          userReference.getDownloadURL().then((url) async {
+            await _user.updatePhotoURL(url);
+            setState(() {
+              _isImageLoading = false;
+            });
+          });
+
+          break;
+
+        case TaskState.error:
+        case TaskState.canceled:
+        default:
+          setState(() {
+            _isImageLoading = false;
+          });
+          SnackBar snackBar = SnackBar(content: Text("Error uploading image"));
+          ScaffoldMessenger.of(context).showSnackBar(snackBar);
+          break;
+      }
+    });
   }
 
   @override
@@ -123,11 +171,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               )
                             : null,
                       ),
+                      Visibility(
+                        visible: _isImageLoading,
+                        child: Positioned.fill(
+                          child: CircularProgressIndicator(
+                            value: _uploadProgress,
+                          ),
+                        ),
+                      ),
                       Positioned(
                         bottom: 0,
                         right: 0,
                         child: ElevatedButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            _pickImage();
+                            setState(() {
+                              _isImageLoading = true;
+                            });
+                          },
                           child: Icon(Icons.camera_alt_rounded),
                           style: TextButton.styleFrom(
                             shape: CircleBorder(),
@@ -267,26 +328,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       onPressed: _isLoading
                           ? null
                           : () async {
-                              if (_kahwaLbpController.text.isEmpty ||
-                                  _kahwaUsdController.text.isEmpty ||
-                                  _phoneController.text.isEmpty) {
-                                SnackBar snackBar = const SnackBar(
-                                    content: Text("Fields cannot be empty"));
-                                ScaffoldMessenger.of(context)
-                                    .showSnackBar(snackBar);
-
-                                return;
-                              }
-
                               setState(() {
                                 _isLoading = true;
                               });
 
-                              _userModel.kahwa_lbp =
-                                  int.parse(_kahwaLbpController.text);
-                              _userModel.kahwa_usd =
-                                  int.parse(_kahwaUsdController.text);
-                              _userModel.phone = _phoneController.text;
+                              if (_user.photoURL != _userModel.image) {
+                                _userModel.image = _user.photoURL;
+                              }
+
+                              if (_nameController.text != _user.displayName) {
+                                await _user
+                                    .updateDisplayName(_nameController.text);
+                                _userModel.name = _nameController.text;
+                              }
+
+                              _userModel.about = _aboutMeController.text;
+                              _userModel.color = _checkedColor;
 
                               await _appDocument
                                   .collection("Users")

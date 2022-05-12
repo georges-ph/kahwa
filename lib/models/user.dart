@@ -1,14 +1,19 @@
 // ignore_for_file: non_constant_identifier_names
 
+import 'package:kahwa/enums/colors.dart';
+
 class User {
   String? id;
   String? name;
   String? email;
   String? image;
+  String? about; // NEW
+  String? website; // NEW
+  // enum
+  Colors? color; // NEW
   int? kahwa_lbp;
   int? kahwa_usd;
   String? phone;
-  bool? creator;
   // String? link_id;
 
   User({
@@ -16,11 +21,12 @@ class User {
     this.name,
     this.email,
     this.image,
+    this.about,
+    this.website,
+    this.color,
     this.kahwa_lbp,
     this.kahwa_usd,
     this.phone,
-    this.creator,
-    // this.link_id,
   });
 
   Map<String, dynamic> toMap() {
@@ -29,25 +35,29 @@ class User {
       'name': name,
       'email': email,
       'image': image,
+      'about': about,
+      'website': website,
+      'color': color?.name,
       'kahwa_lbp': kahwa_lbp,
       'kahwa_usd': kahwa_usd,
       'phone': phone,
-      'creator': creator,
-      // 'link_id': link_id,
     };
   }
 
   factory User.fromMap(Map<String, dynamic> map) {
+    Colors color =
+        Colors.values.firstWhere((element) => element.name == map['color']);
     return User(
       id: map['id'],
       name: map['name'],
       email: map['email'],
       image: map['image'],
+      about: map['about'],
+      website: map['website'],
+      color: map['color'] != null ? color : null,
       kahwa_lbp: map['kahwa_lbp']?.toInt(),
       kahwa_usd: map['kahwa_usd']?.toInt(),
       phone: map['phone'],
-      creator: map['creator'],
-      // link_id: map['link_id'],
     );
   }
 }

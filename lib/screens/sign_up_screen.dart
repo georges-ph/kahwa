@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_keyboard_size/flutter_keyboard_size.dart';
+import 'package:kahwa/enums/colors.dart' as colors_enum;
 import 'package:kahwa/models/user.dart' as user_model;
 import 'package:kahwa/utils/colors.dart';
 import 'package:kahwa/utils/routes.dart';
@@ -35,7 +36,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _isNameErrorVisible = false;
   bool _isEmailErrorVisible = false;
   bool _isPasswordErrorVisible = false;
-  bool _isCreator = false;
 
   bool _isLoading = false;
 
@@ -191,21 +191,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             ),
                           ),
                         ),
-                        CheckboxListTile(
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 4,
-                          ),
-                          title: Text(
-                            "I am a creator",
-                            style: Theme.of(context).textTheme.labelLarge,
-                          ),
-                          value: _isCreator,
-                          onChanged: (checked) {
-                            setState(() {
-                              _isCreator = checked!;
-                            });
-                          },
-                        ),
+                        verticalSpace(),
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
@@ -304,7 +290,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                         kahwa_lbp: 1000,
                                         kahwa_usd: 1,
                                         phone: null,
-                                        creator: _isCreator,
+                                        about: null,
+                                        color: colors_enum.Colors.red,
+                                        website: null,
                                         // link_id: linkId,
                                       );
 
