@@ -21,16 +21,16 @@ class CheckColorBox extends StatelessWidget {
         _checked = !_checked;
         checked(_checked);
       },
-      child: Container(
-        width: 40,
-        height: 40,
-        decoration: ShapeDecoration(
-          shape: const CircleBorder(),
-          color: color,
-        ),
-        child: Icon(
-          Icons.check_rounded,
-          color: _checked ? kWhiteColor : kTransparentColor,
+      child: ClipOval(
+        child: SizedBox.square(
+          dimension: 40,
+          child: ColoredBox(
+            color: color,
+            child: Icon(
+              Icons.check_rounded,
+              color: _checked ? kWhiteColor : kTransparentColor,
+            ),
+          ),
         ),
       ),
     );
