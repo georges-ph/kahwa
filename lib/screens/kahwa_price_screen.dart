@@ -1,5 +1,3 @@
-// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -17,19 +15,18 @@ class KahwaPriceScreen extends StatefulWidget {
 }
 
 class _KahwaPriceScreenState extends State<KahwaPriceScreen> {
-  FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   final FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
 
   late User _user;
   late DocumentReference _appDocument;
   late DocumentReference<Map<String, dynamic>> _userDocument;
-  late Future<DocumentSnapshot> _getUserDoc;
 
   late Future<void> _runFuture;
 
-  TextEditingController _lbpController = TextEditingController();
-  TextEditingController _usdController = TextEditingController();
-  TextEditingController _thankYouController = TextEditingController();
+  final TextEditingController _lbpController = TextEditingController();
+  final TextEditingController _usdController = TextEditingController();
+  final TextEditingController _thankYouController = TextEditingController();
 
   late user_model.User _userModel;
 
@@ -74,7 +71,7 @@ class _KahwaPriceScreenState extends State<KahwaPriceScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("kahwa Price"),
+        title: const Text("kahwa Price"),
       ),
       body: FutureBuilder(
         future: _runFuture,
@@ -91,8 +88,8 @@ class _KahwaPriceScreenState extends State<KahwaPriceScreen> {
 
           if (snapshot.connectionState == ConnectionState.done) {
             return SingleChildScrollView(
-              padding: EdgeInsets.all(24),
-              physics: BouncingScrollPhysics(),
+              padding: const EdgeInsets.all(24),
+              physics: const BouncingScrollPhysics(),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
