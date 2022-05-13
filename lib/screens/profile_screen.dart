@@ -330,18 +330,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 _isLoading = true;
                               });
 
-                              if (_user.photoURL != _userModel.image) {
-                                _userModel.image = _user.photoURL;
-                              }
-
-                              if (_nameController.text != _user.displayName) {
-                                await _user
-                                    .updateDisplayName(_nameController.text);
-                                _userModel.name = _nameController.text;
-                              }
-
+                              _userModel.image = _user.photoURL;
+                              _userModel.name = _nameController.text;
                               _userModel.about = _aboutMeController.text;
                               _userModel.color = _checkedColor;
+
+                              await _user
+                                  .updateDisplayName(_nameController.text);
 
                               await _appDocument
                                   .collection("Users")

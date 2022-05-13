@@ -19,26 +19,26 @@ class SettingsScreen extends StatelessWidget {
         child: Column(
           children: [
             verticalSpace(height: 40),
-            SettingsCard(
-              onTap: () => Navigator.pushNamed(context, routeProfile),
+            const SettingsCard(
+              route: routeProfile,
               icon: Icons.person_rounded,
               title: "Profile",
             ),
             verticalSpace(height: 16),
-            SettingsCard(
-              onTap: () {},
+            const SettingsCard(
+              route: routeKahwaPrice,
               icon: Icons.money_rounded,
               title: "kahwa Price",
             ),
             verticalSpace(height: 16),
-            SettingsCard(
-              onTap: () {},
+            const SettingsCard(
+              route: "",
               icon: Icons.account_balance_rounded,
               title: "Balance",
             ),
             verticalSpace(height: 16),
-            SettingsCard(
-              onTap: () {},
+            const SettingsCard(
+              route: "",
               icon: Icons.contact_mail_rounded,
               title: "Billing Details",
             ),

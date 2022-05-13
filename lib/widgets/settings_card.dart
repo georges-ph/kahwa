@@ -6,17 +6,17 @@ class SettingsCard extends StatelessWidget {
     Key? key,
     required this.icon,
     required this.title,
-    required this.onTap,
+    required this.route,
   }) : super(key: key);
 
   final IconData icon;
   final String title;
-  final Function() onTap;
+  final String route;
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      onTap: onTap,
+      onTap: () => Navigator.pushNamed(context, route),
       contentPadding: const EdgeInsets.symmetric(
         horizontal: 24,
       ),

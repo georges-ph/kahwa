@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_keyboard_size/flutter_keyboard_size.dart';
 import 'package:kahwa/enums/colors.dart' as colors_enum;
+import 'package:kahwa/models/kahwa_prices.dart';
 import 'package:kahwa/models/user.dart' as user_model;
 import 'package:kahwa/utils/colors.dart';
 import 'package:kahwa/utils/routes.dart';
@@ -287,8 +288,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                         email: _emailController.text,
                                         image: null,
                                         id: credential.user!.uid,
-                                        kahwa_lbp: 1000,
-                                        kahwa_usd: 1,
+                                        kahwa_prices: KahwaPrices(
+                                          lbp: 1000,
+                                          usd: 1,
+                                          thanks_message: null,
+                                        ),
                                         phone: null,
                                         about: null,
                                         color: colors_enum.Colors.red,

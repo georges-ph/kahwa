@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:kahwa/screens/donate_screens.dart';
+import 'package:kahwa/screens/donate_screen.dart';
 import 'package:kahwa/screens/forgot_password_screen.dart';
 import 'package:kahwa/screens/home_screen.dart';
+import 'package:kahwa/screens/kahwa_price_screen.dart';
 import 'package:kahwa/screens/login_screen.dart';
 import 'package:kahwa/screens/profile_screen.dart';
 import 'package:kahwa/screens/settings_screen.dart';
@@ -13,9 +14,10 @@ const routeSignUp = "/sign-up";
 const routeLogIn = "/log-in";
 const routeForgotPassword = "/forgot-password";
 const routeHome = "/home";
-const routeProfile = "/profile";
 const routeDonate = "/donate";
 const routeSettings = "/settings";
+const routeProfile = "/profile";
+const routeKahwaPrice = "/kahwa-price";
 
 Map<String, WidgetBuilder> routes = {
   routeSplash: (context) => const SplashScreen(),
@@ -23,9 +25,10 @@ Map<String, WidgetBuilder> routes = {
   routeLogIn: (context) => const LogInScreen(),
   routeForgotPassword: (context) => const ForgotPasswordScreen(),
   routeHome: (context) => const HomeScreen(),
-  routeProfile: (context) => const ProfileScreen(),
   // routeDonate: (context) => const DonateScreen(), // Cannot keep this because it conflicts with onGenerateRoute
   routeSettings: (context) => const SettingsScreen(),
+  routeProfile: (context) => const ProfileScreen(),
+  routeKahwaPrice: (context) => const KahwaPriceScreen(),
 };
 
 Route<dynamic>? onGenerateRoute(settings) {

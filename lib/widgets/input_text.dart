@@ -21,6 +21,8 @@ class InputText extends StatelessWidget {
     this.maxLines = 1,
     this.enableInteractiveSelection = true,
     this.title,
+    this.subtitle,
+    this.prefixText,
   }) : super(key: key);
 
   final String? hint;
@@ -38,6 +40,8 @@ class InputText extends StatelessWidget {
   final int? maxLines;
   final bool? enableInteractiveSelection;
   final String? title;
+  final String? subtitle;
+  final String? prefixText;
 
   @override
   Widget build(BuildContext context) {
@@ -52,6 +56,8 @@ class InputText extends StatelessWidget {
                       fontWeight: kSemiBoldFontWeight,
                     ),
               ),
+        subtitle == null ? Container() : verticalSpace(height: 8),
+        subtitle == null ? Container() : Text(subtitle!),
         title == null ? Container() : verticalSpace(height: 16),
         Container(
           padding: EdgeInsets.only(
@@ -87,6 +93,19 @@ class InputText extends StatelessWidget {
                         color: iconColor,
                       ),
                     )
+                  : prefixText != null
+                      ? Padding(
+                          padding: const EdgeInsetsDirectional.only(end: 16),
+                          child: Text(
+                            prefixText!,
+                            style: const TextStyle(
+                              color: kRedColor,
+                            ),
+                          ),
+                        )
+                      : null,
+              prefixIconConstraints: prefixText != null
+                  ? const BoxConstraints(minWidth: 0, minHeight: 0)
                   : null,
               suffixIcon: suffixIcon != null
                   ? GestureDetector(

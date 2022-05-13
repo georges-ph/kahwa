@@ -211,7 +211,7 @@ class _LogInScreenState extends State<LogInScreen> {
                                       );
 
                                       Navigator.pushReplacementNamed(
-                                          context, routeProfile);
+                                          context, routeSplash);
                                     } on FirebaseAuthException catch (e) {
                                       if (e.code == "invalid-email") {
                                         setState(() {

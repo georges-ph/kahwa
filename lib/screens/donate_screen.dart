@@ -241,8 +241,8 @@ class _DonateScreenState extends State<DonateScreen> {
                                       .FirebaseAuth.instance.currentUser!.uid,
                                   currency: _selectedCurrency,
                                   kahwa_price: _selectedCurrency == Currency.lbp
-                                      ? creator.kahwa_lbp
-                                      : creator.kahwa_usd,
+                                      ? creator.kahwa_prices!.lbp
+                                      : creator.kahwa_prices!.usd,
                                   kahwas: int.parse(_kahwasController.text),
                                   keep_private: _keepPrivate,
                                   message: _messageController.text,
@@ -290,10 +290,11 @@ class _DonateScreenState extends State<DonateScreen> {
 
   num _calculate(User creator) {
     if (_selectedCurrency == Currency.lbp) {
-      return creator.kahwa_lbp! * int.parse(_kahwasController.text).toDouble();
+      return creator.kahwa_prices!.lbp! *
+          int.parse(_kahwasController.text).toDouble();
     } else {
-      double price =
-          creator.kahwa_usd! * int.parse(_kahwasController.text).toDouble();
+      double price = creator.kahwa_prices!.usd! *
+          int.parse(_kahwasController.text).toDouble();
       if (_payFee) {
         price = price / (1 - 0.06);
         return double.parse(price.toStringAsFixed(2));
