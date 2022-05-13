@@ -32,7 +32,7 @@ class SettingsScreen extends StatelessWidget {
             ),
             verticalSpace(height: 16),
             const SettingsCard(
-              route: "",
+              route: routeBalance,
               icon: Icons.account_balance_rounded,
               title: "Balance",
             ),

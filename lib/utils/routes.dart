@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kahwa/screens/balance_screen.dart';
 import 'package:kahwa/screens/donate_screen.dart';
 import 'package:kahwa/screens/forgot_password_screen.dart';
 import 'package:kahwa/screens/home_screen.dart';
@@ -18,6 +19,7 @@ const routeDonate = "/donate";
 const routeSettings = "/settings";
 const routeProfile = "/profile";
 const routeKahwaPrice = "/kahwa-price";
+const routeBalance = "/balance";
 
 Map<String, WidgetBuilder> routes = {
   routeSplash: (context) => const SplashScreen(),
@@ -29,6 +31,7 @@ Map<String, WidgetBuilder> routes = {
   routeSettings: (context) => const SettingsScreen(),
   routeProfile: (context) => const ProfileScreen(),
   routeKahwaPrice: (context) => const KahwaPriceScreen(),
+  routeBalance: (context) => const BalanceScreen(),
 };
 
 Route<dynamic>? onGenerateRoute(settings) {
