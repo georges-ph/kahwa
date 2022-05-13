@@ -3,6 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_keyboard_size/flutter_keyboard_size.dart';
 import 'package:kahwa/enums/colors.dart' as colors_enum;
+import 'package:kahwa/models/balance.dart';
+import 'package:kahwa/models/billing_details.dart';
 import 'package:kahwa/models/kahwa_prices.dart';
 import 'package:kahwa/models/user.dart' as user_model;
 import 'package:kahwa/utils/colors.dart';
@@ -292,6 +294,22 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                           lbp: 1000,
                                           usd: 1,
                                           thanks_message: null,
+                                        ),
+                                        balance: Balance(
+                                          available_withdraw_lbp: 0,
+                                          available_withdraw_usd: 0,
+                                          current_lbp: 0,
+                                          current_usd: 0,
+                                          received_lbp: 0,
+                                          received_usd: 0,
+                                          spent_lbp: 0,
+                                          spent_usd: 0,
+                                        ),
+                                        billing_details: BillingDetails(
+                                          first_name: null,
+                                          last_name: null,
+                                          phone: null,
+                                          whish_phone: null,
                                         ),
                                         phone: null,
                                         about: null,
