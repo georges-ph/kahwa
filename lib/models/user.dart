@@ -3,6 +3,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:kahwa/enums/colors.dart';
 import 'package:kahwa/models/balance.dart';
+import 'package:kahwa/models/billing_details.dart';
 import 'package:kahwa/models/kahwa_prices.dart';
 
 class User {
@@ -20,6 +21,7 @@ class User {
   // String? link_id;
   KahwaPrices? kahwa_prices;
   Balance? balance;
+  BillingDetails? billing_details;
 
   User({
     this.id,
@@ -34,6 +36,7 @@ class User {
     this.phone,
     this.kahwa_prices,
     this.balance,
+    this.billing_details,
   });
 
   Map<String, dynamic> toMap() {
@@ -50,6 +53,7 @@ class User {
       'phone': phone,
       'kahwa_prices': kahwa_prices?.toMap(),
       'balance': balance?.toMap(),
+      'billing_details': billing_details?.toMap(),
     };
   }
 
@@ -66,7 +70,8 @@ class User {
         // kahwa_usd = snapshot.data()?['kahwa_usd'],
         phone = snapshot.data()?['phone'],
         kahwa_prices = snapshot.data()?['kahwa_prices'],
-        balance = snapshot.data()?['balance'];
+        balance = snapshot.data()?['balance'],
+        billing_details = snapshot.data()?['billing_details'];
 
   Map<String, dynamic> toFirestore() {
     return {
@@ -82,6 +87,7 @@ class User {
       'phone': phone,
       'kahwa_prices': kahwa_prices,
       'balance': balance,
+      'billing_details': billing_details,
     };
   }
 
@@ -103,6 +109,9 @@ class User {
           ? KahwaPrices.fromMap(map['kahwa_prices'])
           : null,
       balance: map['balance'] != null ? Balance.fromMap(map['balance']) : null,
+      billing_details: map['billing_details'] != null
+          ? BillingDetails.fromMap(map['billing_details'])
+          : null,
     );
   }
 }

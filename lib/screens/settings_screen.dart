@@ -38,7 +38,7 @@ class SettingsScreen extends StatelessWidget {
             ),
             verticalSpace(height: 16),
             const SettingsCard(
-              route: "",
+              route: routeBillingDetails,
               icon: Icons.contact_mail_rounded,
               title: "Billing Details",
             ),
