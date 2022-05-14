@@ -318,7 +318,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                           target: null,
                                           title: null,
                                         ),
-                                        phone: null,
+                                        fans: [],
                                         about: null,
                                         color: colors_enum.Colors.red,
                                         website: null,

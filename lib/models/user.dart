@@ -12,13 +12,10 @@ class User {
   String? name;
   String? email;
   String? image;
-  String? about; // NEW
-  String? website; // NEW
+  String? about;
+  String? website;
   // enum
-  Colors? color; // NEW
-  // int? kahwa_lbp;
-  // int? kahwa_usd;
-  String? phone;
+  Colors? color; 
   // String? link_id;
   KahwaPrices? kahwa_prices;
   Balance? balance;
@@ -27,8 +24,6 @@ class User {
   List<FanSupporter>? fans;
 
   User({
-    // this.kahwa_lbp,
-    // this.kahwa_usd,
     this.id,
     this.name,
     this.email,
@@ -36,7 +31,6 @@ class User {
     this.about,
     this.website,
     this.color,
-    this.phone,
     this.kahwa_prices,
     this.balance,
     this.billing_details,
@@ -53,9 +47,6 @@ class User {
       'about': about,
       'website': website,
       'color': color?.name,
-      // 'kahwa_lbp': kahwa_lbp,
-      // 'kahwa_usd': kahwa_usd,
-      'phone': phone,
       'kahwa_prices': kahwa_prices?.toMap(),
       'balance': balance?.toMap(),
       'billing_details': billing_details?.toMap(),
@@ -75,9 +66,6 @@ class User {
       about: map['about'],
       website: map['website'],
       color: map['color'] != null ? color : null,
-      // kahwa_lbp: map['kahwa_lbp']?.toInt(),
-      // kahwa_usd: map['kahwa_usd']?.toInt(),
-      phone: map['phone'],
       kahwa_prices: map['kahwa_prices'] != null
           ? KahwaPrices.fromMap(map['kahwa_prices'])
           : null,

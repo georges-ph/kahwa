@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:kahwa/models/donation.dart';
 import 'package:kahwa/models/fan_supporter.dart';
 import 'package:kahwa/models/user.dart' as user_model;
+import 'package:kahwa/screen_arguments/fans_supporters_args.dart';
 import 'package:kahwa/utils/colors.dart';
 import 'package:kahwa/utils/routes.dart';
 import 'package:kahwa/utils/sizes.dart';
@@ -149,15 +150,37 @@ class _CreatorScreenState extends State<CreatorScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      CreatorCounterCard(
-                        counter: _userModel.fans!.length,
-                        title: _userModel.fans!.length == 1 ? "Fan" : "Fans",
+                      GestureDetector(
+                        onTap: () => Navigator.pushNamed(
+                          context,
+                          routeFansSupporters,
+                          arguments: FansSupportersArgs(
+                            title:
+                                "${_userModel.fans!.length} ${_userModel.fans!.length == 1 ? "Fan" : "Fans"}",
+                            list: _userModel.fans!,
+                          ),
+                        ),
+                        child: CreatorCounterCard(
+                          counter: _userModel.fans!.length,
+                          title: _userModel.fans!.length == 1 ? "Fan" : "Fans",
+                        ),
                       ),
-                      CreatorCounterCard(
-                        counter: _supportersList.length,
-                        title: _supportersList.length == 1
-                            ? "Supporter"
-                            : "Supporters",
+                      GestureDetector(
+                        onTap: () => Navigator.pushNamed(
+                          context,
+                          routeFansSupporters,
+                          arguments: FansSupportersArgs(
+                            title:
+                                "${_supportersList.length} ${_supportersList.length == 1 ? "Supporter" : "Supporters"}",
+                            list: _userModel.fans!,
+                          ),
+                        ),
+                        child: CreatorCounterCard(
+                          counter: _supportersList.length,
+                          title: _supportersList.length == 1
+                              ? "Supporter"
+                              : "Supporters",
+                        ),
                       ),
                       CreatorCounterCard(
                         counter: _kahwas,
