@@ -4,9 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:kahwa/models/donation.dart';
-import 'package:kahwa/models/supporter.dart';
+import 'package:kahwa/models/fan_supporter.dart';
 import 'package:kahwa/models/user.dart' as user_model;
-import 'package:kahwa/screen_arguments/fans_supporters_args.dart';
 import 'package:kahwa/utils/colors.dart';
 import 'package:kahwa/utils/routes.dart';
 import 'package:kahwa/utils/sizes.dart';
@@ -33,7 +32,7 @@ class _CreatorScreenState extends State<CreatorScreen> {
   late Size _screenSize;
 
   final List<Donation> _donationsList = [];
-  final List<Supporter> _supportersList = [];
+  final List<String> _supportersList = [];
 
   int _kahwas = 0;
 
@@ -64,8 +63,8 @@ class _CreatorScreenState extends State<CreatorScreen> {
       _donationsList.forEach((donation) {
         _kahwas += donation.kahwas!;
 
-        if (!_supportersList.contains(donation.supporter!)) {
-          _supportersList.add(donation.supporter!);
+        if (!_supportersList.contains(donation.supporter!.id)) {
+          _supportersList.add(donation.supporter!.id!);
         }
       });
     });
@@ -98,7 +97,6 @@ class _CreatorScreenState extends State<CreatorScreen> {
         future: _runFuture,
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            print(snapshot.error);
             return Center(
               child: Text(
                 "Error getting data",
@@ -151,43 +149,15 @@ class _CreatorScreenState extends State<CreatorScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      GestureDetector(
-                        onTap: () => _userModel.id != _user.uid
-                            ? null
-                            : Navigator.pushNamed(
-                                context,
-                                routeFansSupporters,
-                                arguments: FansSupportersArgs(
-                                  title: _userModel.fans!.length == 1
-                                      ? "Fan"
-                                      : "Fans",
-                                  list: _userModel.fans!,
-                                ),
-                              ),
-                        child: CreatorCounterCard(
-                          counter: _userModel.fans!.length,
-                          title: _userModel.fans!.length == 1 ? "Fan" : "Fans",
-                        ),
+                      CreatorCounterCard(
+                        counter: _userModel.fans!.length,
+                        title: _userModel.fans!.length == 1 ? "Fan" : "Fans",
                       ),
-                      GestureDetector(
-                        onTap: () => _userModel.id != _user.uid
-                            ? null
-                            : Navigator.pushNamed(
-                                context,
-                                routeFansSupporters,
-                                arguments: FansSupportersArgs(
-                                  title: _supportersList.length == 1
-                                      ? "Supporter"
-                                      : "Supporters",
-                                  list: _supportersList,
-                                ),
-                              ),
-                        child: CreatorCounterCard(
-                          counter: _supportersList.length,
-                          title: _supportersList.length == 1
-                              ? "Supporter"
-                              : "Supporters",
-                        ),
+                      CreatorCounterCard(
+                        counter: _supportersList.length,
+                        title: _supportersList.length == 1
+                            ? "Supporter"
+                            : "Supporters",
                       ),
                       CreatorCounterCard(
                         counter: _kahwas,
@@ -215,16 +185,21 @@ class _CreatorScreenState extends State<CreatorScreen> {
                       horizontalSpace(width: 16),
                       GestureDetector(
                         onTap: () async {
-                         Supporter supporter= Supporter(
-                              id: _user.uid,
-                              name: _user.displayName,
-                              image: _user.photoURL,
-                            );
+                          List<FanSupporter> fans = _userModel.fans!
+                              .where((fan) => fan.id == _user.uid)
+                              .toList();
 
-                          if (_userModel.fans!.contains(supporter)) {
-                            _userModel.fans!.remove(supporter);
+                          if (fans.isNotEmpty) {
+                            _userModel.fans!
+                                .removeWhere((fan) => fan == fans.first);
                           } else {
-                            _userModel.fans!.add(supporter);
+                            _userModel.fans!.add(
+                              FanSupporter(
+                                id: _user.uid,
+                                image: _user.photoURL,
+                                name: _user.displayName,
+                              ),
+                            );
                           }
 
                           setState(() {});
@@ -251,7 +226,9 @@ class _CreatorScreenState extends State<CreatorScreen> {
                             child: Column(
                               children: [
                                 Icon(
-                                  _userModel.fans!.contains(_user.uid)
+                                  _userModel.fans!
+                                          .where((fan) => fan.id == _user.uid)
+                                          .isNotEmpty
                                       ? Icons.favorite_rounded
                                       : Icons.favorite_border_rounded,
                                   color: kRedColor,

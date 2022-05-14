@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:kahwa/enums/currency.dart';
 import 'package:kahwa/models/donation.dart';
-import 'package:kahwa/models/supporter.dart';
+import 'package:kahwa/models/fan_supporter.dart';
 import 'package:kahwa/models/user.dart';
 import 'package:kahwa/utils/colors.dart';
 import 'package:kahwa/utils/sizes.dart';
@@ -243,11 +243,6 @@ class _DonateScreenState extends State<DonateScreen> {
 
                               Donation donation = Donation(
                                 creator_id: widget.creatorId,
-                                supporter: Supporter(
-                                  id: _user.uid,
-                                  name: _user.displayName,
-                                  image: _user.photoURL,
-                                ),
                                 currency: _selectedCurrency,
                                 kahwa_price: _selectedCurrency == Currency.lbp
                                     ? creator.kahwa_prices!.lbp
@@ -258,6 +253,11 @@ class _DonateScreenState extends State<DonateScreen> {
                                 pay_fee: _payFee,
                                 total: _calculate(creator),
                                 timestamp: Timestamp.now(),
+                                supporter: FanSupporter(
+                                  id: _user.uid,
+                                  name: _user.displayName,
+                                  image: _user.photoURL,
+                                ),
                               );
 
                               await _appDocument

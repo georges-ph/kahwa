@@ -3,9 +3,9 @@
 import 'package:kahwa/enums/colors.dart';
 import 'package:kahwa/models/balance.dart';
 import 'package:kahwa/models/billing_details.dart';
+import 'package:kahwa/models/fan_supporter.dart';
 import 'package:kahwa/models/goal.dart';
 import 'package:kahwa/models/kahwa_prices.dart';
-import 'package:kahwa/models/supporter.dart';
 
 class User {
   String? id;
@@ -24,7 +24,7 @@ class User {
   Balance? balance;
   BillingDetails? billing_details;
   Goal? goal;
-  List<Supporter>? fans;
+  List<FanSupporter>? fans;
 
   User({
     // this.kahwa_lbp,
@@ -60,8 +60,37 @@ class User {
       'balance': balance?.toMap(),
       'billing_details': billing_details?.toMap(),
       'goal': goal?.toMap(),
-      'fans': fans?.map((fan) => fan.toMap()).toList(),
+      'fans': fans?.map((x) => x.toMap()).toList(),
     };
+  }
+
+  factory User.fromMap(Map<String, dynamic> map) {
+    Colors color =
+        Colors.values.firstWhere((element) => element.name == map['color']);
+    return User(
+      id: map['id'],
+      name: map['name'],
+      email: map['email'],
+      image: map['image'],
+      about: map['about'],
+      website: map['website'],
+      color: map['color'] != null ? color : null,
+      // kahwa_lbp: map['kahwa_lbp']?.toInt(),
+      // kahwa_usd: map['kahwa_usd']?.toInt(),
+      phone: map['phone'],
+      kahwa_prices: map['kahwa_prices'] != null
+          ? KahwaPrices.fromMap(map['kahwa_prices'])
+          : null,
+      balance: map['balance'] != null ? Balance.fromMap(map['balance']) : null,
+      billing_details: map['billing_details'] != null
+          ? BillingDetails.fromMap(map['billing_details'])
+          : null,
+      goal: map['goal'] != null ? Goal.fromMap(map['goal']) : null,
+      fans: map['fans'] != null
+          ? List<FanSupporter>.from(
+              map['fans']?.map((x) => FanSupporter.fromMap(x)))
+          : null,
+    );
   }
 
   // User.fromFirestore(
@@ -99,30 +128,4 @@ class User {
   //     'goal': goal,
   //   };
   // }
-
-  factory User.fromMap(Map<String, dynamic> map) {
-    Colors color =
-        Colors.values.firstWhere((element) => element.name == map['color']);
-    return User(
-      id: map['id'],
-      name: map['name'],
-      email: map['email'],
-      image: map['image'],
-      about: map['about'],
-      website: map['website'],
-      color: map['color'] != null ? color : null,
-      // kahwa_lbp: map['kahwa_lbp']?.toInt(),
-      // kahwa_usd: map['kahwa_usd']?.toInt(),
-      phone: map['phone'],
-      kahwa_prices: map['kahwa_prices'] != null
-          ? KahwaPrices.fromMap(map['kahwa_prices'])
-          : null,
-      balance: map['balance'] != null ? Balance.fromMap(map['balance']) : null,
-      billing_details: map['billing_details'] != null
-          ? BillingDetails.fromMap(map['billing_details'])
-          : null,
-      goal: map['goal'] != null ? Goal.fromMap(map['goal']) : null,
-      fans: List<Supporter>.from(map['fans']),
-    );
-  }
 }

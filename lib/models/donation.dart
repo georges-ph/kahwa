@@ -2,10 +2,9 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:kahwa/enums/currency.dart';
-import 'package:kahwa/models/supporter.dart';
+import 'package:kahwa/models/fan_supporter.dart';
 
 class Donation {
-  Supporter? supporter;
   String? creator_id;
   int? kahwa_price;
   int? kahwas;
@@ -16,9 +15,9 @@ class Donation {
   bool? keep_private;
   num? total;
   Timestamp? timestamp;
+  FanSupporter? supporter;
 
   Donation({
-    this.supporter,
     this.creator_id,
     this.kahwa_price,
     this.kahwas,
@@ -28,11 +27,11 @@ class Donation {
     this.keep_private,
     this.total,
     this.timestamp,
+    this.supporter,
   });
 
   Map<String, dynamic> toMap() {
     return {
-      'supporter': supporter?.toMap(),
       'creator_id': creator_id,
       'kahwa_price': kahwa_price,
       'kahwas': kahwas,
@@ -42,6 +41,7 @@ class Donation {
       'keep_private': keep_private,
       'total': total,
       'timestamp': timestamp,
+      'supporter': supporter?.toMap(),
     };
   }
 
@@ -49,8 +49,6 @@ class Donation {
     Currency currency = Currency.values
         .firstWhere((element) => element.name == map['currency']);
     return Donation(
-      supporter:
-          map['supporter'] != null ? Supporter.fromMap(map['supporter']) : null,
       creator_id: map['creator_id'],
       kahwa_price: map['kahwa_price']?.toInt(),
       kahwas: map['kahwas']?.toInt(),
@@ -60,6 +58,9 @@ class Donation {
       keep_private: map['keep_private'],
       total: map['total'],
       timestamp: map['timestamp'],
+      supporter: map['supporter'] != null
+          ? FanSupporter.fromMap(map['supporter'])
+          : null,
     );
   }
 }

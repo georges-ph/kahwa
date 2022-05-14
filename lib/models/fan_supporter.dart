@@ -1,27 +1,27 @@
-class Supporter {
+class FanSupporter {
   String? id;
-  String? image;
   String? name;
+  String? image;
 
-  Supporter({
+  FanSupporter({
     this.id,
-    this.image,
     this.name,
+    this.image,
   });
 
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'image': image,
       'name': name,
+      'image': image,
     };
   }
 
-  factory Supporter.fromMap(Map<String, dynamic> map) {
-    return Supporter(
+  factory FanSupporter.fromMap(Map<String, dynamic> map) {
+    return FanSupporter(
       id: map['id'],
-      image: map['image'],
       name: map['name'],
+      image: map['image'],
     );
   }
 }
