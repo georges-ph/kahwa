@@ -5,6 +5,7 @@ import 'package:flutter_keyboard_size/flutter_keyboard_size.dart';
 import 'package:kahwa/enums/colors.dart' as colors_enum;
 import 'package:kahwa/models/balance.dart';
 import 'package:kahwa/models/billing_details.dart';
+import 'package:kahwa/models/goal.dart';
 import 'package:kahwa/models/kahwa_prices.dart';
 import 'package:kahwa/models/user.dart' as user_model;
 import 'package:kahwa/utils/colors.dart';
@@ -310,6 +311,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                           last_name: null,
                                           phone: null,
                                           whish_phone: null,
+                                        ),
+                                        goal: Goal(
+                                          current: null,
+                                          description: null,
+                                          target: null,
+                                          title: null,
                                         ),
                                         phone: null,
                                         about: null,

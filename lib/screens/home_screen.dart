@@ -54,21 +54,28 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: () => Navigator.pushNamed(context, routeSettings),
             icon: Icon(Icons.settings_rounded),
           ),
-          CircleAvatar(
-            backgroundColor: kRedColor,
-            backgroundImage:
-                _user.photoURL != null ? NetworkImage(_user.photoURL!) : null,
-            child: _user.photoURL == null
-                ? Text(
-                    getInitials(_user.displayName!),
-                    style: TextStyle(
-                      color: kWhiteColor,
-                    ),
-                    // style: Theme.of(context).textTheme.displaySmall!.copyWith(
-                    //       color: kWhiteColor,
-                    //     ),
-                  )
-                : null,
+          GestureDetector(
+            onTap: () => Navigator.pushNamed(
+              context,
+              routeCreator,
+              arguments: _user.uid,
+            ),
+            child: CircleAvatar(
+              backgroundColor: kRedColor,
+              backgroundImage:
+                  _user.photoURL != null ? NetworkImage(_user.photoURL!) : null,
+              child: _user.photoURL == null
+                  ? Text(
+                      getInitials(_user.displayName!),
+                      style: TextStyle(
+                        color: kWhiteColor,
+                      ),
+                      // style: Theme.of(context).textTheme.displaySmall!.copyWith(
+                      //       color: kWhiteColor,
+                      //     ),
+                    )
+                  : null,
+            ),
           ),
           horizontalSpace(),
         ],

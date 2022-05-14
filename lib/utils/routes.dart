@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:kahwa/screen_arguments/fans_supporters_args.dart';
 import 'package:kahwa/screens/balance_screen.dart';
 import 'package:kahwa/screens/billing_details_screen.dart';
+import 'package:kahwa/screens/creator_screen.dart';
 import 'package:kahwa/screens/donate_screen.dart';
+import 'package:kahwa/screens/fans_supporters_screen.dart';
 import 'package:kahwa/screens/forgot_password_screen.dart';
 import 'package:kahwa/screens/home_screen.dart';
 import 'package:kahwa/screens/kahwa_price_screen.dart';
@@ -22,6 +25,8 @@ const routeProfile = "/profile";
 const routeKahwaPrice = "/kahwa-price";
 const routeBalance = "/balance";
 const routeBillingDetails = "/billing-details";
+const routeCreator = "/creator";
+const routeFansSupporters = "/fans-supporters";
 
 Map<String, WidgetBuilder> routes = {
   routeSplash: (context) => const SplashScreen(),
@@ -35,15 +40,28 @@ Map<String, WidgetBuilder> routes = {
   routeKahwaPrice: (context) => const KahwaPriceScreen(),
   routeBalance: (context) => const BalanceScreen(),
   routeBillingDetails: (context) => const BillingDetailsScreen(),
+  // routeCreator: (context) => const CreatorScreen(),
+  // routeFansSupporters: (context) => const FansSupportersScreen(),
 };
 
 Route<dynamic>? onGenerateRoute(settings) {
+  late Widget page;
   if (settings.name == routeDonate) {
-    return MaterialPageRoute(
-      builder: (context) => DonateScreen(
-        creatorId: settings.arguments as String,
-      ),
+    page = DonateScreen(
+      creatorId: settings.arguments as String,
+    );
+  } else if (settings.name == routeCreator) {
+    page = CreatorScreen(
+      creatorId: settings.arguments as String,
+    );
+  } else if (settings.name == routeFansSupporters) {
+    final args = settings.arguments as FansSupportersArgs;
+    page = FansSupportersScreen(
+      title: args.title,
+      list: args.list,
     );
   }
-  return null;
+  return MaterialPageRoute(
+    builder: (context) => page,
+  );
 }

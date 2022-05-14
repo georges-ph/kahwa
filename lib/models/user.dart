@@ -1,10 +1,11 @@
 // ignore_for_file: non_constant_identifier_names
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:kahwa/enums/colors.dart';
 import 'package:kahwa/models/balance.dart';
 import 'package:kahwa/models/billing_details.dart';
+import 'package:kahwa/models/goal.dart';
 import 'package:kahwa/models/kahwa_prices.dart';
+import 'package:kahwa/models/supporter.dart';
 
 class User {
   String? id;
@@ -22,8 +23,12 @@ class User {
   KahwaPrices? kahwa_prices;
   Balance? balance;
   BillingDetails? billing_details;
+  Goal? goal;
+  List<Supporter>? fans;
 
   User({
+    // this.kahwa_lbp,
+    // this.kahwa_usd,
     this.id,
     this.name,
     this.email,
@@ -31,12 +36,12 @@ class User {
     this.about,
     this.website,
     this.color,
-    // this.kahwa_lbp,
-    // this.kahwa_usd,
     this.phone,
     this.kahwa_prices,
     this.balance,
     this.billing_details,
+    this.goal,
+    this.fans,
   });
 
   Map<String, dynamic> toMap() {
@@ -54,42 +59,46 @@ class User {
       'kahwa_prices': kahwa_prices?.toMap(),
       'balance': balance?.toMap(),
       'billing_details': billing_details?.toMap(),
+      'goal': goal?.toMap(),
+      'fans': fans?.map((fan) => fan.toMap()).toList(),
     };
   }
 
-  User.fromFirestore(
-      DocumentSnapshot<Map<String, dynamic>> snapshot, SnapshotOptions? options)
-      : id = snapshot.data()?['id'],
-        name = snapshot.data()?['name'],
-        email = snapshot.data()?['email'],
-        image = snapshot.data()?['image'],
-        about = snapshot.data()?['about'],
-        website = snapshot.data()?['website'],
-        color = snapshot.data()?['color'],
-        // kahwa_lbp = snapshot.data()?['kahwa_lbp'],
-        // kahwa_usd = snapshot.data()?['kahwa_usd'],
-        phone = snapshot.data()?['phone'],
-        kahwa_prices = snapshot.data()?['kahwa_prices'],
-        balance = snapshot.data()?['balance'],
-        billing_details = snapshot.data()?['billing_details'];
+  // User.fromFirestore(
+  //     DocumentSnapshot<Map<String, dynamic>> snapshot, SnapshotOptions? options)
+  //     : id = snapshot.data()?['id'],
+  //       name = snapshot.data()?['name'],
+  //       email = snapshot.data()?['email'],
+  //       image = snapshot.data()?['image'],
+  //       about = snapshot.data()?['about'],
+  //       website = snapshot.data()?['website'],
+  //       color = snapshot.data()?['color'],
+  //       // kahwa_lbp = snapshot.data()?['kahwa_lbp'],
+  //       // kahwa_usd = snapshot.data()?['kahwa_usd'],
+  //       phone = snapshot.data()?['phone'],
+  //       kahwa_prices = snapshot.data()?['kahwa_prices'],
+  //       balance = snapshot.data()?['balance'],
+  //       billing_details = snapshot.data()?['billing_details'],
+  //       goal = snapshot.data()?['goal'];
 
-  Map<String, dynamic> toFirestore() {
-    return {
-      'id': id,
-      'name': name,
-      'email': email,
-      'image': image,
-      'about': about,
-      'website': website,
-      'color': color?.name,
-      // 'kahwa_lbp': kahwa_lbp,
-      // 'kahwa_usd': kahwa_usd,
-      'phone': phone,
-      'kahwa_prices': kahwa_prices,
-      'balance': balance,
-      'billing_details': billing_details,
-    };
-  }
+  // Map<String, dynamic> toFirestore() {
+  //   return {
+  //     'id': id,
+  //     'name': name,
+  //     'email': email,
+  //     'image': image,
+  //     'about': about,
+  //     'website': website,
+  //     'color': color?.name,
+  //     // 'kahwa_lbp': kahwa_lbp,
+  //     // 'kahwa_usd': kahwa_usd,
+  //     'phone': phone,
+  //     'kahwa_prices': kahwa_prices,
+  //     'balance': balance,
+  //     'billing_details': billing_details,
+  //     'goal': goal,
+  //   };
+  // }
 
   factory User.fromMap(Map<String, dynamic> map) {
     Colors color =
@@ -112,6 +121,8 @@ class User {
       billing_details: map['billing_details'] != null
           ? BillingDetails.fromMap(map['billing_details'])
           : null,
+      goal: map['goal'] != null ? Goal.fromMap(map['goal']) : null,
+      fans: List<Supporter>.from(map['fans']),
     );
   }
 }
