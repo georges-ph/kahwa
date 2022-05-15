@@ -21,17 +21,17 @@ class GoalCard extends StatelessWidget {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
-        child: const ListTile(
-          // TODO: add goal when tapped
+        child: ListTile(
+          onTap: () => Navigator.pushNamed(context, routeGoal),
           horizontalTitleGap: 0,
-          contentPadding: EdgeInsets.symmetric(
+          contentPadding: const EdgeInsets.symmetric(
             horizontal: 24,
           ),
-          leading: Icon(
+          leading: const Icon(
             Icons.flag_rounded,
             color: kRedColor,
           ),
-          title: Text("Add Goal"),
+          title: const Text("Add Goal"),
         ),
       );
     }
