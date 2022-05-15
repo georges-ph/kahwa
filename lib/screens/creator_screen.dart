@@ -151,30 +151,34 @@ class _CreatorScreenState extends State<CreatorScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       GestureDetector(
-                        onTap: () => Navigator.pushNamed(
-                          context,
-                          routeFansSupporters,
-                          arguments: FansSupportersArgs(
-                            title:
-                                "${_userModel.fans!.length} ${_userModel.fans!.length == 1 ? "Fan" : "Fans"}",
-                            list: _userModel.fans!,
-                          ),
-                        ),
+                        onTap: _user.uid != widget.creatorId
+                            ? null
+                            : () => Navigator.pushNamed(
+                                  context,
+                                  routeFansSupporters,
+                                  arguments: FansSupportersArgs(
+                                    title:
+                                        "${_userModel.fans!.length} ${_userModel.fans!.length == 1 ? "Fan" : "Fans"}",
+                                    list: _userModel.fans!,
+                                  ),
+                                ),
                         child: CreatorCounterCard(
                           counter: _userModel.fans!.length,
                           title: _userModel.fans!.length == 1 ? "Fan" : "Fans",
                         ),
                       ),
                       GestureDetector(
-                        onTap: () => Navigator.pushNamed(
-                          context,
-                          routeFansSupporters,
-                          arguments: FansSupportersArgs(
-                            title:
-                                "${_supportersList.length} ${_supportersList.length == 1 ? "Supporter" : "Supporters"}",
-                            list: _userModel.fans!,
-                          ),
-                        ),
+                        onTap: _user.uid != widget.creatorId
+                            ? null
+                            : () => Navigator.pushNamed(
+                                  context,
+                                  routeFansSupporters,
+                                  arguments: FansSupportersArgs(
+                                    title:
+                                        "${_supportersList.length} ${_supportersList.length == 1 ? "Supporter" : "Supporters"}",
+                                    list: _userModel.fans!,
+                                  ),
+                                ),
                         child: CreatorCounterCard(
                           counter: _supportersList.length,
                           title: _supportersList.length == 1
@@ -188,90 +192,93 @@ class _CreatorScreenState extends State<CreatorScreen> {
                       ),
                     ],
                   ),
-                  verticalSpace(),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () => Navigator.pushNamed(
-                            context,
-                            routeDonate,
-                            arguments: _userModel.id,
-                          ),
-                          icon: Image.asset(
-                            "assets/fenjen.png",
-                            width: 24,
-                          ),
-                          label: Text("Buy a kahwa"),
-                        ),
-                      ),
-                      horizontalSpace(width: 16),
-                      GestureDetector(
-                        onTap: () async {
-                          List<FanSupporter> fans = _userModel.fans!
-                              .where((fan) => fan.id == _user.uid)
-                              .toList();
-
-                          if (fans.isNotEmpty) {
-                            _userModel.fans!
-                                .removeWhere((fan) => fan == fans.first);
-                          } else {
-                            _userModel.fans!.add(
-                              FanSupporter(
-                                id: _user.uid,
-                                image: _user.photoURL,
-                                name: _user.displayName,
-                              ),
-                            );
-                          }
-
-                          setState(() {});
-
-                          await _appDocument
-                              .collection("Users")
-                              .doc(widget.creatorId)
-                              .update(_userModel.toMap());
-                        },
-                        child: DecoratedBox(
-                          decoration: ShapeDecoration(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                              side: BorderSide(
-                                color: kRedColor,
-                              ),
-                            ),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 8,
-                              horizontal: 16,
-                            ),
-                            child: Column(
-                              children: [
-                                Icon(
-                                  _userModel.fans!
-                                          .where((fan) => fan.id == _user.uid)
-                                          .isNotEmpty
-                                      ? Icons.favorite_rounded
-                                      : Icons.favorite_border_rounded,
-                                  color: kRedColor,
+                  _user.uid == widget.creatorId ? Container() : verticalSpace(),
+                  _user.uid == widget.creatorId
+                      ? Container()
+                      : Row(
+                          children: [
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                onPressed: () => Navigator.pushNamed(
+                                  context,
+                                  routeDonate,
+                                  arguments: _userModel.id,
                                 ),
-                                Text(
-                                  "Fan",
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .labelSmall!
-                                      .copyWith(
+                                icon: Image.asset(
+                                  "assets/fenjen.png",
+                                  width: 24,
+                                ),
+                                label: Text("Buy a kahwa"),
+                              ),
+                            ),
+                            horizontalSpace(width: 16),
+                            GestureDetector(
+                              onTap: () async {
+                                List<FanSupporter> fans = _userModel.fans!
+                                    .where((fan) => fan.id == _user.uid)
+                                    .toList();
+
+                                if (fans.isNotEmpty) {
+                                  _userModel.fans!
+                                      .removeWhere((fan) => fan == fans.first);
+                                } else {
+                                  _userModel.fans!.add(
+                                    FanSupporter(
+                                      id: _user.uid,
+                                      image: _user.photoURL,
+                                      name: _user.displayName,
+                                    ),
+                                  );
+                                }
+
+                                setState(() {});
+
+                                await _appDocument
+                                    .collection("Users")
+                                    .doc(widget.creatorId)
+                                    .update(_userModel.toMap());
+                              },
+                              child: DecoratedBox(
+                                decoration: ShapeDecoration(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                    side: BorderSide(
+                                      color: kRedColor,
+                                    ),
+                                  ),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 8,
+                                    horizontal: 16,
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      Icon(
+                                        _userModel.fans!
+                                                .where((fan) =>
+                                                    fan.id == _user.uid)
+                                                .isNotEmpty
+                                            ? Icons.favorite_rounded
+                                            : Icons.favorite_border_rounded,
                                         color: kRedColor,
                                       ),
+                                      Text(
+                                        "Fan",
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .labelSmall!
+                                            .copyWith(
+                                              color: kRedColor,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ],
+                              ),
                             ),
-                          ),
+                          ],
                         ),
-                      ),
-                    ],
-                  ),
                   verticalSpace(),
                   GoalCard(goal: _userModel.goal),
                   verticalSpace(),
