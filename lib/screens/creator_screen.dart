@@ -3,6 +3,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:kahwa/enums/colors.dart' as colors_enum;
 import 'package:kahwa/models/donation.dart';
 import 'package:kahwa/models/fan_supporter.dart';
 import 'package:kahwa/models/user.dart' as user_model;
@@ -44,6 +45,7 @@ class _CreatorScreenState extends State<CreatorScreen> {
   late Future<void> _runFuture;
 
   late user_model.User _userModel;
+  late Color _creatorColor;
 
   @override
   void initState() {
@@ -79,6 +81,8 @@ class _CreatorScreenState extends State<CreatorScreen> {
 
     _userModel =
         user_model.User.fromMap(userDocument.data() as Map<String, dynamic>);
+
+    _creatorColor = colors_enum.getColor(_userModel.color!);
   }
 
   @override
@@ -110,268 +114,286 @@ class _CreatorScreenState extends State<CreatorScreen> {
           }
 
           if (snapshot.connectionState == ConnectionState.done) {
-            return SingleChildScrollView(
-              padding: EdgeInsets.all(24),
-              physics: BouncingScrollPhysics(),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Align(
-                    alignment: Alignment.center,
-                    child: CircleAvatar(
-                      radius: _screenSize.width / 5,
-                      backgroundImage: _userModel.image != null
-                          ? NetworkImage(_userModel.image!)
-                          : null,
-                      backgroundColor:
-                          _userModel.image == null ? kBrownColor : null,
-                      child: _userModel.image == null
-                          ? Text(
-                              getInitials(_userModel.name!),
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .displaySmall!
-                                  .copyWith(
-                                    color: kWhiteColor,
-                                  ),
-                            )
-                          : null,
+            return Theme(
+              data: Theme.of(context).copyWith(
+                colorScheme: Theme.of(context).colorScheme.copyWith(
+                      primary: _creatorColor,
                     ),
-                  ),
-                  verticalSpace(),
-                  Align(
-                    alignment: Alignment.center,
-                    child: Text(
-                      _userModel.name!,
-                      style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                            fontWeight: kBoldFontWeight,
-                          ),
-                    ),
-                  ),
-                  verticalSpace(),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      GestureDetector(
-                        onTap: _user.uid != widget.creatorId
-                            ? null
-                            : () => Navigator.pushNamed(
-                                  context,
-                                  routeFansSupporters,
-                                  arguments: FansSupportersArgs(
-                                    title:
-                                        "${_userModel.fans!.length} ${_userModel.fans!.length == 1 ? "Fan" : "Fans"}",
-                                    list: _userModel.fans!,
-                                  ),
-                                ),
-                        child: CreatorCounterCard(
-                          counter: _userModel.fans!.length,
-                          title: _userModel.fans!.length == 1 ? "Fan" : "Fans",
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: _user.uid != widget.creatorId
-                            ? null
-                            : () => Navigator.pushNamed(
-                                  context,
-                                  routeFansSupporters,
-                                  arguments: FansSupportersArgs(
-                                    title:
-                                        "${_supportersList.length} ${_supportersList.length == 1 ? "Supporter" : "Supporters"}",
-                                    list: _userModel.fans!,
-                                  ),
-                                ),
-                        child: CreatorCounterCard(
-                          counter: _supportersList.length,
-                          title: _supportersList.length == 1
-                              ? "Supporter"
-                              : "Supporters",
-                        ),
-                      ),
-                      CreatorCounterCard(
-                        counter: _kahwas,
-                        title: _kahwas == 1 ? "kahwa" : "kahwas",
-                      ),
-                    ],
-                  ),
-                  _user.uid == widget.creatorId ? Container() : verticalSpace(),
-                  _user.uid == widget.creatorId
-                      ? Container()
-                      : Row(
-                          children: [
-                            Expanded(
-                              child: ElevatedButton.icon(
-                                onPressed: () => Navigator.pushNamed(
-                                  context,
-                                  routeDonate,
-                                  arguments: _userModel.id,
-                                ),
-                                icon: Image.asset(
-                                  "assets/fenjen.png",
-                                  width: 24,
-                                ),
-                                label: Text("Buy a kahwa"),
-                              ),
-                            ),
-                            horizontalSpace(width: 16),
-                            GestureDetector(
-                              onTap: () async {
-                                List<FanSupporter> fans = _userModel.fans!
-                                    .where((fan) => fan.id == _user.uid)
-                                    .toList();
-
-                                if (fans.isNotEmpty) {
-                                  _userModel.fans!
-                                      .removeWhere((fan) => fan == fans.first);
-                                } else {
-                                  _userModel.fans!.add(
-                                    FanSupporter(
-                                      id: _user.uid,
-                                      image: _user.photoURL,
-                                      name: _user.displayName,
-                                    ),
-                                  );
-                                }
-
-                                setState(() {});
-
-                                await _appDocument
-                                    .collection("Users")
-                                    .doc(widget.creatorId)
-                                    .update(_userModel.toMap());
-                              },
-                              child: DecoratedBox(
-                                decoration: ShapeDecoration(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                    side: BorderSide(
-                                      color: kBrownColor,
-                                    ),
-                                  ),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 8,
-                                    horizontal: 16,
-                                  ),
-                                  child: Column(
-                                    children: [
-                                      Icon(
-                                        _userModel.fans!
-                                                .where((fan) =>
-                                                    fan.id == _user.uid)
-                                                .isNotEmpty
-                                            ? Icons.favorite_rounded
-                                            : Icons.favorite_border_rounded,
-                                        color: kBrownColor,
-                                      ),
-                                      Text(
-                                        "Fan",
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .labelSmall!
-                                            .copyWith(
-                                              color: kBrownColor,
-                                            ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                  verticalSpace(),
-                  GoalCard(goal: _userModel.goal),
-                  verticalSpace(),
-                  _userModel.about == null
-                      ? Container()
-                      : Text(
-                          "About",
-                          style:
-                              Theme.of(context).textTheme.titleMedium!.copyWith(
-                                    fontWeight: kSemiBoldFontWeight,
-                                  ),
-                        ),
-                  _userModel.about == null
-                      ? Container()
-                      : verticalSpace(height: 8),
-                  _userModel.about == null
-                      ? Container()
-                      : ReadMoreText(
-                          "${_userModel.about}",
-                          style: Theme.of(context).textTheme.bodyMedium,
-                          trimMode: TrimMode.Line,
-                          trimLines: 3,
-                          trimCollapsedText: "Show More",
-                          moreStyle:
-                              Theme.of(context).textTheme.bodyMedium!.copyWith(
-                                    fontWeight: kBoldFontWeight,
-                                    color: kBrownColor,
-                                  ),
-                          trimExpandedText: "Show Less",
-                          lessStyle:
-                              Theme.of(context).textTheme.bodyMedium!.copyWith(
-                                    fontWeight: kBoldFontWeight,
-                                    color: kBrownColor,
-                                  ),
-                        ),
-                  verticalSpace(height: 16),
-                  _userModel.website == null
-                      ? Container()
-                      : GestureDetector(
-                          onTap: () async {
-                            if (!await launchUrl(
-                                Uri.parse("http://${_userModel.website}"))) {
-                              SnackBar snackBar =
-                                  SnackBar(content: Text("Cannot open link"));
-                              ScaffoldMessenger.of(context)
-                                  .showSnackBar(snackBar);
-                            }
-                          },
-                          child: Row(
-                            children: [
-                              Icon(Icons.link_rounded),
-                              horizontalSpace(),
-                              Text(
-                                "${_userModel.website}",
+              ),
+              child: SingleChildScrollView(
+                padding: EdgeInsets.all(24),
+                physics: BouncingScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Align(
+                      alignment: Alignment.center,
+                      child: CircleAvatar(
+                        radius: _screenSize.width / 5,
+                        backgroundImage: _userModel.image != null
+                            ? NetworkImage(_userModel.image!)
+                            : null,
+                        backgroundColor:
+                            _userModel.image == null ? _creatorColor : null,
+                        child: _userModel.image == null
+                            ? Text(
+                                getInitials(_userModel.name!),
                                 style: Theme.of(context)
                                     .textTheme
-                                    .bodyMedium!
+                                    .displaySmall!
                                     .copyWith(
-                                      color: kBrownColor,
+                                      color: kWhiteColor,
                                     ),
+                              )
+                            : null,
+                      ),
+                    ),
+                    verticalSpace(),
+                    Align(
+                      alignment: Alignment.center,
+                      child: Text(
+                        _userModel.name!,
+                        style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                              fontWeight: kBoldFontWeight,
+                            ),
+                      ),
+                    ),
+                    verticalSpace(),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        GestureDetector(
+                          onTap: _user.uid != widget.creatorId
+                              ? null
+                              : () => Navigator.pushNamed(
+                                    context,
+                                    routeFansSupporters,
+                                    arguments: FansSupportersArgs(
+                                      title:
+                                          "${_userModel.fans!.length} ${_userModel.fans!.length == 1 ? "Fan" : "Fans"}",
+                                      list: _userModel.fans!,
+                                    ),
+                                  ),
+                          child: CreatorCounterCard(
+                            counter: _userModel.fans!.length,
+                            title:
+                                _userModel.fans!.length == 1 ? "Fan" : "Fans",
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: _user.uid != widget.creatorId
+                              ? null
+                              : () => Navigator.pushNamed(
+                                    context,
+                                    routeFansSupporters,
+                                    arguments: FansSupportersArgs(
+                                      title:
+                                          "${_supportersList.length} ${_supportersList.length == 1 ? "Supporter" : "Supporters"}",
+                                      list: _userModel.fans!,
+                                    ),
+                                  ),
+                          child: CreatorCounterCard(
+                            counter: _supportersList.length,
+                            title: _supportersList.length == 1
+                                ? "Supporter"
+                                : "Supporters",
+                          ),
+                        ),
+                        CreatorCounterCard(
+                          counter: _kahwas,
+                          title: _kahwas == 1 ? "kahwa" : "kahwas",
+                        ),
+                      ],
+                    ),
+                    _user.uid == widget.creatorId
+                        ? Container()
+                        : verticalSpace(),
+                    _user.uid == widget.creatorId
+                        ? Container()
+                        : Row(
+                            children: [
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: () => Navigator.pushNamed(
+                                    context,
+                                    routeDonate,
+                                    arguments: _userModel.id,
+                                  ),
+                                  icon: Image.asset(
+                                    "assets/fenjen.png",
+                                    width: 24,
+                                  ),
+                                  label: Text("Buy a kahwa"),
+                                ),
+                              ),
+                              horizontalSpace(width: 16),
+                              GestureDetector(
+                                onTap: () async {
+                                  List<FanSupporter> fans = _userModel.fans!
+                                      .where((fan) => fan.id == _user.uid)
+                                      .toList();
+
+                                  if (fans.isNotEmpty) {
+                                    _userModel.fans!.removeWhere(
+                                        (fan) => fan == fans.first);
+                                  } else {
+                                    _userModel.fans!.add(
+                                      FanSupporter(
+                                        id: _user.uid,
+                                        image: _user.photoURL,
+                                        name: _user.displayName,
+                                      ),
+                                    );
+                                  }
+
+                                  setState(() {});
+
+                                  await _appDocument
+                                      .collection("Users")
+                                      .doc(widget.creatorId)
+                                      .update(_userModel.toMap());
+                                },
+                                child: DecoratedBox(
+                                  decoration: ShapeDecoration(
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                      side: BorderSide(
+                                        color: _creatorColor,
+                                      ),
+                                    ),
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 8,
+                                      horizontal: 16,
+                                    ),
+                                    child: Column(
+                                      children: [
+                                        Icon(
+                                          _userModel.fans!
+                                                  .where((fan) =>
+                                                      fan.id == _user.uid)
+                                                  .isNotEmpty
+                                              ? Icons.favorite_rounded
+                                              : Icons.favorite_border_rounded,
+                                          color: _creatorColor,
+                                        ),
+                                        Text(
+                                          "Fan",
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .labelSmall!
+                                              .copyWith(
+                                                color: _creatorColor,
+                                              ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
                               ),
                             ],
                           ),
-                        ),
-                  verticalSpace(),
-                  _donationsList.isEmpty
-                      ? Container()
-                      : Text(
-                          "Recent Supporters",
-                          style:
-                              Theme.of(context).textTheme.titleMedium!.copyWith(
-                                    fontWeight: kSemiBoldFontWeight,
-                                  ),
-                        ),
-                  _donationsList.isEmpty
-                      ? Container()
-                      : verticalSpace(height: 16),
-                  ListView.separated(
-                    physics: NeverScrollableScrollPhysics(),
-                    shrinkWrap: true,
-                    itemCount: _donationsList.length,
-                    separatorBuilder: (BuildContext context, int index) {
-                      return verticalSpace(height: 16);
-                    },
-                    itemBuilder: (BuildContext context, int index) {
-                      return SupporterCard(
-                        donation: _donationsList[index],
-                      );
-                    },
-                  ),
-                ],
+                    verticalSpace(),
+                    GoalCard(goal: _userModel.goal),
+                    verticalSpace(),
+                    _userModel.about == null
+                        ? Container()
+                        : Text(
+                            "About",
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium!
+                                .copyWith(
+                                  fontWeight: kSemiBoldFontWeight,
+                                ),
+                          ),
+                    _userModel.about == null
+                        ? Container()
+                        : verticalSpace(height: 8),
+                    _userModel.about == null
+                        ? Container()
+                        : ReadMoreText(
+                            "${_userModel.about}",
+                            style: Theme.of(context).textTheme.bodyMedium,
+                            trimMode: TrimMode.Line,
+                            trimLines: 3,
+                            trimCollapsedText: "Show More",
+                            moreStyle: Theme.of(context)
+                                .textTheme
+                                .bodyMedium!
+                                .copyWith(
+                                  fontWeight: kBoldFontWeight,
+                                  color: _creatorColor,
+                                ),
+                            trimExpandedText: "Show Less",
+                            lessStyle: Theme.of(context)
+                                .textTheme
+                                .bodyMedium!
+                                .copyWith(
+                                  fontWeight: kBoldFontWeight,
+                                  color: _creatorColor,
+                                ),
+                          ),
+                    verticalSpace(height: 16),
+                    _userModel.website == null
+                        ? Container()
+                        : GestureDetector(
+                            onTap: () async {
+                              if (!await launchUrl(
+                                  Uri.parse("http://${_userModel.website}"))) {
+                                SnackBar snackBar =
+                                    SnackBar(content: Text("Cannot open link"));
+                                ScaffoldMessenger.of(context)
+                                    .showSnackBar(snackBar);
+                              }
+                            },
+                            child: Row(
+                              children: [
+                                Icon(Icons.link_rounded),
+                                horizontalSpace(),
+                                Text(
+                                  "${_userModel.website}",
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium!
+                                      .copyWith(
+                                        color: _creatorColor,
+                                      ),
+                                ),
+                              ],
+                            ),
+                          ),
+                    verticalSpace(),
+                    _donationsList.isEmpty
+                        ? Container()
+                        : Text(
+                            "Recent Supporters",
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium!
+                                .copyWith(
+                                  fontWeight: kSemiBoldFontWeight,
+                                ),
+                          ),
+                    _donationsList.isEmpty
+                        ? Container()
+                        : verticalSpace(height: 16),
+                    ListView.separated(
+                      physics: NeverScrollableScrollPhysics(),
+                      shrinkWrap: true,
+                      itemCount: _donationsList.length,
+                      separatorBuilder: (BuildContext context, int index) {
+                        return verticalSpace(height: 16);
+                      },
+                      itemBuilder: (BuildContext context, int index) {
+                        return SupporterCard(
+                          donation: _donationsList[index],
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ),
             );
           }

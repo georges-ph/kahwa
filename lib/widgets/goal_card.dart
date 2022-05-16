@@ -27,9 +27,9 @@ class GoalCard extends StatelessWidget {
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 24,
           ),
-          leading: const Icon(
+          leading: Icon(
             Icons.flag_rounded,
-            color: kBrownColor,
+            color: Theme.of(context).colorScheme.primary,
           ),
           title: const Text("Add Goal"),
         ),
