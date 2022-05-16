@@ -83,6 +83,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (image == null) return;
     final tempImage = File(image.path);
 
+    // TODO: crop image before uploading
+
     // Upload image
     final userReference =
         _profilePicturesStorageReference.child("${_user.uid}.jpg");
