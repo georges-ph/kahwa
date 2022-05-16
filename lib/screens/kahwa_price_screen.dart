@@ -69,194 +69,200 @@ class _KahwaPriceScreenState extends State<KahwaPriceScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("kahwa Price"),
-      ),
-      body: FutureBuilder(
-        future: _runFuture,
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return Center(
-              child: Text(
-                "Error getting data",
-                style: Theme.of(context).textTheme.displaySmall,
-                textAlign: TextAlign.center,
-              ),
-            );
-          }
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text("kahwa Price"),
+        ),
+        body: FutureBuilder(
+          future: _runFuture,
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              return Center(
+                child: Text(
+                  "Error getting data",
+                  style: Theme.of(context).textTheme.displaySmall,
+                  textAlign: TextAlign.center,
+                ),
+              );
+            }
 
-          if (snapshot.connectionState == ConnectionState.done) {
-            return SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              physics: const BouncingScrollPhysics(),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  InputText(
-                    controller: _lbpController,
-                    title: "Price per kahwa",
-                    hint: 1000.toString(),
-                    prefixText: Currency.lbp.name.toUpperCase(),
-                    keyboardType: TextInputType.number,
-                    textInputAction: TextInputAction.next,
-                  ),
-                  Visibility(
-                    visible: _isLbpErrorVisible,
-                    child: Container(
-                      margin: const EdgeInsets.fromLTRB(8, 8, 8, 0),
-                      child: Text(
-                        _lbpError,
-                        style:
-                            Theme.of(context).textTheme.labelMedium!.copyWith(
-                                  color: kRedColor,
-                                ),
+            if (snapshot.connectionState == ConnectionState.done) {
+              return SingleChildScrollView(
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                padding: const EdgeInsets.all(24),
+                physics: const BouncingScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    InputText(
+                      controller: _lbpController,
+                      title: "Price per kahwa",
+                      hint: 1000.toString(),
+                      prefixText: Currency.lbp.name.toUpperCase(),
+                      keyboardType: TextInputType.number,
+                      textInputAction: TextInputAction.next,
+                    ),
+                    Visibility(
+                      visible: _isLbpErrorVisible,
+                      child: Container(
+                        margin: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+                        child: Text(
+                          _lbpError,
+                          style:
+                              Theme.of(context).textTheme.labelMedium!.copyWith(
+                                    color: kBrownColor,
+                                  ),
+                        ),
                       ),
                     ),
-                  ),
-                  verticalSpace(height: 16),
-                  InputText(
-                    controller: _usdController,
-                    hint: 1.toString(),
-                    prefixText: Currency.usd.name.toUpperCase(),
-                    keyboardType: TextInputType.number,
-                    textInputAction: TextInputAction.next,
-                  ),
-                  Visibility(
-                    visible: _isUsdErrorVisible,
-                    child: Container(
-                      margin: const EdgeInsets.fromLTRB(8, 8, 8, 0),
-                      child: Text(
-                        _usdError,
-                        style:
-                            Theme.of(context).textTheme.labelMedium!.copyWith(
-                                  color: kRedColor,
-                                ),
+                    verticalSpace(height: 16),
+                    InputText(
+                      controller: _usdController,
+                      hint: 1.toString(),
+                      prefixText: Currency.usd.name.toUpperCase(),
+                      keyboardType: TextInputType.number,
+                      textInputAction: TextInputAction.next,
+                    ),
+                    Visibility(
+                      visible: _isUsdErrorVisible,
+                      child: Container(
+                        margin: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+                        child: Text(
+                          _usdError,
+                          style:
+                              Theme.of(context).textTheme.labelMedium!.copyWith(
+                                    color: kBrownColor,
+                                  ),
+                        ),
                       ),
                     ),
-                  ),
-                  verticalSpace(),
-                  InputText(
-                    controller: _thankYouController,
-                    title: "Thank you message",
-                    subtitle: "A message to be shown when someone donates.",
-                    hint: "Thank you for the support! 🎉",
-                    maxLines: 5,
-                    textInputAction: TextInputAction.done,
-                  ),
-                  Visibility(
-                    visible: _isThankYouErrorVisible,
-                    child: Container(
-                      margin: const EdgeInsets.fromLTRB(8, 8, 8, 0),
-                      child: Text(
-                        _thankYouError,
-                        style:
-                            Theme.of(context).textTheme.labelMedium!.copyWith(
-                                  color: kRedColor,
-                                ),
+                    verticalSpace(),
+                    InputText(
+                      controller: _thankYouController,
+                      title: "Thank you message",
+                      subtitle: "A message to be shown when someone donates.",
+                      hint: "Thank you for the support! 🎉",
+                      maxLines: 5,
+                      textInputAction: TextInputAction.done,
+                    ),
+                    Visibility(
+                      visible: _isThankYouErrorVisible,
+                      child: Container(
+                        margin: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+                        child: Text(
+                          _thankYouError,
+                          style:
+                              Theme.of(context).textTheme.labelMedium!.copyWith(
+                                    color: kBrownColor,
+                                  ),
+                        ),
                       ),
                     ),
-                  ),
-                  verticalSpace(),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _isLoading
-                          ? null
-                          : () async {
-                              setState(() {
-                                _lbpError = "";
-                                _usdError = "";
-                                _thankYouError = "";
-                                _isLbpErrorVisible = false;
-                                _isUsdErrorVisible = false;
-                                _isThankYouErrorVisible = false;
-                              });
+                    verticalSpace(),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _isLoading
+                            ? null
+                            : () async {
+                                setState(() {
+                                  _lbpError = "";
+                                  _usdError = "";
+                                  _thankYouError = "";
+                                  _isLbpErrorVisible = false;
+                                  _isUsdErrorVisible = false;
+                                  _isThankYouErrorVisible = false;
+                                });
 
-                              if (_lbpController.text.isEmpty ||
-                                  _usdController.text.isEmpty ||
-                                  _thankYouController.text.isEmpty) {
-                                if (_lbpController.text.isEmpty) {
-                                  setState(() {
-                                    _lbpError = "Price cannot be empty";
-                                    _isLbpErrorVisible = true;
-                                  });
+                                if (_lbpController.text.isEmpty ||
+                                    _usdController.text.isEmpty ||
+                                    _thankYouController.text.isEmpty) {
+                                  if (_lbpController.text.isEmpty) {
+                                    setState(() {
+                                      _lbpError = "Price cannot be empty";
+                                      _isLbpErrorVisible = true;
+                                    });
+                                  }
+
+                                  if (_usdController.text.isEmpty) {
+                                    setState(() {
+                                      _usdError = "Price cannot be empty";
+                                      _isUsdErrorVisible = true;
+                                    });
+                                  }
+
+                                  if (_thankYouController.text.isEmpty) {
+                                    setState(() {
+                                      _thankYouError =
+                                          "Message cannot be empty";
+                                      _isThankYouErrorVisible = true;
+                                    });
+                                  }
+                                  return;
                                 }
 
-                                if (_usdController.text.isEmpty) {
-                                  setState(() {
-                                    _usdError = "Price cannot be empty";
-                                    _isUsdErrorVisible = true;
-                                  });
-                                }
+                                setState(() {
+                                  _isLoading = true;
+                                });
 
-                                if (_thankYouController.text.isEmpty) {
-                                  setState(() {
-                                    _thankYouError = "Message cannot be empty";
-                                    _isThankYouErrorVisible = true;
-                                  });
-                                }
-                                return;
-                              }
+                                _userModel.kahwa_prices!.lbp =
+                                    int.parse(_lbpController.text);
+                                _userModel.kahwa_prices!.usd =
+                                    int.parse(_usdController.text);
+                                _userModel.kahwa_prices!.thanks_message =
+                                    _thankYouController.text;
 
-                              setState(() {
-                                _isLoading = true;
-                              });
+                                await _userDocument.set(_userModel.toMap());
 
-                              _userModel.kahwa_prices!.lbp =
-                                  int.parse(_lbpController.text);
-                              _userModel.kahwa_prices!.usd =
-                                  int.parse(_usdController.text);
-                              _userModel.kahwa_prices!.thanks_message =
-                                  _thankYouController.text;
+                                SnackBar snackBar = const SnackBar(
+                                    content: Text("Updated successfully"));
 
-                              await _userDocument.set(_userModel.toMap());
+                                ScaffoldMessenger.of(context)
+                                    .showSnackBar(snackBar);
 
-                              SnackBar snackBar = const SnackBar(
-                                  content: Text("Updated successfully"));
+                                setState(() {
+                                  _isLoading = false;
+                                });
 
-                              ScaffoldMessenger.of(context)
-                                  .showSnackBar(snackBar);
+                                // User user = User(
+                                //   kahwa_prices: KahwaPrices(
+                                //     lbp: 1000,
+                                //     thanks_message: "dfg",
+                                //     usd: 5,
+                                //   ),
+                                // );
 
-                              setState(() {
-                                _isLoading = false;
-                              });
-
-                              // User user = User(
-                              //   kahwa_prices: KahwaPrices(
-                              //     lbp: 1000,
-                              //     thanks_message: "dfg",
-                              //     usd: 5,
-                              //   ),
-                              // );
-
-                              // await FirebaseFirestore.instance
-                              //     .collection("col")
-                              //     .doc("h")
-                              //     .withConverter(
-                              //       fromFirestore: User.fromFirestore,
-                              //       toFirestore: (User user, options) =>
-                              //           user.toFirestore(),
-                              //     )
-                              //     .set(user);
-                            },
-                      child: _isLoading
-                          ? const SizedBox.square(
-                              dimension: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 3,
-                              ),
-                            )
-                          : const Text("Save"),
+                                // await FirebaseFirestore.instance
+                                //     .collection("col")
+                                //     .doc("h")
+                                //     .withConverter(
+                                //       fromFirestore: User.fromFirestore,
+                                //       toFirestore: (User user, options) =>
+                                //           user.toFirestore(),
+                                //     )
+                                //     .set(user);
+                              },
+                        child: _isLoading
+                            ? const SizedBox.square(
+                                dimension: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 3,
+                                ),
+                              )
+                            : const Text("Save"),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            );
-          }
+                  ],
+                ),
+              );
+            }
 
-          return const Center(child: CircularProgressIndicator());
-        },
+            return const Center(child: CircularProgressIndicator());
+          },
+        ),
       ),
     );
   }

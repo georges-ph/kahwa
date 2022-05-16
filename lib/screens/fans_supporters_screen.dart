@@ -36,7 +36,7 @@ class FansSupportersScreen extends StatelessWidget {
               arguments: list.elementAt(index).id,
             ),
             leading: CircleAvatar(
-              backgroundColor: kRedColor,
+              backgroundColor: kBrownColor,
               backgroundImage: list.elementAt(index).image != null
                   ? NetworkImage(list.elementAt(index).image!)
                   : null,

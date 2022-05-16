@@ -1,1 +1,1 @@
-enum Colors { red, pink, purple, cyan, green, yellow }
+enum Colors { brown, pink, purple, cyan, green, yellow }

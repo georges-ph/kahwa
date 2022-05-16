@@ -8,6 +8,7 @@ import 'package:kahwa/utils/colors.dart';
 import 'package:kahwa/utils/routes.dart';
 import 'package:kahwa/utils/sizes.dart';
 import 'package:kahwa/utils/typography.dart';
+import 'package:kahwa/widgets/creator_card.dart';
 import 'package:kahwa/widgets/input_text.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -27,6 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
   late Future<void> _runFuture;
 
   late user_model.User _userModel;
+  late user_model.User creatorr;
 
   @override
   void initState() {
@@ -41,6 +43,14 @@ class _HomeScreenState extends State<HomeScreen> {
         await _appDocument.collection("Users").doc(_user.uid).get();
     _userModel =
         user_model.User.fromMap(userDocument.data() as Map<String, dynamic>);
+
+    DocumentSnapshot<Map<String, dynamic>> creatorDoc = await _appDocument
+        .collection("Users")
+        .doc("dkC8yxYaKXTTZsDVR7MYpPNT8nE2")
+        .get();
+
+    creatorr =
+        user_model.User.fromMap(creatorDoc.data() as Map<String, dynamic>);
   }
 
   @override
@@ -48,7 +58,8 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Text("Home"),
+        title: Text(
+            "Home"), // TODO: style this better, according to the design I made; otherwise - if it doesn't work - add it to the Column
         actions: [
           IconButton(
             onPressed: () => Navigator.pushNamed(context, routeSettings),
@@ -61,7 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
               arguments: _user.uid,
             ),
             child: CircleAvatar(
-              backgroundColor: kRedColor,
+              backgroundColor: kBrownColor,
               backgroundImage:
                   _user.photoURL != null ? NetworkImage(_user.photoURL!) : null,
               child: _user.photoURL == null
@@ -111,93 +122,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                 ),
                 verticalSpace(height: 8),
-                CreatorCard(user: _user),
+                CreatorCard(creator: creatorr),
               ],
             );
           }
           return const Center(child: CircularProgressIndicator());
         },
-      ),
-    );
-  }
-}
-
-class CreatorCard extends StatelessWidget {
-  const CreatorCard({
-    Key? key,
-    required User user,
-  })  : _user = user,
-        super(key: key);
-
-  final User _user;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(8.0),
-        child: Row(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: SizedBox.square(
-                dimension: 64,
-                child: _user.photoURL != null
-                    ? Image(
-                        image: NetworkImage(
-                            "https://images.unsplash.com/photo-1650038132376-5bb0e549e19f?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=685&q=80"),
-                        fit: BoxFit.fitWidth,
-                      )
-                    : ColoredBox(
-                        color: kRedColor,
-                        child: Align(
-                          alignment: Alignment.center,
-                          child: Text(
-                            getInitials(_user.displayName!),
-                            style: TextStyle(
-                              color: kWhiteColor,
-                            ),
-                          ),
-                        ),
-                      ),
-              ),
-            ),
-            horizontalSpace(width: 16),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "David Beckham",
-                  style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                        fontWeight: kSemiBoldFontWeight,
-                      ),
-                ),
-                Row(
-                  children: [
-                    Image(
-                      image: AssetImage("assets/fenjen.png"),
-                      width: 24,
-                    ),
-                    horizontalSpace(width: 8),
-                    Text(
-                      "70 kahwas received",
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Icon(Icons.favorite_border_rounded),
-                    horizontalSpace(width: 8),
-                    Text("123 Fans"),
-                  ],
-                ),
-              ],
-            ),
-          ],
-        ),
       ),
     );
   }

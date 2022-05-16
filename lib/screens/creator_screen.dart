@@ -89,7 +89,9 @@ class _CreatorScreenState extends State<CreatorScreen> {
       appBar: AppBar(
         actions: [
           IconButton(
-            onPressed: () {},
+            onPressed: () {
+              // TODO: add logic to share
+            },
             icon: Icon(Icons.share_rounded),
           ),
         ],
@@ -122,7 +124,7 @@ class _CreatorScreenState extends State<CreatorScreen> {
                           ? NetworkImage(_userModel.image!)
                           : null,
                       backgroundColor:
-                          _userModel.image == null ? kRedColor : null,
+                          _userModel.image == null ? kBrownColor : null,
                       child: _userModel.image == null
                           ? Text(
                               getInitials(_userModel.name!),
@@ -243,7 +245,7 @@ class _CreatorScreenState extends State<CreatorScreen> {
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(16),
                                     side: BorderSide(
-                                      color: kRedColor,
+                                      color: kBrownColor,
                                     ),
                                   ),
                                 ),
@@ -261,7 +263,7 @@ class _CreatorScreenState extends State<CreatorScreen> {
                                                 .isNotEmpty
                                             ? Icons.favorite_rounded
                                             : Icons.favorite_border_rounded,
-                                        color: kRedColor,
+                                        color: kBrownColor,
                                       ),
                                       Text(
                                         "Fan",
@@ -269,7 +271,7 @@ class _CreatorScreenState extends State<CreatorScreen> {
                                             .textTheme
                                             .labelSmall!
                                             .copyWith(
-                                              color: kRedColor,
+                                              color: kBrownColor,
                                             ),
                                       ),
                                     ],
@@ -305,13 +307,13 @@ class _CreatorScreenState extends State<CreatorScreen> {
                           moreStyle:
                               Theme.of(context).textTheme.bodyMedium!.copyWith(
                                     fontWeight: kBoldFontWeight,
-                                    color: kRedColor,
+                                    color: kBrownColor,
                                   ),
                           trimExpandedText: "Show Less",
                           lessStyle:
                               Theme.of(context).textTheme.bodyMedium!.copyWith(
                                     fontWeight: kBoldFontWeight,
-                                    color: kRedColor,
+                                    color: kBrownColor,
                                   ),
                         ),
                   verticalSpace(height: 16),
@@ -337,7 +339,7 @@ class _CreatorScreenState extends State<CreatorScreen> {
                                     .textTheme
                                     .bodyMedium!
                                     .copyWith(
-                                      color: kRedColor,
+                                      color: kBrownColor,
                                     ),
                               ),
                             ],

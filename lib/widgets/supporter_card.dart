@@ -67,10 +67,10 @@ class SupporterCard extends StatelessWidget {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                         side: BorderSide(
-                          color: kRedColor.withOpacity(0.3),
+                          color: kBrownColor.withOpacity(0.3),
                         ),
                       ),
-                      color: kRedColor.withOpacity(0.1),
+                      color: kBrownColor.withOpacity(0.1),
                       elevation: 0,
                       child: Padding(
                         padding: EdgeInsets.symmetric(

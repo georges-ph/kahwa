@@ -8,7 +8,7 @@ class InputText extends StatelessWidget {
     Key? key,
     this.hint,
     this.icon,
-    this.iconColor = kRedColor,
+    this.iconColor = kBrownColor,
     this.suffixIcon,
     this.suffixOnTap,
     this.controller,
@@ -42,6 +42,8 @@ class InputText extends StatelessWidget {
   final String? title;
   final String? subtitle;
   final String? prefixText;
+
+  // TODO: try to use a TextField in a ListTile instead of all this
 
   @override
   Widget build(BuildContext context) {
@@ -99,7 +101,7 @@ class InputText extends StatelessWidget {
                           child: Text(
                             prefixText!,
                             style: const TextStyle(
-                              color: kRedColor,
+                              color: kBrownColor,
                             ),
                           ),
                         )
@@ -115,7 +117,7 @@ class InputText extends StatelessWidget {
                             start: 16, end: 24),
                         child: Icon(
                           suffixIcon,
-                          color: kRedColor,
+                          color: kBrownColor,
                         ),
                       ),
                     )

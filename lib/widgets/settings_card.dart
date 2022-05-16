@@ -22,7 +22,7 @@ class SettingsCard extends StatelessWidget {
       ),
       minLeadingWidth: 0,
       leading: Icon(icon),
-      iconColor: kRedColor,
+      iconColor: kBrownColor,
       title: Text(title),
       tileColor: kGreyColor.withOpacity(0.1),
       shape: RoundedRectangleBorder(

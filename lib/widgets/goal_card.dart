@@ -29,7 +29,7 @@ class GoalCard extends StatelessWidget {
           ),
           leading: const Icon(
             Icons.flag_rounded,
-            color: kRedColor,
+            color: kBrownColor,
           ),
           title: const Text("Add Goal"),
         ),

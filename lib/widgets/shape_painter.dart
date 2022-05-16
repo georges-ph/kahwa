@@ -18,7 +18,7 @@ class ShapePainter extends CustomPainter {
       ..lineTo(size.width, 0)
       ..close();
 
-    Paint paint = Paint()..color = kRedColor;
+    Paint paint = Paint()..color = kBrownColor;
     canvas.drawPath(path, paint);
   }
 

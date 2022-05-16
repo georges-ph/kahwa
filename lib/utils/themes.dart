@@ -19,21 +19,21 @@ ThemeData lightTheme(BuildContext context) {
       ),
     ),
     colorScheme: Theme.of(context).colorScheme.copyWith(
-          primary: kRedColor,
+          primary: kBrownColor,
         ),
     checkboxTheme: CheckboxThemeData(
-      fillColor: MaterialStateProperty.all(kRedColor),
+      fillColor: MaterialStateProperty.all(kBrownColor),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(4),
       ),
     ),
     chipTheme: ChipThemeData(
-      selectedColor: kRedColor.withOpacity(0.8),
+      selectedColor: kBrownColor.withOpacity(0.8),
       labelStyle: Theme.of(context).textTheme.bodyLarge!.copyWith(
             fontWeight: kRegularFontWeight,
             color: kWhiteColor,
           ),
-      backgroundColor: kRedColor.withOpacity(0.2),
+      backgroundColor: kBrownColor.withOpacity(0.2),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: TextButton.styleFrom(
@@ -45,7 +45,7 @@ ThemeData lightTheme(BuildContext context) {
       ),
     ),
     radioTheme: RadioThemeData(
-      fillColor: MaterialStateProperty.all(kRedColor),
+      fillColor: MaterialStateProperty.all(kBrownColor),
     ),
     textTheme: GoogleFonts.manropeTextTheme(
       Theme.of(context).textTheme,
