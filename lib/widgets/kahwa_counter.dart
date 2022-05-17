@@ -21,10 +21,12 @@ class KahwaCounter extends StatelessWidget {
         width: 24,
         height: 24,
         decoration: BoxDecoration(
-          color: kahwas == text.toString() ? kBrownColor : kWhiteColor,
+          color: kahwas == text.toString()
+              ? Theme.of(context).colorScheme.primary
+              : kWhiteColor,
           shape: BoxShape.circle,
           border: Border.all(
-            color: kBrownColor,
+            color: Theme.of(context).colorScheme.primary,
           ),
         ),
         child: Align(
@@ -32,7 +34,9 @@ class KahwaCounter extends StatelessWidget {
           child: Text(
             text.toString(),
             style: Theme.of(context).textTheme.titleSmall!.copyWith(
-                  color: kahwas == text.toString() ? kWhiteColor : kBrownColor,
+                  color: kahwas == text.toString()
+                      ? kWhiteColor
+                      : Theme.of(context).colorScheme.primary,
                 ),
           ),
         ),

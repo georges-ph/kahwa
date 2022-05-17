@@ -7,8 +7,8 @@ class Balance {
   int? spent_usd;
   int? received_lbp;
   int? received_usd;
-  int? available_withdraw_lbp;
-  int? available_withdraw_usd;
+  int? withdrawn_lbp;
+  int? withdrawn_usd;
 
   Balance({
     this.current_lbp,
@@ -17,8 +17,8 @@ class Balance {
     this.spent_usd,
     this.received_lbp,
     this.received_usd,
-    this.available_withdraw_lbp,
-    this.available_withdraw_usd,
+    this.withdrawn_lbp,
+    this.withdrawn_usd,
   });
 
   Map<String, dynamic> toMap() {
@@ -29,8 +29,8 @@ class Balance {
       'spent_usd': spent_usd,
       'received_lbp': received_lbp,
       'received_usd': received_usd,
-      'available_withdraw_lbp': available_withdraw_lbp,
-      'available_withdraw_usd': available_withdraw_usd,
+      'withdrawn_lbp': withdrawn_lbp,
+      'withdrawn_usd': withdrawn_usd,
     };
   }
 
@@ -42,8 +42,8 @@ class Balance {
       spent_usd: map['spent_usd']?.toInt(),
       received_lbp: map['received_lbp']?.toInt(),
       received_usd: map['received_usd']?.toInt(),
-      available_withdraw_lbp: map['available_withdraw_lbp']?.toInt(),
-      available_withdraw_usd: map['available_withdraw_usd']?.toInt(),
+      withdrawn_lbp: map['withdrawn_lbp']?.toInt(),
+      withdrawn_usd: map['withdrawn_usd']?.toInt(),
     );
   }
 }

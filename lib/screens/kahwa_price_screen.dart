@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:kahwa/enums/currency.dart';
-import 'package:kahwa/models/user.dart' as user_model;
+import 'package:kahwa/models/kahwa_prices.dart';
 import 'package:kahwa/utils/colors.dart';
 import 'package:kahwa/utils/sizes.dart';
 import 'package:kahwa/widgets/input_text.dart';
@@ -20,7 +20,7 @@ class _KahwaPriceScreenState extends State<KahwaPriceScreen> {
 
   late User _user;
   late DocumentReference _appDocument;
-  late DocumentReference<Map<String, dynamic>> _userDocument;
+  late DocumentReference<Map<String, dynamic>> _kahwPricesDocument;
 
   late Future<void> _runFuture;
 
@@ -28,7 +28,7 @@ class _KahwaPriceScreenState extends State<KahwaPriceScreen> {
   final TextEditingController _usdController = TextEditingController();
   final TextEditingController _thankYouController = TextEditingController();
 
-  late user_model.User _userModel;
+  late KahwaPrices _kahwaPrices;
 
   String _lbpError = "";
   String _usdError = "";
@@ -44,7 +44,7 @@ class _KahwaPriceScreenState extends State<KahwaPriceScreen> {
     super.initState();
     _user = _firebaseAuth.currentUser!;
     _appDocument = _firebaseFirestore.collection("kahwa").doc("AppCollections");
-    _userDocument = _appDocument.collection("Users").doc(_user.uid);
+    _kahwPricesDocument = _appDocument.collection("kahwaPrices").doc(_user.uid);
     _runFuture = _getUserData();
   }
 
@@ -57,14 +57,14 @@ class _KahwaPriceScreenState extends State<KahwaPriceScreen> {
   }
 
   Future<void> _getUserData() async {
-    DocumentSnapshot<Map<String, dynamic>> userDocument =
-        await _userDocument.get();
-    _userModel =
-        user_model.User.fromMap(userDocument.data() as Map<String, dynamic>);
+    DocumentSnapshot<Map<String, dynamic>> document =
+        await _kahwPricesDocument.get();
 
-    _lbpController.text = _userModel.kahwa_prices!.lbp.toString();
-    _usdController.text = _userModel.kahwa_prices!.usd.toString();
-    _thankYouController.text = _userModel.kahwa_prices!.thanks_message ?? "";
+    _kahwaPrices = KahwaPrices.fromMap(document.data() as Map<String, dynamic>);
+
+    _lbpController.text = _kahwaPrices.lbp.toString();
+    _usdController.text = _kahwaPrices.usd.toString();
+    _thankYouController.text = _kahwaPrices.thanks_message ?? "";
   }
 
   @override
@@ -208,14 +208,15 @@ class _KahwaPriceScreenState extends State<KahwaPriceScreen> {
                                   _isLoading = true;
                                 });
 
-                                _userModel.kahwa_prices!.lbp =
-                                    int.parse(_lbpController.text);
-                                _userModel.kahwa_prices!.usd =
-                                    int.parse(_usdController.text);
-                                _userModel.kahwa_prices!.thanks_message =
-                                    _thankYouController.text;
+                                // _userModel.kahwa_prices!.lbp =
+                                //     int.parse(_lbpController.text);
+                                // _userModel.kahwa_prices!.usd =
+                                //     int.parse(_usdController.text);
+                                // _userModel.kahwa_prices!.thanks_message =
+                                //     _thankYouController.text;
 
-                                await _userDocument.set(_userModel.toMap());
+                                await _kahwPricesDocument
+                                    .update(_kahwaPrices.toMap());
 
                                 SnackBar snackBar = const SnackBar(
                                     content: Text("Updated successfully"));

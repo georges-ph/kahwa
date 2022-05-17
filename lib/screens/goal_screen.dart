@@ -1,6 +1,9 @@
+// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:kahwa/models/goal.dart';
 import 'package:kahwa/models/user.dart' as user_model;
 import 'package:kahwa/utils/sizes.dart';
 import 'package:kahwa/widgets/input_text.dart';
@@ -20,15 +23,17 @@ class _GoalScreenState extends State<GoalScreen> {
 
   late User _user;
   late DocumentReference _appDocument;
+  late DocumentReference<Map<String, dynamic>> _goalDocument;
 
   late user_model.User _userModel;
+  late Goal _goal;
 
   late Future<void> _runFuture;
 
-  late TextEditingController _titleController;
-  late TextEditingController _descriptionController;
-  late TextEditingController _targetController;
-  late TextEditingController _currentController;
+  TextEditingController _titleController = TextEditingController();
+  TextEditingController _descriptionController = TextEditingController();
+  TextEditingController _targetController = TextEditingController();
+  TextEditingController _currentController = TextEditingController();
 
   bool _isLoading = false;
 
@@ -37,6 +42,7 @@ class _GoalScreenState extends State<GoalScreen> {
     super.initState();
     _user = _firebaseAuth.currentUser!;
     _appDocument = _firebaseFirestore.collection("kahwa").doc("AppCollections");
+    _goalDocument = _appDocument.collection("Goals").doc(_user.uid);
     _runFuture = _getUserData();
   }
 
@@ -50,18 +56,17 @@ class _GoalScreenState extends State<GoalScreen> {
   }
 
   Future<void> _getUserData() async {
-    DocumentSnapshot<Map<String, dynamic>> userDocument =
-        await _appDocument.collection("Users").doc(_user.uid).get();
-    _userModel =
-        user_model.User.fromMap(userDocument.data() as Map<String, dynamic>);
+    DocumentSnapshot<Map<String, dynamic>> document = await _goalDocument.get();
+    if (!document.exists) {
+      _goal = Goal();
+      return;
+    }
+    _goal = Goal.fromMap(document.data() as Map<String, dynamic>);
 
-    _titleController = TextEditingController(text: _userModel.goal!.title);
-    _descriptionController =
-        TextEditingController(text: _userModel.goal!.description);
-    _targetController =
-        TextEditingController(text: _userModel.goal!.target.toString());
-    _currentController =
-        TextEditingController(text: _userModel.goal!.current.toString());
+    _titleController.text = _goal.title ?? "";
+    _descriptionController.text = _goal.description ?? "";
+    _targetController.text = _goal.target.toString();
+    _currentController.text = _goal.current.toString();
   }
 
   @override
@@ -87,12 +92,11 @@ class _GoalScreenState extends State<GoalScreen> {
               return SingleChildScrollView(
                 keyboardDismissBehavior:
                     ScrollViewKeyboardDismissBehavior.onDrag,
-                padding: const EdgeInsets.all(24),
-                physics: const BouncingScrollPhysics(),
+                padding: EdgeInsets.all(24),
+                physics: BouncingScrollPhysics(),
                 child: Column(
                   children: [
-                    Text(
-                        _userModel.goal == null ? "Add New Goal" : "Edit Goal"),
+                    Text(_goal.title == null ? "Add New Goal" : "Edit Goal"),
                     InputText(
                       controller: _titleController,
                       title: "Goal Title",
@@ -133,7 +137,7 @@ class _GoalScreenState extends State<GoalScreen> {
                                 if (_titleController.text.isEmpty ||
                                     _descriptionController.text.isEmpty ||
                                     _targetController.text.isEmpty) {
-                                  SnackBar snackBar = const SnackBar(
+                                  SnackBar snackBar = SnackBar(
                                     content: Text(
                                         "You cannot add a goal without a title, description and target amount"),
                                   );
@@ -146,20 +150,17 @@ class _GoalScreenState extends State<GoalScreen> {
                                   _isLoading = true;
                                 });
 
-                                _userModel.goal!.title = _titleController.text;
-                                _userModel.goal!.description =
-                                    _descriptionController.text;
-                                _userModel.goal!.target =
+                                _goal.title = _titleController.text;
+                                _goal.description = _descriptionController.text;
+                                _goal.target =
                                     int.parse(_targetController.text);
-                                _userModel.goal!.current =
-                                    int.parse(_currentController.text);
+                                _goal.current =
+                                    _currentController.text.isNotEmpty
+                                        ? int.parse(_currentController.text)
+                                        : 0;
 
-                                await FirebaseFirestore.instance
-                                    .collection("kahwa")
-                                    .doc("AppCollections")
-                                    .collection("Users")
-                                    .doc(FirebaseAuth.instance.currentUser!.uid)
-                                    .update(_userModel.toMap());
+                                await _goalDocument.set(
+                                    _goal.toMap(), SetOptions(merge: true));
 
                                 setState(() {
                                   _isLoading = false;

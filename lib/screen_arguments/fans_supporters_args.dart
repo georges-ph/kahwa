@@ -2,7 +2,7 @@ import 'package:kahwa/models/fan_supporter.dart';
 
 class FansSupportersArgs {
   final String title;
-  final List<FanSupporter> list;
+  final List<String> list;
   
   FansSupportersArgs({
     required this.title,

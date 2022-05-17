@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:kahwa/enums/currency.dart';
 import 'package:kahwa/models/goal.dart';
@@ -16,28 +17,10 @@ class GoalCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (goal == null) {
-      return Card(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: ListTile(
-          onTap: () => Navigator.pushNamed(context, routeGoal),
-          horizontalTitleGap: 0,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 24,
-          ),
-          leading: Icon(
-            Icons.flag_rounded,
-            color: Theme.of(context).colorScheme.primary,
-          ),
-          title: const Text("Add Goal"),
-        ),
-      );
-    }
-
     return GestureDetector(
-      onTap: () => Navigator.pushNamed(context, routeGoal),
+      onTap: goal!.id != FirebaseAuth.instance.currentUser!.uid
+          ? null
+          : () => Navigator.pushNamed(context, routeGoal),
       child: Card(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
@@ -57,7 +40,7 @@ class GoalCard extends StatelessWidget {
               ClipRRect(
                 borderRadius: BorderRadius.circular(16),
                 child: LinearProgressIndicator(
-                  value: 0.3,
+                  value: (goal!.current! / goal!.target!).toDouble(),
                   backgroundColor: kGreyColor.withOpacity(0.1),
                   minHeight: 16,
                 ),

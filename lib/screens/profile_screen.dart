@@ -29,6 +29,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   late User _user;
   late DocumentReference _appDocument;
+  late DocumentReference<Map<String, dynamic>> _userDocument;
   late final Reference _profilePicturesStorageReference =
       _firebaseStorage.ref().child("kahwa/Profile Pictures");
 
@@ -52,6 +53,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.initState();
     _user = _firebaseAuth.currentUser!;
     _appDocument = _firebaseFirestore.collection("kahwa").doc("AppCollections");
+    _userDocument = _appDocument.collection("Users").doc(_user.uid);
     _runFuture = _getUserData();
     _nameController.text = _user.displayName!;
   }
@@ -66,10 +68,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _getUserData() async {
-    DocumentSnapshot<Map<String, dynamic>> userDocument =
-        await _appDocument.collection("Users").doc(_user.uid).get();
+    DocumentSnapshot<Map<String, dynamic>> document = await _userDocument.get();
     _userModel =
-        user_model.User.fromMap(userDocument.data() as Map<String, dynamic>);
+        user_model.User.fromMap(document.data() as Map<String, dynamic>);
 
     _aboutMeController.text = _userModel.about ?? "";
     _websiteController.text = _userModel.website ?? "";
@@ -82,6 +83,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final image = await ImagePicker().pickImage(source: ImageSource.gallery);
     if (image == null) return;
     final tempImage = File(image.path);
+
+    // TODO: crop image before uploading
 
     // Upload image
     final userReference =
@@ -100,6 +103,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         case TaskState.success:
           userReference.getDownloadURL().then((url) async {
             await _user.updatePhotoURL(url);
+            _userModel.image = url;
             setState(() {
               _isImageLoading = false;
             });
@@ -238,7 +242,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       children: [
                         CheckColorBox(
                           color: kBrownColor,
-                          checkedValue: _checkedColor == colors_enum.Colors.brown,
+                          checkedValue:
+                              _checkedColor == colors_enum.Colors.brown,
                           checked: (checked) {
                             setState(() {
                               if (checked) {
@@ -334,6 +339,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         onPressed: _isLoading
                             ? null
                             : () async {
+                                if (_nameController.text.isEmpty ||
+                                    _aboutMeController.text.isEmpty ||
+                                    _websiteController.text.isEmpty) {
+                                  SnackBar snackBar = const SnackBar(
+                                      content: Text("Fields cannot be empty"));
+                                  ScaffoldMessenger.of(context)
+                                      .showSnackBar(snackBar);
+                                  return;
+                                }
+
                                 setState(() {
                                   _isLoading = true;
                                 });
@@ -341,15 +356,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 _userModel.image = _user.photoURL;
                                 _userModel.name = _nameController.text;
                                 _userModel.about = _aboutMeController.text;
+                                _userModel.website = _websiteController.text;
                                 _userModel.color = _checkedColor;
 
                                 await _user
                                     .updateDisplayName(_nameController.text);
 
-                                await _appDocument
-                                    .collection("Users")
-                                    .doc(_user.uid)
-                                    .update(_userModel.toMap());
+                                await _userDocument.update(_userModel.toMap());
 
                                 SnackBar snackBar = const SnackBar(
                                     content: Text("Updated successfully"));

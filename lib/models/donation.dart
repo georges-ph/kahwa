@@ -40,7 +40,7 @@ class Donation {
       'message': message,
       'keep_private': keep_private,
       'total': total,
-      'timestamp': timestamp,
+      'timestamp': FieldValue.serverTimestamp(),
       'supporter': supporter?.toMap(),
     };
   }
