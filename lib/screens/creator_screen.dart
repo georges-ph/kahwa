@@ -5,13 +5,14 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:kahwa/enums/colors.dart' as colors_enum;
 import 'package:kahwa/models/donation.dart';
-import 'package:kahwa/models/fan_supporter.dart';
+import 'package:kahwa/models/goal.dart';
 import 'package:kahwa/models/user.dart' as user_model;
 import 'package:kahwa/screen_arguments/fans_supporters_args.dart';
 import 'package:kahwa/utils/colors.dart';
 import 'package:kahwa/utils/routes.dart';
 import 'package:kahwa/utils/sizes.dart';
 import 'package:kahwa/utils/typography.dart';
+import 'package:kahwa/widgets/add_goal_card.dart';
 import 'package:kahwa/widgets/creator_counter_card.dart';
 import 'package:kahwa/widgets/goal_card.dart';
 import 'package:kahwa/widgets/supporter_card.dart';
@@ -38,21 +39,30 @@ class _CreatorScreenState extends State<CreatorScreen> {
 
   int _kahwas = 0;
 
-  final User _user = FirebaseAuth.instance.currentUser!;
-  final DocumentReference _appDocument =
-      FirebaseFirestore.instance.collection("kahwa").doc("AppCollections");
+  FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+  FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
+
+  late User _user;
+  late DocumentReference _appDocument;
+  late DocumentReference<Map<String, dynamic>> _goalDocument;
 
   late Future<void> _runFuture;
 
   late user_model.User _userModel;
   late Color _creatorColor;
+  late Goal _goal;
 
   @override
   void initState() {
     super.initState();
+
+    _user = _firebaseAuth.currentUser!;
+    _appDocument = _firebaseFirestore.collection("kahwa").doc("AppCollections");
+    _goalDocument = _appDocument.collection("Goals").doc(widget.creatorId);
+
     _appDocument
         .collection("Donations")
-        .where("creator_id", isEqualTo: _user.uid)
+        .where("creator_id", isEqualTo: widget.creatorId)
         .orderBy("timestamp", descending: true)
         .get()
         .then((querySnapshot) {
@@ -83,6 +93,14 @@ class _CreatorScreenState extends State<CreatorScreen> {
         user_model.User.fromMap(userDocument.data() as Map<String, dynamic>);
 
     _creatorColor = colors_enum.getColor(_userModel.color!);
+
+    DocumentSnapshot<Map<String, dynamic>> goalDocument =
+        await _goalDocument.get();
+    if (!goalDocument.exists) {
+      _goal = Goal();
+      return;
+    }
+    _goal = Goal.fromMap(goalDocument.data() as Map<String, dynamic>);
   }
 
   @override
@@ -229,21 +247,11 @@ class _CreatorScreenState extends State<CreatorScreen> {
                               horizontalSpace(width: 16),
                               GestureDetector(
                                 onTap: () async {
-                                  List<FanSupporter> fans = _userModel.fans!
-                                      .where((fan) => fan.id == _user.uid)
-                                      .toList();
-
-                                  if (fans.isNotEmpty) {
-                                    _userModel.fans!.removeWhere(
-                                        (fan) => fan == fans.first);
+                                  if (_userModel.fans!.contains(_user.uid)) {
+                                    _userModel.fans!
+                                        .removeWhere((id) => _user.uid == id);
                                   } else {
-                                    _userModel.fans!.add(
-                                      FanSupporter(
-                                        id: _user.uid,
-                                        image: _user.photoURL,
-                                        name: _user.displayName,
-                                      ),
-                                    );
+                                    _userModel.fans!.add(_user.uid);
                                   }
 
                                   setState(() {});
@@ -270,10 +278,7 @@ class _CreatorScreenState extends State<CreatorScreen> {
                                     child: Column(
                                       children: [
                                         Icon(
-                                          _userModel.fans!
-                                                  .where((fan) =>
-                                                      fan.id == _user.uid)
-                                                  .isNotEmpty
+                                          _userModel.fans!.contains(_user.uid)
                                               ? Icons.favorite_rounded
                                               : Icons.favorite_border_rounded,
                                           color: _creatorColor,
@@ -295,7 +300,12 @@ class _CreatorScreenState extends State<CreatorScreen> {
                             ],
                           ),
                     verticalSpace(),
-                    GoalCard(goal: _userModel.goal),
+                    if (_goal.title != null)
+                      GoalCard(goal: _goal)
+                    else if (_goalDocument.id == _user.uid)
+                      AddGoalCard()
+                    else
+                      Container(),
                     verticalSpace(),
                     _userModel.about == null
                         ? Container()
@@ -335,7 +345,9 @@ class _CreatorScreenState extends State<CreatorScreen> {
                                   color: _creatorColor,
                                 ),
                           ),
-                    verticalSpace(height: 16),
+                    _userModel.website == null
+                        ? Container()
+                        : verticalSpace(height: 16),
                     _userModel.website == null
                         ? Container()
                         : GestureDetector(
@@ -364,7 +376,7 @@ class _CreatorScreenState extends State<CreatorScreen> {
                               ],
                             ),
                           ),
-                    verticalSpace(),
+                    _userModel.website == null ? Container() : verticalSpace(),
                     _donationsList.isEmpty
                         ? Container()
                         : Text(
@@ -384,7 +396,7 @@ class _CreatorScreenState extends State<CreatorScreen> {
                       shrinkWrap: true,
                       itemCount: _donationsList.length,
                       separatorBuilder: (BuildContext context, int index) {
-                        return verticalSpace(height: 16);
+                        return verticalSpace(height: 8);
                       },
                       itemBuilder: (BuildContext context, int index) {
                         return SupporterCard(

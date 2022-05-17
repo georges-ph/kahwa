@@ -5,7 +5,6 @@ import 'package:flutter_keyboard_size/flutter_keyboard_size.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:kahwa/enums/colors.dart' as colors_enum;
 import 'package:kahwa/models/balance.dart';
-import 'package:kahwa/models/billing_details.dart';
 import 'package:kahwa/models/kahwa_prices.dart';
 import 'package:kahwa/models/user.dart' as user_model;
 import 'package:kahwa/utils/colors.dart';
@@ -212,6 +211,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                         _isEmailErrorVisible = false;
                                         _isPasswordErrorVisible = false;
                                       });
+
                                       if (_nameController.text.isEmpty ||
                                           _emailController.text.isEmpty ||
                                           _passwordController.text.isEmpty) {
@@ -221,6 +221,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                             _isNameErrorVisible = true;
                                           });
                                         }
+
                                         if (_emailController.text.isEmpty) {
                                           setState(() {
                                             _emailError =
@@ -236,8 +237,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                             _isPasswordErrorVisible = true;
                                           });
                                         }
+
                                         return;
                                       }
+
                                       try {
                                         setState(() {
                                           _isLoading = true;
@@ -253,7 +256,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                         await credential.user
                                             ?.updateDisplayName(
                                                 _nameController.text);
-
                                         await credential.user
                                             ?.sendEmailVerification();
 
@@ -289,52 +291,64 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                         //     .toString()
                                         //     .split("https://kahwa.page.link/")[1];
 
+                                        String userId = credential.user!.uid;
+
                                         user_model.User user = user_model.User(
                                           name: _nameController.text,
                                           email: _emailController.text,
                                           image: null,
-                                          id: credential.user!.uid,
-                                          kahwa_prices: KahwaPrices(
-                                            lbp: 1000,
-                                            usd: 1,
-                                            thanks_message: null,
-                                          ),
-                                          balance: Balance(
-                                            available_withdraw_lbp: 0,
-                                            available_withdraw_usd: 0,
-                                            current_lbp: 0,
-                                            current_usd: 0,
-                                            received_lbp: 0,
-                                            received_usd: 0,
-                                            spent_lbp: 0,
-                                            spent_usd: 0,
-                                          ),
-                                          billing_details: BillingDetails(
-                                            first_name: null,
-                                            last_name: null,
-                                            phone: null,
-                                            whish_phone: null,
-                                          ),
-                                          // goal: Goal(
-                                          //   current: null,
-                                          //   description: null,
-                                          //   target: null,
-                                          //   title: null,
-                                          // ),
-                                          goal: null,
-                                          fans: [],
+                                          id: userId,
                                           about: null,
                                           color: colors_enum.Colors.brown,
                                           website: null,
-                                          // link_id: linkId,
+                                          fans: [],
                                         );
 
-                                        await FirebaseFirestore.instance
-                                            .collection("kahwa")
-                                            .doc("AppCollections")
-                                            .collection("Users")
-                                            .doc(credential.user!.uid)
-                                            .set(user.toMap());
+                                        KahwaPrices kahwaPrices = KahwaPrices(
+                                          lbp: 1000,
+                                          usd: 1,
+                                          thanks_message: null,
+                                        );
+
+                                        Balance balance = Balance(
+                                          withdrawn_lbp: 0,
+                                          withdrawn_usd: 0,
+                                          current_lbp: 0,
+                                          current_usd: 0,
+                                          received_lbp: 0,
+                                          received_usd: 0,
+                                          spent_lbp: 0,
+                                          spent_usd: 0,
+                                        );
+
+                                        FirebaseFirestore firebaseFirestore =
+                                            FirebaseFirestore.instance;
+                                        final batch = firebaseFirestore.batch();
+
+                                        DocumentReference appDocument =
+                                            firebaseFirestore
+                                                .collection("kahwa")
+                                                .doc("AppCollections");
+
+                                        DocumentReference userDocument =
+                                            appDocument
+                                                .collection("Users")
+                                                .doc(userId);
+                                        DocumentReference kahwaPricesDocument =
+                                            appDocument
+                                                .collection("kahwaPrices")
+                                                .doc(userId);
+                                        DocumentReference balanceDocument =
+                                            appDocument
+                                                .collection("Balances")
+                                                .doc(userId);
+
+                                        batch.set(userDocument, user.toMap());
+                                        batch.set(kahwaPricesDocument,
+                                            kahwaPrices.toMap());
+                                        batch.set(
+                                            balanceDocument, balance.toMap());
+                                        await batch.commit();
 
                                         Navigator.pushReplacementNamed(
                                             context, routeSplash);

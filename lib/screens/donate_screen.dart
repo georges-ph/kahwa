@@ -2,9 +2,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fire_auth;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:kahwa/enums/colors.dart' as colors_enum;
 import 'package:kahwa/enums/currency.dart';
 import 'package:kahwa/models/donation.dart';
 import 'package:kahwa/models/fan_supporter.dart';
+import 'package:kahwa/models/kahwa_prices.dart';
 import 'package:kahwa/models/user.dart';
 import 'package:kahwa/utils/colors.dart';
 import 'package:kahwa/utils/sizes.dart';
@@ -33,7 +35,12 @@ class _DonateScreenState extends State<DonateScreen> {
 
   late fire_auth.User _user;
   late DocumentReference _appDocument;
-  late Future<DocumentSnapshot> _getUserDoc;
+
+  late Future<void> _runFuture;
+
+  late User _creator;
+  late KahwaPrices _kahwaPrices;
+  late Color _creatorColor;
 
   final TextEditingController _kahwasController =
       TextEditingController(text: 1.toString());
@@ -49,7 +56,7 @@ class _DonateScreenState extends State<DonateScreen> {
     super.initState();
     _user = _firebaseAuth.currentUser!;
     _appDocument = _firebaseFirestore.collection("kahwa").doc("AppCollections");
-    _getUserDoc = _appDocument.collection("Users").doc(widget.creatorId).get();
+    _runFuture = _getData();
   }
 
   @override
@@ -57,6 +64,21 @@ class _DonateScreenState extends State<DonateScreen> {
     _kahwasController.dispose();
     _messageController.dispose();
     super.dispose();
+  }
+
+  Future<void> _getData() async {
+    DocumentSnapshot userDoc =
+        await _appDocument.collection("Users").doc(widget.creatorId).get();
+    DocumentSnapshot pricesDoc = await _appDocument
+        .collection("kahwaPrices")
+        .doc(widget.creatorId)
+        .get();
+
+    _creator = User.fromMap(userDoc.data() as Map<String, dynamic>);
+    _kahwaPrices =
+        KahwaPrices.fromMap(pricesDoc.data() as Map<String, dynamic>);
+
+    _creatorColor = colors_enum.getColor(_creator.color!);
   }
 
   @override
@@ -67,8 +89,8 @@ class _DonateScreenState extends State<DonateScreen> {
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         appBar: AppBar(),
-        body: FutureBuilder<DocumentSnapshot>(
-          future: _getUserDoc,
+        body: FutureBuilder(
+          future: _runFuture,
           builder: (context, snapshot) {
             if (snapshot.hasError) {
               return Center(
@@ -80,219 +102,231 @@ class _DonateScreenState extends State<DonateScreen> {
               );
             }
 
-            if (snapshot.hasData &&
-                snapshot.connectionState == ConnectionState.done) {
-              User creator =
-                  User.fromMap(snapshot.data!.data() as Map<String, dynamic>);
-              return SingleChildScrollView(
-                keyboardDismissBehavior:
-                    ScrollViewKeyboardDismissBehavior.onDrag,
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            "Buy ${creator.name!.split(" ")[0]} a kahwa",
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineMedium!
-                                .copyWith(
-                                  fontWeight: kExtraBoldFontWeight,
-                                  color: kBlackColor,
-                                ),
+            if (snapshot.connectionState == ConnectionState.done) {
+              return Theme(
+                data: Theme.of(context).copyWith(
+                  colorScheme: Theme.of(context).colorScheme.copyWith(
+                        primary: _creatorColor,
+                      ),
+                  checkboxTheme: Theme.of(context).checkboxTheme.copyWith(
+                        fillColor: MaterialStateProperty.all(_creatorColor),
+                      ),
+                  chipTheme: Theme.of(context).chipTheme.copyWith(
+                        selectedColor: _creatorColor.withOpacity(0.8),
+                        backgroundColor: _creatorColor.withOpacity(0.2),
+                      ),
+                ),
+                child: SingleChildScrollView(
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              "Buy ${_creator.name!.split(" ")[0]} a kahwa",
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .headlineMedium!
+                                  .copyWith(
+                                    fontWeight: kExtraBoldFontWeight,
+                                    color: kBlackColor,
+                                  ),
+                            ),
                           ),
-                        ),
-                        horizontalSpace(width: 40),
-                        CircleAvatar(
-                          radius: _screenSize.width / 7,
-                          backgroundImage: creator.image != null
-                              ? NetworkImage(creator.image!)
-                              : null,
-                          backgroundColor: kBrownColor,
-                          child: creator.image == null
-                              ? Text(
-                                  getInitials(creator.name!),
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .headlineMedium!
-                                      .copyWith(
-                                        color: kWhiteColor,
-                                      ),
-                                )
-                              : null,
-                        ),
-                      ],
-                    ),
-                    verticalSpace(),
-                    Row(
-                      children: [
-                        const Image(
-                          image: AssetImage("assets/fenjen.png"),
-                          width: 32,
-                        ),
-                        horizontalSpace(),
-                        const Text("×"),
-                        horizontalSpace(),
-                        PriceInputText(
-                          controller: _kahwasController,
-                        ),
-                        const Spacer(flex: 3),
-                        KahwaCounter(
-                          onTap: (kahwas) {
-                            setState(() {
-                              _kahwasController.text = kahwas.toString();
-                            });
-                          },
-                          text: 1,
-                          kahwas: _kahwasController.text,
-                        ),
-                        horizontalSpace(),
-                        KahwaCounter(
-                          onTap: (kahwas) {
-                            setState(() {
-                              _kahwasController.text = kahwas.toString();
-                            });
-                          },
-                          text: 3,
-                          kahwas: _kahwasController.text,
-                        ),
-                        horizontalSpace(),
-                        KahwaCounter(
-                          onTap: (kahwas) {
-                            setState(() {
-                              _kahwasController.text = kahwas.toString();
-                            });
-                          },
-                          text: 5,
-                          kahwas: _kahwasController.text,
-                        ),
-                      ],
-                    ),
-                    verticalSpace(height: 16),
-                    Row(
-                      children: [
-                        ChoiceChip(
-                          label: Text(Currency.lbp.name.toUpperCase()),
-                          selected: _selectedCurrency == Currency.lbp,
-                          onSelected: (selected) {
-                            setState(() {
-                              _selectedCurrency = Currency.lbp;
-                            });
-                          },
-                        ),
-                        horizontalSpace(),
-                        ChoiceChip(
-                          label: Text(Currency.usd.name.toUpperCase()),
-                          selected: _selectedCurrency == Currency.usd,
-                          onSelected: (selected) {
-                            setState(() {
-                              _selectedCurrency = Currency.usd;
-                            });
-                          },
-                        ),
-                        horizontalSpace(width: 40),
-                        Visibility(
-                          visible: _selectedCurrency == Currency.usd,
-                          child: Expanded(
-                            child: Tooltip(
-                              message:
-                                  "If you are going to pay via a credit/debit card",
-                              child: CheckboxListTile(
-                                contentPadding: EdgeInsets.zero,
-                                title: Text(
-                                  "Pay the processing fee",
-                                  textAlign: TextAlign.end,
-                                  style: Theme.of(context).textTheme.bodyMedium,
+                          horizontalSpace(width: 40),
+                          CircleAvatar(
+                            radius: _screenSize.width / 7,
+                            backgroundImage: _creator.image != null
+                                ? NetworkImage(_creator.image!)
+                                : null,
+                            backgroundColor: _creatorColor,
+                            child: _creator.image == null
+                                ? Text(
+                                    getInitials(_creator.name!),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .headlineMedium!
+                                        .copyWith(
+                                          color: kWhiteColor,
+                                        ),
+                                  )
+                                : null,
+                          ),
+                        ],
+                      ),
+                      verticalSpace(),
+                      Row(
+                        children: [
+                          const Image(
+                            image: AssetImage("assets/fenjen.png"),
+                            width: 32,
+                          ),
+                          horizontalSpace(),
+                          const Text("×"),
+                          horizontalSpace(),
+                          PriceInputText(
+                            controller: _kahwasController,
+                          ),
+                          const Spacer(flex: 3),
+                          KahwaCounter(
+                            onTap: (kahwas) {
+                              setState(() {
+                                _kahwasController.text = kahwas.toString();
+                              });
+                            },
+                            text: 1,
+                            kahwas: _kahwasController.text,
+                          ),
+                          horizontalSpace(),
+                          KahwaCounter(
+                            onTap: (kahwas) {
+                              setState(() {
+                                _kahwasController.text = kahwas.toString();
+                              });
+                            },
+                            text: 3,
+                            kahwas: _kahwasController.text,
+                          ),
+                          horizontalSpace(),
+                          KahwaCounter(
+                            onTap: (kahwas) {
+                              setState(() {
+                                _kahwasController.text = kahwas.toString();
+                              });
+                            },
+                            text: 5,
+                            kahwas: _kahwasController.text,
+                          ),
+                        ],
+                      ),
+                      verticalSpace(height: 16),
+                      Row(
+                        children: [
+                          ChoiceChip(
+                            label: Text(Currency.lbp.name.toUpperCase()),
+                            selected: _selectedCurrency == Currency.lbp,
+                            onSelected: (selected) {
+                              setState(() {
+                                _selectedCurrency = Currency.lbp;
+                              });
+                            },
+                          ),
+                          horizontalSpace(),
+                          ChoiceChip(
+                            label: Text(Currency.usd.name.toUpperCase()),
+                            selected: _selectedCurrency == Currency.usd,
+                            onSelected: (selected) {
+                              setState(() {
+                                _selectedCurrency = Currency.usd;
+                              });
+                            },
+                          ),
+                          horizontalSpace(width: 40),
+                          Visibility(
+                            visible: _selectedCurrency == Currency.usd,
+                            child: Expanded(
+                              child: Tooltip(
+                                message:
+                                    "If you are going to pay via a credit/debit card",
+                                child: CheckboxListTile(
+                                  contentPadding: EdgeInsets.zero,
+                                  title: Text(
+                                    "Pay the processing fee",
+                                    textAlign: TextAlign.end,
+                                    style:
+                                        Theme.of(context).textTheme.bodyMedium,
+                                  ),
+                                  value: _payFee,
+                                  onChanged: (checked) {
+                                    setState(() {
+                                      _payFee = checked!;
+                                    });
+                                  },
                                 ),
-                                value: _payFee,
-                                onChanged: (checked) {
-                                  setState(() {
-                                    _payFee = checked!;
-                                  });
-                                },
                               ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                    verticalSpace(),
-                    InputText(
-                      controller: _messageController,
-                      hint: "Add a nice message",
-                      maxLines: 5,
-                    ),
-                    CheckboxListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: const Text("Keep this support private"),
-                      value: _keepPrivate,
-                      onChanged: (value) {
-                        setState(() {
-                          _keepPrivate = value!;
-                        });
-                      },
-                    ),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _isLoading
-                            ? null
-                            : () async {
-                                setState(() {
-                                  _isLoading = true;
-                                });
-
-                                // TODO: use the balance to donate, not like im doing it
-
-                                Donation donation = Donation(
-                                  creator_id: widget.creatorId,
-                                  currency: _selectedCurrency,
-                                  kahwa_price: _selectedCurrency == Currency.lbp
-                                      ? creator.kahwa_prices!.lbp
-                                      : creator.kahwa_prices!.usd,
-                                  kahwas: int.parse(_kahwasController.text),
-                                  keep_private: _keepPrivate,
-                                  message: _messageController.text,
-                                  pay_fee: _payFee,
-                                  total: _calculate(creator),
-                                  timestamp: Timestamp.now(),
-                                  supporter: FanSupporter(
-                                    id: _user.uid,
-                                    name: _user.displayName,
-                                    image: _user.photoURL,
-                                  ),
-                                );
-
-                                await _appDocument
-                                    .collection("Donations")
-                                    .add(donation.toMap());
-
-                                SnackBar snackBar = SnackBar(
-                                  content: Text(
-                                      "You will be contacted soon to buy ${creator.name} some kahwas"),
-                                );
-
-                                ScaffoldMessenger.of(context)
-                                    .showSnackBar(snackBar);
-
-                                setState(() {
-                                  _isLoading = false;
-                                });
-                              },
-                        child: _isLoading
-                            ? const SizedBox.square(
-                                dimension: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 3,
-                                ),
-                              )
-                            : Text(_getText(creator)),
+                        ],
                       ),
-                    ),
-                  ],
+                      verticalSpace(),
+                      InputText(
+                        controller: _messageController,
+                        hint: "Add a nice message",
+                        maxLines: 5,
+                      ),
+                      CheckboxListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: const Text("Keep this support private"),
+                        value: _keepPrivate,
+                        onChanged: (value) {
+                          setState(() {
+                            _keepPrivate = value!;
+                          });
+                        },
+                      ),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _isLoading
+                              ? null
+                              : () async {
+                                  setState(() {
+                                    _isLoading = true;
+                                  });
+
+                                  // TODO: use the balance to donate, not like im doing it
+
+                                  Donation donation = Donation(
+                                    creator_id: widget.creatorId,
+                                    currency: _selectedCurrency,
+                                    kahwa_price:
+                                        _selectedCurrency == Currency.lbp
+                                            ? _kahwaPrices.lbp
+                                            : _kahwaPrices.usd,
+                                    kahwas: int.parse(_kahwasController.text),
+                                    keep_private: _keepPrivate,
+                                    message: _messageController.text,
+                                    pay_fee: _payFee,
+                                    total: _calculate(_creator),
+                                    supporter: FanSupporter(
+                                      id: _user.uid,
+                                      name: _user.displayName,
+                                      image: _user.photoURL,
+                                    ),
+                                  );
+
+                                  await _appDocument
+                                      .collection("Donations")
+                                      .add(donation.toMap());
+
+                                  SnackBar snackBar = SnackBar(
+                                    content: Text(
+                                        "You will be contacted soon to buy ${_creator.name} some kahwas"),
+                                  );
+
+                                  ScaffoldMessenger.of(context)
+                                      .showSnackBar(snackBar);
+
+                                  setState(() {
+                                    _isLoading = false;
+                                  });
+                                },
+                          child: _isLoading
+                              ? const SizedBox.square(
+                                  dimension: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 3,
+                                  ),
+                                )
+                              : Text(_getText(_creator)),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               );
             }
@@ -306,11 +340,10 @@ class _DonateScreenState extends State<DonateScreen> {
 
   num _calculate(User creator) {
     if (_selectedCurrency == Currency.lbp) {
-      return creator.kahwa_prices!.lbp! *
-          int.parse(_kahwasController.text).toDouble();
+      return _kahwaPrices.lbp! * int.parse(_kahwasController.text).toDouble();
     } else {
-      double price = creator.kahwa_prices!.usd! *
-          int.parse(_kahwasController.text).toDouble();
+      double price =
+          _kahwaPrices.usd! * int.parse(_kahwasController.text).toDouble();
       if (_payFee) {
         price = price / (1 - 0.06);
         return double.parse(price.toStringAsFixed(2));

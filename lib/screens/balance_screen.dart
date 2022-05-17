@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:kahwa/models/user.dart' as user_model;
+import 'package:kahwa/models/balance.dart';
 import 'package:kahwa/utils/sizes.dart';
 import 'package:kahwa/widgets/balance_card.dart';
 
@@ -18,7 +18,7 @@ class BalanceScreen extends StatelessWidget {
         future: FirebaseFirestore.instance
             .collection("kahwa")
             .doc("AppCollections")
-            .collection("Users")
+            .collection("Balances")
             .doc(FirebaseAuth.instance.currentUser!.uid)
             .get(),
         builder: (context, snapshot) {
@@ -34,8 +34,9 @@ class BalanceScreen extends StatelessWidget {
 
           if (snapshot.hasData &&
               snapshot.connectionState == ConnectionState.done) {
-            user_model.User creator = user_model.User.fromMap(
-                snapshot.data!.data() as Map<String, dynamic>);
+            Balance balance =
+                Balance.fromMap(snapshot.data!.data() as Map<String, dynamic>);
+
             return SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
               padding: const EdgeInsets.all(24),
@@ -43,27 +44,28 @@ class BalanceScreen extends StatelessWidget {
                 children: [
                   BalanceCard(
                     title: "Current Balance",
-                    lbp: creator.balance!.current_lbp!,
-                    usd: creator.balance!.current_usd!,
+                    lbp: balance.current_lbp!,
+                    usd: balance.current_usd!,
                   ),
                   verticalSpace(),
                   BalanceCard(
                     title: "Spent",
-                    lbp: creator.balance!.spent_lbp!,
-                    usd: creator.balance!.spent_usd!,
+                    lbp: balance.spent_lbp!,
+                    usd: balance.spent_usd!,
                   ),
                   verticalSpace(),
                   BalanceCard(
                     title: "Received",
-                    lbp: creator.balance!.received_lbp!,
-                    usd: creator.balance!.received_usd!,
+                    lbp: balance.received_lbp!,
+                    usd: balance.received_usd!,
                   ),
                   verticalSpace(),
                   BalanceCard(
-                    title: "Available to Withdraw",
-                    lbp: creator.balance!.available_withdraw_usd!,
-                    usd: creator.balance!.available_withdraw_usd!,
+                    title: "Withdrawn",
+                    lbp: balance.withdrawn_lbp!,
+                    usd: balance.withdrawn_usd!,
                   ),
+                  // TODO: add button to request a withdraw / payout
                 ],
               ),
             );

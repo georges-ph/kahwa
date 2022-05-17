@@ -79,7 +79,7 @@ class CreatorCard extends StatelessWidget {
                     children: [
                       Icon(Icons.favorite_border_rounded),
                       horizontalSpace(width: 8),
-                      Text("${creator.fans!.length} Fans"),
+                      // Text("${creator.fans!.length} Fans"),
                     ],
                   ),
                 ],
