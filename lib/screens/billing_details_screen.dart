@@ -72,7 +72,7 @@ class _BillingDetailsScreenState extends State<BillingDetailsScreen> {
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         appBar: AppBar(
-          title: const Text("Billing Details"),
+          
         ),
         body: FutureBuilder(
           future: _runFuture,
@@ -96,6 +96,11 @@ class _BillingDetailsScreenState extends State<BillingDetailsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Text(
+                      "Billing Details".toUpperCase(),
+                      style: Theme.of(context).textTheme.headlineLarge,
+                    ),
+                    verticalSpace(height: 40),
                     const Text("Payments are made through WHISH MONEY."),
                     verticalSpace(),
                     InputText(

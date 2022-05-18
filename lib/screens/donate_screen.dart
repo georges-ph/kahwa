@@ -130,11 +130,7 @@ class _DonateScreenState extends State<DonateScreen> {
                               "Buy ${_creator.name!.split(" ")[0]} a kahwa",
                               style: Theme.of(context)
                                   .textTheme
-                                  .headlineMedium!
-                                  .copyWith(
-                                    fontWeight: kExtraBoldFontWeight,
-                                    color: kBlackColor,
-                                  ),
+                                  .headlineLarge,
                             ),
                           ),
                           horizontalSpace(width: 40),

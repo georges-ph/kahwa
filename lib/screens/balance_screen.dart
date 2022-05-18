@@ -11,9 +11,7 @@ class BalanceScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Balance"),
-      ),
+      appBar: AppBar(),
       body: FutureBuilder<DocumentSnapshot>(
         future: FirebaseFirestore.instance
             .collection("kahwa")
@@ -41,7 +39,13 @@ class BalanceScreen extends StatelessWidget {
               physics: const BouncingScrollPhysics(),
               padding: const EdgeInsets.all(24),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Text(
+                    "Balance".toUpperCase(),
+                    style: Theme.of(context).textTheme.headlineLarge,
+                  ),
+                  verticalSpace(height: 40),
                   BalanceCard(
                     title: "Current Balance",
                     lbp: balance.current_lbp!,

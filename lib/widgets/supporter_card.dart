@@ -26,6 +26,7 @@ class SupporterCard extends StatelessWidget {
       text = "${donation.supporter!.name} bought ${donation.kahwas} $kahwas";
     }
 
+    // TODO: try to change it to ListTile
     return Card(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),

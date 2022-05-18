@@ -131,9 +131,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text("Profile"),
-        ),
+        appBar: AppBar(),
         body: FutureBuilder(
           future: _runFuture,
           builder: (context, snapshot) {
@@ -154,54 +152,63 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 padding: const EdgeInsets.all(24),
                 physics: const BouncingScrollPhysics(),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Stack(
-                      children: [
-                        CircleAvatar(
-                          radius: _screenSize.width / 5,
-                          backgroundImage: _user.photoURL != null
-                              ? NetworkImage(_user.photoURL!)
-                              : null,
-                          backgroundColor: _user.photoURL == null
-                              ? kBrownColor.withOpacity(0.6)
-                              : null,
-                          child: _user.photoURL == null
-                              ? Text(
-                                  getInitials(_user.displayName!),
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .displaySmall!
-                                      .copyWith(
-                                        color: kWhiteColor,
-                                      ),
-                                )
-                              : null,
-                        ),
-                        Visibility(
-                          visible: _isImageLoading,
-                          child: Positioned.fill(
-                            child: CircularProgressIndicator(
-                              value: _uploadProgress,
+                    Text(
+                      "Profile".toUpperCase(),
+                      style: Theme.of(context).textTheme.headlineLarge,
+                    ),
+                    verticalSpace(height: 40),
+                    Align(
+                      alignment: Alignment.center,
+                      child: Stack(
+                        children: [
+                          CircleAvatar(
+                            radius: _screenSize.width / 5,
+                            backgroundImage: _user.photoURL != null
+                                ? NetworkImage(_user.photoURL!)
+                                : null,
+                            backgroundColor: _user.photoURL == null
+                                ? kBrownColor.withOpacity(0.6)
+                                : null,
+                            child: _user.photoURL == null
+                                ? Text(
+                                    getInitials(_user.displayName!),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .displaySmall!
+                                        .copyWith(
+                                          color: kWhiteColor,
+                                        ),
+                                  )
+                                : null,
+                          ),
+                          Visibility(
+                            visible: _isImageLoading,
+                            child: Positioned.fill(
+                              child: CircularProgressIndicator(
+                                value: _uploadProgress,
+                              ),
                             ),
                           ),
-                        ),
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              _pickImage();
-                              setState(() {
-                                _isImageLoading = true;
-                              });
-                            },
-                            child: const Icon(Icons.camera_alt_rounded),
-                            style: TextButton.styleFrom(
-                              shape: const CircleBorder(),
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                _pickImage();
+                                setState(() {
+                                  _isImageLoading = true;
+                                });
+                              },
+                              child: const Icon(Icons.camera_alt_rounded),
+                              style: TextButton.styleFrom(
+                                shape: const CircleBorder(),
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                     verticalSpace(height: 40),
                     InputText(

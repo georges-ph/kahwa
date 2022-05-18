@@ -72,9 +72,7 @@ class _KahwaPriceScreenState extends State<KahwaPriceScreen> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text("kahwa Price"),
-        ),
+        appBar: AppBar(),
         body: FutureBuilder(
           future: _runFuture,
           builder: (context, snapshot) {
@@ -97,6 +95,11 @@ class _KahwaPriceScreenState extends State<KahwaPriceScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Text(
+                      "kahwa Price".toUpperCase(),
+                      style: Theme.of(context).textTheme.headlineLarge,
+                    ),
+                    verticalSpace(height: 40),
                     InputText(
                       controller: _lbpController,
                       title: "Price per kahwa",

@@ -9,7 +9,6 @@ import 'package:kahwa/utils/routes.dart';
 import 'package:kahwa/utils/sizes.dart';
 import 'package:kahwa/utils/typography.dart';
 import 'package:kahwa/widgets/creator_card.dart';
-import 'package:kahwa/widgets/input_text.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -46,19 +45,14 @@ class _HomeScreenState extends State<HomeScreen> {
     _userModel =
         user_model.User.fromMap(userDocument.data() as Map<String, dynamic>);
 
-    QuerySnapshot querySnapshot = await _appDocument.collection("Users").get();
+    QuerySnapshot querySnapshot = await _appDocument
+        .collection("Users")
+        .where("fans", arrayContains: _user.uid)
+        .get();
     querySnapshot.docs.forEach((document) {
       _creators.add(
           user_model.User.fromMap(document.data() as Map<String, dynamic>));
     });
-
-    // DocumentSnapshot<Map<String, dynamic>> creatorDoc = await _appDocument
-    //     .collection("Users")
-    //     .doc("dkC8yxYaKXTTZsDVR7MYpPNT8nE2")
-    //     .get();
-
-    // creatorr =
-    //     user_model.User.fromMap(creatorDoc.data() as Map<String, dynamic>);
   }
 
   @override
@@ -66,8 +60,6 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Text(
-            "Home"), // TODO: style this better, according to the design I made; otherwise - if it doesn't work - add it to the Column
         actions: [
           IconButton(
             onPressed: () => Navigator.pushNamed(context, routeSettings),
@@ -113,27 +105,34 @@ class _HomeScreenState extends State<HomeScreen> {
           }
 
           if (snapshot.connectionState == ConnectionState.done) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                verticalSpace(),
-                InputText(
-                  icon: Icons.search_rounded,
-                  iconColor: kGreyColor,
-                  hint: "Search creators",
-                ),
-                verticalSpace(),
-                Text(
-                  "Creators you are a fan of",
-                  style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                        fontWeight: kSemiBoldFontWeight,
-                      ),
-                ),
-                verticalSpace(height: 8),
-                ..._creators.map(
-                  (user) => CreatorCard(creator: user),
-                ),
-              ],
+            return SingleChildScrollView(
+              padding: EdgeInsets.all(24),
+              physics: BouncingScrollPhysics(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Home".toUpperCase(),
+                    style: Theme.of(context).textTheme.headlineLarge,
+                  ),
+                  verticalSpace(),
+                  Text(
+                    "Creators you are a fan of",
+                    style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                      fontWeight: kSemiBoldFontWeight,
+                    ),
+                  ),
+                  verticalSpace(height: 16),
+                  ..._creators.map(
+                    (user) => Column(
+                      children: [
+                        CreatorCard(creator: user),
+                        verticalSpace(height: 12),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             );
           }
           return const Center(child: CircularProgressIndicator());

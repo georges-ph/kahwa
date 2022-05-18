@@ -11,7 +11,6 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Settings"),
         actions: [
           IconButton(
             onPressed: () async {
@@ -27,7 +26,12 @@ class SettingsScreen extends StatelessWidget {
           horizontal: 24,
         ),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Text(
+              "Settings".toUpperCase(),
+              style: Theme.of(context).textTheme.headlineLarge,
+            ),
             verticalSpace(height: 40),
             const SettingsCard(
               route: routeProfile,

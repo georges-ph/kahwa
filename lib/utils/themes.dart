@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_const_constructors
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:kahwa/utils/colors.dart';
@@ -8,9 +10,6 @@ ThemeData lightTheme(BuildContext context) {
     appBarTheme: AppBarTheme(
       backgroundColor: Colors.transparent,
       elevation: 0,
-      titleTextStyle: Theme.of(context).textTheme.headlineSmall!.copyWith(
-            color: kBlackColor,
-          ),
       iconTheme: const IconThemeData(
         color: kBlackColor,
       ),
@@ -49,6 +48,20 @@ ThemeData lightTheme(BuildContext context) {
     ),
     textTheme: GoogleFonts.manropeTextTheme(
       Theme.of(context).textTheme,
+    ).copyWith(
+      headlineLarge: GoogleFonts.manrope(
+        fontWeight: kExtraBoldFontWeight,
+        color: kBlackColor,
+      ),
+      titleLarge: GoogleFonts.manrope(),
+      titleMedium: GoogleFonts.manrope(),
+      titleSmall: GoogleFonts.manrope(),
+      labelLarge: GoogleFonts.manrope(),
+      labelMedium: GoogleFonts.manrope(),
+      bodyLarge: GoogleFonts.manrope(),
+      bodyMedium: GoogleFonts.manrope(),
+      bodySmall: GoogleFonts.manrope(),
+      displaySmall: GoogleFonts.manrope(),
     ),
   );
 }
