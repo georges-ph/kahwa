@@ -12,12 +12,15 @@ class SettingsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         actions: [
-          IconButton(
-            onPressed: () async {
-              await FirebaseAuth.instance.signOut();
-              Navigator.pop(context);
-            },
-            icon: const Icon(Icons.logout_rounded),
+          Tooltip(
+            message: "Log Out",
+            child: IconButton(
+              onPressed: () async {
+                await FirebaseAuth.instance.signOut();
+                Navigator.pop(context);
+              },
+              icon: const Icon(Icons.logout_rounded),
+            ),
           ),
         ],
       ),

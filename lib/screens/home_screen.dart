@@ -61,9 +61,12 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         actions: [
-          IconButton(
-            onPressed: () => Navigator.pushNamed(context, routeSettings),
-            icon: Icon(Icons.settings_rounded),
+          Tooltip(
+            message: "Settings",
+            child: IconButton(
+              onPressed: () => Navigator.pushNamed(context, routeSettings),
+              icon: Icon(Icons.settings_rounded),
+            ),
           ),
           GestureDetector(
             onTap: () => Navigator.pushNamed(

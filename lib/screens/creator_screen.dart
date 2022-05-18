@@ -110,11 +110,14 @@ class _CreatorScreenState extends State<CreatorScreen> {
     return Scaffold(
       appBar: AppBar(
         actions: [
-          IconButton(
-            onPressed: () {
-              // TODO: add logic to share
-            },
-            icon: Icon(Icons.share_rounded),
+          Tooltip(
+            message: "Share",
+            child: IconButton(
+              onPressed: () {
+                // TODO: add logic to share
+              },
+              icon: Icon(Icons.share_rounded),
+            ),
           ),
         ],
       ),
