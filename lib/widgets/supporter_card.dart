@@ -53,8 +53,8 @@ class SupporterCard extends StatelessWidget {
           donationSupporter.donation!.message!.isEmpty
               ? Container()
               : Padding(
-                padding: EdgeInsets.fromLTRB(16, 0, 16, 16),
-                child: SizedBox(
+                  padding: EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  child: SizedBox(
                     width: double.infinity,
                     child: Card(
                       margin: EdgeInsets.zero,
@@ -75,77 +75,9 @@ class SupporterCard extends StatelessWidget {
                       ),
                     ),
                   ),
-              ),
+                ),
         ],
       ),
     );
-
-    // TODO: try to change it to ListTile
-    // return Card(
-    //   shape: RoundedRectangleBorder(
-    //     borderRadius: BorderRadius.circular(16),
-    //   ),
-    //   child: Padding(
-    //     padding: const EdgeInsets.all(16),
-    //     child: Column(
-    //       crossAxisAlignment: CrossAxisAlignment.start,
-    //       children: [
-    //         Row(
-    //           children: [
-    //             donationSupporter.supporter!.image != null
-    //                 ? Image.network(
-    //                     donationSupporter.supporter!.image!,
-    //                     width: 32,
-    //                   )
-    //                 : Image.asset(
-    //                     "assets/cup.png",
-    //                     width: 32,
-    //                   ),
-    //             horizontalSpace(width: 16),
-    //             Column(
-    //               crossAxisAlignment: CrossAxisAlignment.start,
-    //               children: [
-    //                 Text(
-    //                   text,
-    //                   style: Theme.of(context).textTheme.labelLarge,
-    //                 ),
-    //                 Text(
-    //                   timeago.format(
-    //                       donationSupporter.donation!.timestamp!.toDate()),
-    //                   style: Theme.of(context).textTheme.bodySmall,
-    //                 ),
-    //               ],
-    //             ),
-    //           ],
-    //         ),
-    //         donationSupporter.donation!.message!.isEmpty
-    //             ? Container()
-    //             : verticalSpace(height: 12),
-    //         donationSupporter.donation!.message!.isEmpty
-    //             ? Container()
-    //             : SizedBox(
-    //                 width: double.infinity,
-    //                 child: Card(
-    //                   shape: RoundedRectangleBorder(
-    //                     borderRadius: BorderRadius.circular(8),
-    //                     side: BorderSide(
-    //                       color: kBrownColor.withOpacity(0.3),
-    //                     ),
-    //                   ),
-    //                   color: kBrownColor.withOpacity(0.1),
-    //                   elevation: 0,
-    //                   child: Padding(
-    //                     padding: EdgeInsets.symmetric(
-    //                       horizontal: 16,
-    //                       vertical: 8,
-    //                     ),
-    //                     child: Text(donationSupporter.donation!.message!),
-    //                   ),
-    //                 ),
-    //               ),
-    //       ],
-    //     ),
-    //   ),
-    // );
   }
 }
