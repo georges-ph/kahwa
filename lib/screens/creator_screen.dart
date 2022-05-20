@@ -1,11 +1,10 @@
-// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:kahwa/enums/colors.dart' as colors_enum;
 import 'package:kahwa/models/donation.dart';
+import 'package:kahwa/models/donation_supporter.dart';
 import 'package:kahwa/models/goal.dart';
 import 'package:kahwa/models/user.dart' as user_model;
 import 'package:kahwa/screen_arguments/fans_supporters_args.dart';
@@ -36,13 +35,13 @@ class CreatorScreen extends StatefulWidget {
 class _CreatorScreenState extends State<CreatorScreen> {
   late Size _screenSize;
 
-  final List<Donation> _donationsList = [];
   final List<String> _supportersList = [];
+  final List<DonationSupporter> _donationSupporterList = [];
 
   int _kahwas = 0;
 
-  FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
-  FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
+  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+  final FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
 
   late User _user;
   late DocumentReference _appDocument;
@@ -71,16 +70,31 @@ class _CreatorScreenState extends State<CreatorScreen> {
       if (querySnapshot.docs.isEmpty) {
         return;
       }
-      _donationsList.addAll(querySnapshot.docs
-          .map((document) => Donation.fromMap(document.data()))
-          .toList());
 
-      _donationsList.forEach((donation) {
+      querySnapshot.docs.forEach((document) async {
+        Donation donation = Donation.fromMap(document.data());
+        user_model.User supporter = user_model.User();
+
         _kahwas += donation.kahwas!;
 
-        if (!_supportersList.contains(donation.supporter!.id)) {
-          _supportersList.add(donation.supporter!.id!);
+        if (!_supportersList.contains(donation.supporter_id)) {
+          _supportersList.add(donation.supporter_id!);
         }
+
+        if (donation.keep_private == false) {
+          DocumentSnapshot<Map<String, dynamic>> documentSnapshot =
+              await _appDocument
+                  .collection("Users")
+                  .doc(donation.supporter_id)
+                  .get();
+          supporter = user_model.User.fromMap(
+              documentSnapshot.data() as Map<String, dynamic>);
+        }
+
+        _donationSupporterList.add(DonationSupporter(
+          donation: donation,
+          supporter: supporter,
+        ));
       });
     });
 
@@ -123,7 +137,7 @@ class _CreatorScreenState extends State<CreatorScreen> {
                 );
                 Share.share(_userModel.link_id!);
               },
-              icon: Icon(Icons.share_rounded),
+              icon: const Icon(Icons.share_rounded),
             ),
           ),
         ],
@@ -149,8 +163,8 @@ class _CreatorScreenState extends State<CreatorScreen> {
                     ),
               ),
               child: SingleChildScrollView(
-                padding: EdgeInsets.all(24),
-                physics: BouncingScrollPhysics(),
+                padding: const EdgeInsets.all(24),
+                physics: const BouncingScrollPhysics(),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -247,10 +261,10 @@ class _CreatorScreenState extends State<CreatorScreen> {
                                     arguments: _userModel.id,
                                   ),
                                   icon: Image.asset(
-                                    "assets/fenjen.png",
+                                    "assets/cup.png",
                                     width: 24,
                                   ),
-                                  label: Text("Buy a kahwa"),
+                                  label: const Text("Buy a kahwa"),
                                 ),
                               ),
                               horizontalSpace(width: 16),
@@ -312,7 +326,7 @@ class _CreatorScreenState extends State<CreatorScreen> {
                     if (_goal.title != null)
                       GoalCard(goal: _goal)
                     else if (_goalDocument.id == _user.uid)
-                      AddGoalCard()
+                      const AddGoalCard()
                     else
                       Container(),
                     verticalSpace(),
@@ -363,15 +377,15 @@ class _CreatorScreenState extends State<CreatorScreen> {
                             onTap: () async {
                               if (!await launchUrl(
                                   Uri.parse("http://${_userModel.website}"))) {
-                                SnackBar snackBar =
-                                    SnackBar(content: Text("Cannot open link"));
+                                SnackBar snackBar = const SnackBar(
+                                    content: Text("Cannot open link"));
                                 ScaffoldMessenger.of(context)
                                     .showSnackBar(snackBar);
                               }
                             },
                             child: Row(
                               children: [
-                                Icon(Icons.link_rounded),
+                                const Icon(Icons.link_rounded),
                                 horizontalSpace(),
                                 Text(
                                   "${_userModel.website}",
@@ -386,7 +400,7 @@ class _CreatorScreenState extends State<CreatorScreen> {
                             ),
                           ),
                     _userModel.website == null ? Container() : verticalSpace(),
-                    _donationsList.isEmpty
+                    _donationSupporterList.isEmpty
                         ? Container()
                         : Text(
                             "Recent Supporters",
@@ -397,22 +411,17 @@ class _CreatorScreenState extends State<CreatorScreen> {
                                   fontWeight: kSemiBoldFontWeight,
                                 ),
                           ),
-                    _donationsList.isEmpty
+                    _donationSupporterList.isEmpty
                         ? Container()
                         : verticalSpace(height: 16),
-                    ListView.separated(
-                      physics: NeverScrollableScrollPhysics(),
-                      shrinkWrap: true,
-                      itemCount: _donationsList.length,
-                      separatorBuilder: (BuildContext context, int index) {
-                        return verticalSpace(height: 8);
-                      },
-                      itemBuilder: (BuildContext context, int index) {
-                        return SupporterCard(
-                          donation: _donationsList[index],
-                        );
-                      },
-                    ),
+                    ..._donationSupporterList.map((donationSupporter) => Column(
+                          children: [
+                            SupporterCard(
+                              donationSupporter: donationSupporter,
+                            ),
+                            verticalSpace(height: 12),
+                          ],
+                        )),
                   ],
                 ),
               ),

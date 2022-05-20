@@ -2,7 +2,6 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:kahwa/enums/currency.dart';
-import 'package:kahwa/models/fan_supporter.dart';
 
 class Donation {
   String? creator_id;
@@ -15,7 +14,7 @@ class Donation {
   bool? keep_private;
   num? total;
   Timestamp? timestamp;
-  FanSupporter? supporter;
+  String? supporter_id;
 
   Donation({
     this.creator_id,
@@ -27,7 +26,7 @@ class Donation {
     this.keep_private,
     this.total,
     this.timestamp,
-    this.supporter,
+    this.supporter_id,
   });
 
   Map<String, dynamic> toMap() {
@@ -41,7 +40,7 @@ class Donation {
       'keep_private': keep_private,
       'total': total,
       'timestamp': FieldValue.serverTimestamp(),
-      'supporter': supporter?.toMap(),
+      'supporter_id': supporter_id,
     };
   }
 
@@ -58,9 +57,7 @@ class Donation {
       keep_private: map['keep_private'],
       total: map['total'],
       timestamp: map['timestamp'],
-      supporter: map['supporter'] != null
-          ? FanSupporter.fromMap(map['supporter'])
-          : null,
+      supporter_id: map['supporter_id'],
     );
   }
 }

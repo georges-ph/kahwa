@@ -6,7 +6,6 @@ import 'package:kahwa/enums/colors.dart' as colors_enum;
 import 'package:kahwa/enums/currency.dart';
 import 'package:kahwa/models/balance.dart';
 import 'package:kahwa/models/donation.dart';
-import 'package:kahwa/models/fan_supporter.dart';
 import 'package:kahwa/models/kahwa_prices.dart';
 import 'package:kahwa/models/user.dart';
 import 'package:kahwa/utils/colors.dart';
@@ -162,7 +161,7 @@ class _DonateScreenState extends State<DonateScreen> {
                       Row(
                         children: [
                           const Image(
-                            image: AssetImage("assets/fenjen.png"),
+                            image: AssetImage("assets/cup.png"),
                             width: 32,
                           ),
                           horizontalSpace(),
@@ -312,11 +311,7 @@ class _DonateScreenState extends State<DonateScreen> {
       message: _messageController.text,
       pay_fee: _payFee,
       total: _calculate(_creator),
-      supporter: FanSupporter(
-        id: _user.uid,
-        name: _user.displayName,
-        image: _user.photoURL,
-      ),
+      supporter_id: _user.uid,
     );
 
     _firebaseFirestore.runTransaction((transaction) async {
