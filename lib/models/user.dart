@@ -1,3 +1,5 @@
+// ignore_for_file: non_constant_identifier_names
+
 import 'package:kahwa/enums/colors.dart';
 
 class User {
@@ -10,6 +12,7 @@ class User {
   // enum
   Colors? color;
   List<String>? fans;
+  String? link_id;
 
   User({
     this.id,
@@ -20,6 +23,7 @@ class User {
     this.website,
     this.color,
     this.fans,
+    this.link_id,
   });
 
   Map<String, dynamic> toMap() {
@@ -32,6 +36,7 @@ class User {
       'website': website,
       'color': color?.name,
       'fans': fans,
+      'link_id': link_id,
     };
   }
 
@@ -47,6 +52,7 @@ class User {
       website: map['website'],
       color: map['color'] != null ? color : null,
       fans: List<String>.from(map['fans']),
+      link_id: map['link_id'],
     );
   }
 }

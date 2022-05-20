@@ -1,7 +1,9 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:kahwa/firebase_options.dart';
 import 'package:kahwa/utils/routes.dart';
+import 'package:kahwa/utils/statics.dart';
 import 'package:kahwa/utils/themes.dart';
 
 void main() async {
@@ -9,6 +11,7 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  Statics.initialLink = await FirebaseDynamicLinks.instance.getInitialLink();
 
   runApp(const MyApp());
 }

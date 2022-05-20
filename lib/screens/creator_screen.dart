@@ -3,6 +3,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:kahwa/enums/colors.dart' as colors_enum;
 import 'package:kahwa/models/donation.dart';
 import 'package:kahwa/models/goal.dart';
@@ -17,6 +18,7 @@ import 'package:kahwa/widgets/creator_counter_card.dart';
 import 'package:kahwa/widgets/goal_card.dart';
 import 'package:kahwa/widgets/supporter_card.dart';
 import 'package:readmore/readmore.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class CreatorScreen extends StatefulWidget {
@@ -113,8 +115,13 @@ class _CreatorScreenState extends State<CreatorScreen> {
           Tooltip(
             message: "Share",
             child: IconButton(
-              onPressed: () {
-                // TODO: add logic to share
+              onPressed: () async {
+                await Clipboard.setData(
+                  ClipboardData(
+                    text: "https://kahwa.page.link/${_userModel.link_id!}",
+                  ),
+                );
+                Share.share(_userModel.link_id!);
               },
               icon: Icon(Icons.share_rounded),
             ),

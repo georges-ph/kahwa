@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_keyboard_size/flutter_keyboard_size.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -259,37 +260,38 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                         await credential.user
                                             ?.sendEmailVerification();
 
-                                        // final dynamicLinkParams =
-                                        //     DynamicLinkParameters(
-                                        //   link: Uri.parse(
-                                        //       "https://kahwa.page.link/${credential.user!.uid}"),
-                                        //   uriPrefix: "https://kahwa.page.link/",
-                                        //   androidParameters: AndroidParameters(
-                                        //     packageName: "com.example.kahwa",
-                                        //     fallbackUrl:
-                                        //         Uri.parse("https://jundbits.ga/"),
-                                        //   ),
-                                        //   socialMetaTagParameters:
-                                        //       SocialMetaTagParameters(
-                                        //           title: _nameController.text,
-                                        //           description:
-                                        //               "Support ${_nameController.text} by buying them a kahwa",
-                                        //           imageUrl: Uri.parse(
-                                        //             "https://firebasestorage.googleapis.com/v0/b/development-71207.appspot.com/o/kahwa%2Ffenjen.png?alt=media&token=3f476325-20d9-4f4d-9924-d39438a40c1d",
-                                        //           )),
-                                        // );
+                                        final dynamicLinkParams =
+                                            DynamicLinkParameters(
+                                          link: Uri.parse(
+                                              "https://kahwa.page.link/${credential.user!.uid}"),
+                                          uriPrefix: "https://kahwa.page.link/",
+                                          androidParameters: AndroidParameters(
+                                            packageName: "com.example.kahwa",
+                                            fallbackUrl: Uri.parse(
+                                                "https://jundbits.ga/"),
+                                          ),
+                                          socialMetaTagParameters:
+                                              SocialMetaTagParameters(
+                                                  title: _nameController.text,
+                                                  description:
+                                                      "Support ${_nameController.text} by buying them a kahwa",
+                                                  imageUrl: Uri.parse(
+                                                    "https://firebasestorage.googleapis.com/v0/b/development-71207.appspot.com/o/kahwa%2Ffenjen.png?alt=media&token=3f476325-20d9-4f4d-9924-d39438a40c1d",
+                                                  )),
+                                        );
 
-                                        // final dynamicLink =
-                                        //     await FirebaseDynamicLinks.instance
-                                        //         .buildShortLink(
-                                        //   dynamicLinkParams,
-                                        //   shortLinkType:
-                                        //       ShortDynamicLinkType.unguessable,
-                                        // );
+                                        final dynamicLink =
+                                            await FirebaseDynamicLinks.instance
+                                                .buildShortLink(
+                                          dynamicLinkParams,
+                                          shortLinkType:
+                                              ShortDynamicLinkType.unguessable,
+                                        );
 
-                                        // String linkId = dynamicLink.shortUrl
-                                        //     .toString()
-                                        //     .split("https://kahwa.page.link/")[1];
+                                        String linkId = dynamicLink.shortUrl
+                                            .toString()
+                                            .split(
+                                                "https://kahwa.page.link/")[1];
 
                                         String userId = credential.user!.uid;
 
@@ -302,6 +304,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                           color: colors_enum.Colors.brown,
                                           website: null,
                                           fans: [],
+                                          link_id: linkId,
                                         );
 
                                         KahwaPrices kahwaPrices = KahwaPrices(

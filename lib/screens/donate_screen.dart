@@ -53,7 +53,7 @@ class _DonateScreenState extends State<DonateScreen> {
   bool _payFee = false;
   bool _keepPrivate = false;
   bool _isLoading = false;
-
+// TODO:  add amount to goal if available
   @override
   void initState() {
     super.initState();
