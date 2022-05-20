@@ -6,6 +6,7 @@ import 'package:kahwa/enums/colors.dart' as colors_enum;
 import 'package:kahwa/enums/currency.dart';
 import 'package:kahwa/models/balance.dart';
 import 'package:kahwa/models/donation.dart';
+import 'package:kahwa/models/goal.dart';
 import 'package:kahwa/models/kahwa_prices.dart';
 import 'package:kahwa/models/user.dart';
 import 'package:kahwa/utils/colors.dart';
@@ -35,6 +36,7 @@ class _DonateScreenState extends State<DonateScreen> {
 
   late fire_auth.User _user;
   late DocumentReference _appDocument;
+  late DocumentReference _goalDocument;
   late DocumentReference _balanceDocument;
   late DocumentReference _creatorBalanceDocument;
 
@@ -52,12 +54,13 @@ class _DonateScreenState extends State<DonateScreen> {
   bool _payFee = false;
   bool _keepPrivate = false;
   bool _isLoading = false;
-// TODO:  add amount to goal if available
+
   @override
   void initState() {
     super.initState();
     _user = _firebaseAuth.currentUser!;
     _appDocument = _firebaseFirestore.collection("kahwa").doc("AppCollections");
+    _goalDocument = _appDocument.collection("Goals").doc(widget.creatorId);
     _balanceDocument = _appDocument.collection("Balances").doc(_user.uid);
     _creatorBalanceDocument =
         _appDocument.collection("Balances").doc(widget.creatorId);
@@ -315,6 +318,7 @@ class _DonateScreenState extends State<DonateScreen> {
     );
 
     _firebaseFirestore.runTransaction((transaction) async {
+      final goalDoc = await transaction.get(_goalDocument);
       final balanceDoc = await transaction.get(_balanceDocument);
       final creatorBalanceDoc = await transaction.get(_creatorBalanceDocument);
 
@@ -348,6 +352,11 @@ class _DonateScreenState extends State<DonateScreen> {
           _appDocument.collection("Donations").doc(), donation.toMap());
       transaction.update(_balanceDocument, balance.toMap());
       transaction.update(_creatorBalanceDocument, creatorBalance.toMap());
+      if (_selectedCurrency == Currency.lbp && goalDoc.exists) {
+        Goal goal = Goal.fromMap(goalDoc.data() as Map<String, dynamic>);
+        goal.current = goal.current! + total;
+        transaction.update(_goalDocument, goal.toMap());
+      }
 
       return true;
     }).then((success) {

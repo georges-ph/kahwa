@@ -65,6 +65,22 @@ class _CreatorScreenState extends State<CreatorScreen> {
   }
 
   Future<void> _getUserData() async {
+    DocumentSnapshot<Map<String, dynamic>> userDocument =
+        await _appDocument.collection("Users").doc(widget.creatorId).get();
+
+    _userModel =
+        user_model.User.fromMap(userDocument.data() as Map<String, dynamic>);
+
+    _creatorColor = colors_enum.getColor(_userModel.color!);
+
+    DocumentSnapshot<Map<String, dynamic>> goalDocument =
+        await _goalDocument.get();
+    if (!goalDocument.exists) {
+      _goal = Goal();
+      return;
+    }
+    _goal = Goal.fromMap(goalDocument.data() as Map<String, dynamic>);
+
     QuerySnapshot<Map<String, dynamic>> query = await _appDocument
         .collection("Donations")
         .where("creator_id", isEqualTo: widget.creatorId)
@@ -102,22 +118,6 @@ class _CreatorScreenState extends State<CreatorScreen> {
             supporter: supporter,
           ));
     }
-
-    DocumentSnapshot<Map<String, dynamic>> userDocument =
-        await _appDocument.collection("Users").doc(widget.creatorId).get();
-
-    _userModel =
-        user_model.User.fromMap(userDocument.data() as Map<String, dynamic>);
-
-    _creatorColor = colors_enum.getColor(_userModel.color!);
-
-    DocumentSnapshot<Map<String, dynamic>> goalDocument =
-        await _goalDocument.get();
-    if (!goalDocument.exists) {
-      _goal = Goal();
-      return;
-    }
-    _goal = Goal.fromMap(goalDocument.data() as Map<String, dynamic>);
   }
 
   @override
