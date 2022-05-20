@@ -61,47 +61,48 @@ class _CreatorScreenState extends State<CreatorScreen> {
     _appDocument = _firebaseFirestore.collection("kahwa").doc("AppCollections");
     _goalDocument = _appDocument.collection("Goals").doc(widget.creatorId);
 
-    _appDocument
-        .collection("Donations")
-        .where("creator_id", isEqualTo: widget.creatorId)
-        .orderBy("timestamp", descending: true)
-        .get()
-        .then((querySnapshot) {
-      if (querySnapshot.docs.isEmpty) {
-        return;
-      }
-
-      querySnapshot.docs.forEach((document) async {
-        Donation donation = Donation.fromMap(document.data());
-        user_model.User supporter = user_model.User();
-
-        _kahwas += donation.kahwas!;
-
-        if (!_supportersList.contains(donation.supporter_id)) {
-          _supportersList.add(donation.supporter_id!);
-        }
-
-        if (donation.keep_private == false) {
-          DocumentSnapshot<Map<String, dynamic>> documentSnapshot =
-              await _appDocument
-                  .collection("Users")
-                  .doc(donation.supporter_id)
-                  .get();
-          supporter = user_model.User.fromMap(
-              documentSnapshot.data() as Map<String, dynamic>);
-        }
-
-        _donationSupporterList.add(DonationSupporter(
-          donation: donation,
-          supporter: supporter,
-        ));
-      });
-    });
-
     _runFuture = _getUserData();
   }
 
   Future<void> _getUserData() async {
+    QuerySnapshot<Map<String, dynamic>> query = await _appDocument
+        .collection("Donations")
+        .where("creator_id", isEqualTo: widget.creatorId)
+        .orderBy("timestamp", descending: true)
+        .get();
+
+    if (query.docs.isEmpty) {
+      return;
+    }
+
+    for (int i = 0; i < query.docs.length; i++) {
+      Donation donation = Donation.fromMap(query.docs[i].data());
+      user_model.User supporter = user_model.User();
+
+      _kahwas += donation.kahwas!;
+
+      if (!_supportersList.contains(donation.supporter_id)) {
+        _supportersList.add(donation.supporter_id!);
+      }
+
+      if (donation.keep_private == false) {
+        DocumentSnapshot<Map<String, dynamic>> documentSnapshot =
+            await _appDocument
+                .collection("Users")
+                .doc(donation.supporter_id)
+                .get();
+        supporter = user_model.User.fromMap(
+            documentSnapshot.data() as Map<String, dynamic>);
+      }
+
+      _donationSupporterList.insert(
+          i,
+          DonationSupporter(
+            donation: donation,
+            supporter: supporter,
+          ));
+    }
+
     DocumentSnapshot<Map<String, dynamic>> userDocument =
         await _appDocument.collection("Users").doc(widget.creatorId).get();
 
