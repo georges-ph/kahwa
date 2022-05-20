@@ -24,10 +24,9 @@ class SettingsScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 24,
-        ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        physics: const BouncingScrollPhysics(),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

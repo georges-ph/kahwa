@@ -7,6 +7,7 @@ import 'package:kahwa/models/user.dart' as user_model;
 import 'package:kahwa/utils/colors.dart';
 import 'package:kahwa/utils/routes.dart';
 import 'package:kahwa/utils/sizes.dart';
+import 'package:kahwa/utils/statics.dart';
 import 'package:kahwa/utils/typography.dart';
 import 'package:kahwa/widgets/creator_card.dart';
 
@@ -26,9 +27,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   late Future<void> _runFuture;
 
-  late user_model.User _userModel;
-  // late user_model.User creatorr;
-
   List<user_model.User> _creators = [];
 
   @override
@@ -40,11 +38,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _getData() async {
-    DocumentSnapshot<Map<String, dynamic>> userDocument =
-        await _appDocument.collection("Users").doc(_user.uid).get();
-    _userModel =
-        user_model.User.fromMap(userDocument.data() as Map<String, dynamic>);
-
     QuerySnapshot querySnapshot = await _appDocument
         .collection("Users")
         .where("fans", arrayContains: _user.uid)
@@ -64,7 +57,10 @@ class _HomeScreenState extends State<HomeScreen> {
           Tooltip(
             message: "Settings",
             child: IconButton(
-              onPressed: () => Navigator.pushNamed(context, routeSettings),
+              onPressed: () async {
+                await Navigator.pushNamed(context, routeSettings);
+                setState(() {});
+              },
               icon: Icon(Icons.settings_rounded),
             ),
           ),
@@ -76,9 +72,10 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             child: CircleAvatar(
               backgroundColor: kBrownColor,
-              backgroundImage:
-                  _user.photoURL != null ? NetworkImage(_user.photoURL!) : null,
-              child: _user.photoURL == null
+              backgroundImage: Statics.userImage.isNotEmpty
+                  ? NetworkImage(Statics.userImage)
+                  : null,
+              child: Statics.userImage.isEmpty
                   ? Text(
                       getInitials(_user.displayName!),
                       style: TextStyle(
@@ -122,8 +119,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   Text(
                     "Creators you are a fan of",
                     style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                      fontWeight: kSemiBoldFontWeight,
-                    ),
+                          fontWeight: kSemiBoldFontWeight,
+                        ),
                   ),
                   verticalSpace(height: 16),
                   ..._creators.map(

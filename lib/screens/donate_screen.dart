@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:kahwa/enums/colors.dart' as colors_enum;
 import 'package:kahwa/enums/currency.dart';
+import 'package:kahwa/models/balance.dart';
 import 'package:kahwa/models/donation.dart';
 import 'package:kahwa/models/fan_supporter.dart';
 import 'package:kahwa/models/kahwa_prices.dart';
@@ -35,6 +36,8 @@ class _DonateScreenState extends State<DonateScreen> {
 
   late fire_auth.User _user;
   late DocumentReference _appDocument;
+  late DocumentReference _balanceDocument;
+  late DocumentReference _creatorBalanceDocument;
 
   late Future<void> _runFuture;
 
@@ -56,6 +59,9 @@ class _DonateScreenState extends State<DonateScreen> {
     super.initState();
     _user = _firebaseAuth.currentUser!;
     _appDocument = _firebaseFirestore.collection("kahwa").doc("AppCollections");
+    _balanceDocument = _appDocument.collection("Balances").doc(_user.uid);
+    _creatorBalanceDocument =
+        _appDocument.collection("Balances").doc(widget.creatorId);
     _runFuture = _getData();
   }
 
@@ -128,9 +134,7 @@ class _DonateScreenState extends State<DonateScreen> {
                           Expanded(
                             child: Text(
                               "Buy ${_creator.name!.split(" ")[0]} a kahwa",
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .headlineLarge,
+                              style: Theme.of(context).textTheme.headlineLarge,
                             ),
                           ),
                           horizontalSpace(width: 40),
@@ -223,7 +227,8 @@ class _DonateScreenState extends State<DonateScreen> {
                           ),
                           horizontalSpace(width: 40),
                           Visibility(
-                            visible: _selectedCurrency == Currency.usd,
+                            // visible: _selectedCurrency == Currency.usd,
+                            visible: false,
                             child: Expanded(
                               child: Tooltip(
                                 message:
@@ -267,50 +272,7 @@ class _DonateScreenState extends State<DonateScreen> {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: _isLoading
-                              ? null
-                              : () async {
-                                  setState(() {
-                                    _isLoading = true;
-                                  });
-
-                                  // TODO: use the balance to donate, not like im doing it
-
-                                  Donation donation = Donation(
-                                    creator_id: widget.creatorId,
-                                    currency: _selectedCurrency,
-                                    kahwa_price:
-                                        _selectedCurrency == Currency.lbp
-                                            ? _kahwaPrices.lbp
-                                            : _kahwaPrices.usd,
-                                    kahwas: int.parse(_kahwasController.text),
-                                    keep_private: _keepPrivate,
-                                    message: _messageController.text,
-                                    pay_fee: _payFee,
-                                    total: _calculate(_creator),
-                                    supporter: FanSupporter(
-                                      id: _user.uid,
-                                      name: _user.displayName,
-                                      image: _user.photoURL,
-                                    ),
-                                  );
-
-                                  await _appDocument
-                                      .collection("Donations")
-                                      .add(donation.toMap());
-
-                                  SnackBar snackBar = SnackBar(
-                                    content: Text(
-                                        "You will be contacted soon to buy ${_creator.name} some kahwas"),
-                                  );
-
-                                  ScaffoldMessenger.of(context)
-                                      .showSnackBar(snackBar);
-
-                                  setState(() {
-                                    _isLoading = false;
-                                  });
-                                },
+                          onPressed: _isLoading ? null : _donate,
                           child: _isLoading
                               ? const SizedBox.square(
                                   dimension: 20,
@@ -334,17 +296,96 @@ class _DonateScreenState extends State<DonateScreen> {
     );
   }
 
-  num _calculate(User creator) {
-    if (_selectedCurrency == Currency.lbp) {
-      return _kahwaPrices.lbp! * int.parse(_kahwasController.text).toDouble();
-    } else {
-      double price =
-          _kahwaPrices.usd! * int.parse(_kahwasController.text).toDouble();
-      if (_payFee) {
-        price = price / (1 - 0.06);
-        return double.parse(price.toStringAsFixed(2));
+  _donate() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    Donation donation = Donation(
+      creator_id: widget.creatorId,
+      currency: _selectedCurrency,
+      kahwa_price: _selectedCurrency == Currency.lbp
+          ? _kahwaPrices.lbp
+          : _kahwaPrices.usd,
+      kahwas: int.parse(_kahwasController.text),
+      keep_private: _keepPrivate,
+      message: _messageController.text,
+      pay_fee: _payFee,
+      total: _calculate(_creator),
+      supporter: FanSupporter(
+        id: _user.uid,
+        name: _user.displayName,
+        image: _user.photoURL,
+      ),
+    );
+
+    _firebaseFirestore.runTransaction((transaction) async {
+      final balanceDoc = await transaction.get(_balanceDocument);
+      final creatorBalanceDoc = await transaction.get(_creatorBalanceDocument);
+
+      Balance balance =
+          Balance.fromMap(balanceDoc.data() as Map<String, dynamic>);
+      Balance creatorBalance =
+          Balance.fromMap(creatorBalanceDoc.data() as Map<String, dynamic>);
+
+      if ((_selectedCurrency == Currency.lbp &&
+              balance.current_lbp! < _calculate(_creator)) ||
+          (_selectedCurrency == Currency.usd &&
+              balance.current_usd! < _calculate(_creator))) {
+        return false;
       }
-      return price.toInt();
+
+      int total = _calculate(_creator);
+
+      if (_selectedCurrency == Currency.lbp) {
+        balance.current_lbp = balance.current_lbp! - total;
+        balance.spent_lbp = balance.spent_lbp! + total;
+        creatorBalance.current_lbp = creatorBalance.current_lbp! + total;
+        creatorBalance.received_lbp = creatorBalance.received_lbp! + total;
+      } else {
+        balance.current_usd = balance.current_usd! - total;
+        balance.spent_usd = balance.spent_usd! + total;
+        creatorBalance.current_usd = creatorBalance.current_usd! + total;
+        creatorBalance.received_usd = creatorBalance.received_usd! + total;
+      }
+
+      transaction.set(
+          _appDocument.collection("Donations").doc(), donation.toMap());
+      transaction.update(_balanceDocument, balance.toMap());
+      transaction.update(_creatorBalanceDocument, creatorBalance.toMap());
+
+      return true;
+    }).then((success) {
+      if (!success) {
+        SnackBar snackBar =
+            const SnackBar(content: Text("You do not have enough credit"));
+        ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      } else {
+        SnackBar snackBar = SnackBar(
+          content: Text(
+              "Congrats! You just bought ${_creator.name} ${int.parse(_kahwasController.text)} ${int.parse(_kahwasController.text) == 1 ? "kahwa" : "kahwas"}"),
+        );
+
+        ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      }
+
+      setState(() {
+        _isLoading = false;
+      });
+    });
+  }
+
+  int _calculate(User creator) {
+    if (_selectedCurrency == Currency.lbp) {
+      return _kahwaPrices.lbp! * int.parse(_kahwasController.text);
+    } else {
+      // double price =
+      return _kahwaPrices.usd! * int.parse(_kahwasController.text);
+      // if (_payFee) {
+      //   price = price / (1 - 0.06);
+      //   return double.parse(price.toStringAsFixed(2));
+      // }
+      // return price.toInt();
     }
   }
 

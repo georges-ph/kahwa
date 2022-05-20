@@ -13,6 +13,7 @@ ThemeData lightTheme(BuildContext context) {
       iconTheme: const IconThemeData(
         color: kBlackColor,
       ),
+      foregroundColor: kBlackColor,
       actionsIconTheme: const IconThemeData(
         color: kGreyColor,
       ),

@@ -154,8 +154,7 @@ class _CreatorScreenState extends State<CreatorScreen> {
                         backgroundImage: _userModel.image != null
                             ? NetworkImage(_userModel.image!)
                             : null,
-                        backgroundColor:
-                            _userModel.image == null ? _creatorColor : null,
+                        backgroundColor: _creatorColor,
                         child: _userModel.image == null
                             ? Text(
                                 getInitials(_userModel.name!),
@@ -210,7 +209,7 @@ class _CreatorScreenState extends State<CreatorScreen> {
                                     arguments: FansSupportersArgs(
                                       title:
                                           "${_supportersList.length} ${_supportersList.length == 1 ? "Supporter" : "Supporters"}",
-                                      list: _userModel.fans!,
+                                      list: _supportersList,
                                     ),
                                   ),
                           child: CreatorCounterCard(

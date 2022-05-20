@@ -58,7 +58,9 @@ class _GoalScreenState extends State<GoalScreen> {
   Future<void> _getUserData() async {
     DocumentSnapshot<Map<String, dynamic>> document = await _goalDocument.get();
     if (!document.exists) {
-      _goal = Goal();
+      _goal = Goal(
+        id: _user.uid,
+      );
       return;
     }
     _goal = Goal.fromMap(document.data() as Map<String, dynamic>);
@@ -95,8 +97,16 @@ class _GoalScreenState extends State<GoalScreen> {
                 padding: EdgeInsets.all(24),
                 physics: BouncingScrollPhysics(),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(_goal.title == null ? "Add New Goal" : "Edit Goal"),
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width * 0.6,
+                      child: Text(
+                        _goal.title == null ? "Add New Goal" : "Edit Goal",
+                        style: Theme.of(context).textTheme.headlineLarge,
+                      ),
+                    ),
+                    verticalSpace(height: 40),
                     InputText(
                       controller: _titleController,
                       title: "Goal Title",
@@ -161,6 +171,12 @@ class _GoalScreenState extends State<GoalScreen> {
 
                                 await _goalDocument.set(
                                     _goal.toMap(), SetOptions(merge: true));
+
+                                SnackBar snackBar = const SnackBar(
+                                    content: Text("Saved successfully"));
+
+                                ScaffoldMessenger.of(context)
+                                    .showSnackBar(snackBar);
 
                                 setState(() {
                                   _isLoading = false;

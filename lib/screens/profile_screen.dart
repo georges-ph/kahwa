@@ -4,11 +4,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:kahwa/enums/colors.dart' as colors_enum;
 import 'package:kahwa/models/user.dart' as user_model;
 import 'package:kahwa/utils/colors.dart';
 import 'package:kahwa/utils/sizes.dart';
+import 'package:kahwa/utils/statics.dart';
 import 'package:kahwa/utils/typography.dart';
 import 'package:kahwa/widgets/check_color_box.dart';
 import 'package:kahwa/widgets/input_text.dart';
@@ -72,6 +74,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _userModel =
         user_model.User.fromMap(document.data() as Map<String, dynamic>);
 
+    _userModel.image = _user.photoURL;
+
     _aboutMeController.text = _userModel.about ?? "";
     _websiteController.text = _userModel.website ?? "";
     _checkedColor = _userModel.color ?? colors_enum.Colors.brown;
@@ -79,17 +83,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _pickImage() async {
-    // Pick image
     final image = await ImagePicker().pickImage(source: ImageSource.gallery);
     if (image == null) return;
     final tempImage = File(image.path);
+    _cropImage(tempImage);
+  }
 
-    // TODO: crop image before uploading
+  Future _cropImage(File image) async {
+    final croppedImage = await ImageCropper().cropImage(
+      sourcePath: image.path,
+      aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
+      cropStyle: CropStyle.circle,
+      uiSettings: [
+        AndroidUiSettings(
+          hideBottomControls: true,
+        ),
+      ],
+    );
+    if (croppedImage == null) return;
+    final tempImage = File(croppedImage.path);
+    _uploadImage(tempImage);
+  }
 
-    // Upload image
+  void _uploadImage(File image) {
     final userReference =
         _profilePicturesStorageReference.child("${_user.uid}.jpg");
-    userReference.putFile(tempImage).snapshotEvents.listen((taskSnapshot) {
+    userReference.putFile(image).snapshotEvents.listen((taskSnapshot) {
       switch (taskSnapshot.state) {
         case TaskState.running:
           final progress =
@@ -103,8 +122,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         case TaskState.success:
           userReference.getDownloadURL().then((url) async {
             await _user.updatePhotoURL(url);
-            _userModel.image = url;
             setState(() {
+              Statics.userImage = url;
+              _userModel.image = url;
               _isImageLoading = false;
             });
           });
@@ -165,13 +185,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         children: [
                           CircleAvatar(
                             radius: _screenSize.width / 5,
-                            backgroundImage: _user.photoURL != null
-                                ? NetworkImage(_user.photoURL!)
+                            backgroundImage: _userModel.image != null
+                                ? NetworkImage(_userModel.image!)
                                 : null,
-                            backgroundColor: _user.photoURL == null
-                                ? kBrownColor.withOpacity(0.6)
-                                : null,
-                            child: _user.photoURL == null
+                            backgroundColor: kBrownColor.withOpacity(0.6),
+                            child: _userModel.image == null
                                 ? Text(
                                     getInitials(_user.displayName!),
                                     style: Theme.of(context)
@@ -187,7 +205,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             visible: _isImageLoading,
                             child: Positioned.fill(
                               child: CircularProgressIndicator(
-                                value: _uploadProgress,
+                                value: _uploadProgress == 0
+                                    ? null
+                                    : _uploadProgress,
                               ),
                             ),
                           ),
@@ -360,7 +380,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   _isLoading = true;
                                 });
 
-                                _userModel.image = _user.photoURL;
                                 _userModel.name = _nameController.text;
                                 _userModel.about = _aboutMeController.text;
                                 _userModel.website = _websiteController.text;

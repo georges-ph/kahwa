@@ -47,6 +47,7 @@ dependencies:
   url_launcher: ^6.1.2
   timeago: ^3.2.2
   flutter_svg: ^1.0.3
+  image_cropper: ^2.0.3
   # firebase_dynamic_links: ^4.2.1
 
 dev_dependencies:

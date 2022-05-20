@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:kahwa/models/goal.dart';
+import 'package:kahwa/models/balance.dart';
 import 'package:kahwa/screen_arguments/fans_supporters_args.dart';
 import 'package:kahwa/screens/balance_screen.dart';
 import 'package:kahwa/screens/billing_details_screen.dart';
@@ -12,6 +12,7 @@ import 'package:kahwa/screens/home_screen.dart';
 import 'package:kahwa/screens/kahwa_price_screen.dart';
 import 'package:kahwa/screens/login_screen.dart';
 import 'package:kahwa/screens/profile_screen.dart';
+import 'package:kahwa/screens/request_withdraw_screen.dart';
 import 'package:kahwa/screens/settings_screen.dart';
 import 'package:kahwa/screens/sign_up_screen.dart';
 import 'package:kahwa/screens/splash_screen.dart';
@@ -26,6 +27,7 @@ const routeSettings = "/settings";
 const routeProfile = "/profile";
 const routeKahwaPrice = "/kahwa-price";
 const routeBalance = "/balance";
+const routeRequestWithdraw = "/withdraw";
 const routeBillingDetails = "/billing-details";
 const routeCreator = "/creator";
 const routeFansSupporters = "/fans-supporters";
@@ -43,7 +45,7 @@ Map<String, WidgetBuilder> routes = {
   routeKahwaPrice: (context) => const KahwaPriceScreen(),
   routeBalance: (context) => const BalanceScreen(),
   routeBillingDetails: (context) => const BillingDetailsScreen(),
-  routeGoal:(context) => const GoalScreen(),
+  routeGoal: (context) => const GoalScreen(),
 };
 
 Route<dynamic>? onGenerateRoute(settings) {
@@ -61,6 +63,10 @@ Route<dynamic>? onGenerateRoute(settings) {
     page = FansSupportersScreen(
       title: args.title,
       list: args.list,
+    );
+  } else if (settings.name == routeRequestWithdraw) {
+    page = RequestWithdrawScreen(
+      balance: settings.arguments as Balance,
     );
   }
   return MaterialPageRoute(

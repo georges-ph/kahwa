@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:kahwa/screens/home_screen.dart';
 import 'package:kahwa/screens/login_screen.dart';
+import 'package:kahwa/utils/statics.dart';
 
 class SplashScreen extends StatelessWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -33,6 +34,7 @@ class SplashScreen extends StatelessWidget {
           //       uri.toString().split("https://kahwa.page.link/")[1];
           //   return DonateScreen(creatorId: creatorId);
           // }
+          Statics.userImage = FirebaseAuth.instance.currentUser!.photoURL!;
           return const HomeScreen();
         } else {
           return const LogInScreen();
