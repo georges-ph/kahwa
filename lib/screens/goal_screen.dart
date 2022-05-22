@@ -1,11 +1,10 @@
-// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:kahwa/models/goal.dart';
-import 'package:kahwa/models/user.dart' as user_model;
+import 'package:kahwa/utils/colors.dart';
 import 'package:kahwa/utils/sizes.dart';
+import 'package:kahwa/utils/statics.dart';
 import 'package:kahwa/widgets/input_text.dart';
 
 class GoalScreen extends StatefulWidget {
@@ -25,17 +24,17 @@ class _GoalScreenState extends State<GoalScreen> {
   late DocumentReference _appDocument;
   late DocumentReference<Map<String, dynamic>> _goalDocument;
 
-  late user_model.User _userModel;
   late Goal _goal;
 
   late Future<void> _runFuture;
 
-  TextEditingController _titleController = TextEditingController();
-  TextEditingController _descriptionController = TextEditingController();
-  TextEditingController _targetController = TextEditingController();
-  TextEditingController _currentController = TextEditingController();
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _targetController = TextEditingController();
+  final TextEditingController _currentController = TextEditingController();
 
   bool _isLoading = false;
+  bool _isDeleting = false;
 
   @override
   void initState() {
@@ -94,8 +93,8 @@ class _GoalScreenState extends State<GoalScreen> {
               return SingleChildScrollView(
                 keyboardDismissBehavior:
                     ScrollViewKeyboardDismissBehavior.onDrag,
-                padding: EdgeInsets.all(24),
-                physics: BouncingScrollPhysics(),
+                padding: const EdgeInsets.all(24),
+                physics: const BouncingScrollPhysics(),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -147,7 +146,7 @@ class _GoalScreenState extends State<GoalScreen> {
                                 if (_titleController.text.isEmpty ||
                                     _descriptionController.text.isEmpty ||
                                     _targetController.text.isEmpty) {
-                                  SnackBar snackBar = SnackBar(
+                                  SnackBar snackBar = const SnackBar(
                                     content: Text(
                                         "You cannot add a goal without a title, description and target amount"),
                                   );
@@ -169,6 +168,8 @@ class _GoalScreenState extends State<GoalScreen> {
                                         ? int.parse(_currentController.text)
                                         : 0;
 
+                                Statics.goal = _goal;
+
                                 await _goalDocument.set(
                                     _goal.toMap(), SetOptions(merge: true));
 
@@ -181,8 +182,6 @@ class _GoalScreenState extends State<GoalScreen> {
                                 setState(() {
                                   _isLoading = false;
                                 });
-
-                                Navigator.pop(context);
                               },
                         child: _isLoading
                             ? const SizedBox.square(
@@ -194,6 +193,65 @@ class _GoalScreenState extends State<GoalScreen> {
                             : const Text("Save"),
                       ),
                     ),
+                    _goal.title == null
+                        ? Container()
+                        : verticalSpace(height: 16),
+                    _goal.title == null
+                        ? Container()
+                        : SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                primary: kWhiteColor,
+                                onPrimary: kBrownColor,
+                                side: const BorderSide(
+                                  color: kBrownColor,
+                                ),
+                              ),
+                              onPressed: _isDeleting
+                                  ? null
+                                  : () async {
+                                      setState(() {
+                                        _isDeleting = true;
+                                      });
+
+                                      _firebaseFirestore
+                                          .runTransaction((transaction) async {
+                                        transaction.delete(_goalDocument);
+                                        transaction.set(
+                                            _appDocument
+                                                .collection("Users")
+                                                .doc(_user.uid)
+                                                .collection("ArchivedGoals")
+                                                .doc(),
+                                            _goal.toMap());
+                                        return true;
+                                      }).then((success) {
+                                        if (success) {
+                                          SnackBar snackBar = const SnackBar(
+                                              content: Text("Goal deleted"));
+
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(snackBar);
+
+                                          setState(() {
+                                            _isDeleting = false;
+                                          });
+
+                                          Navigator.pop(context, true);
+                                        }
+                                      });
+                                    },
+                              child: _isDeleting
+                                  ? const SizedBox.square(
+                                      dimension: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 3,
+                                      ),
+                                    )
+                                  : const Text("Delete Goal"),
+                            ),
+                          ),
                   ],
                 ),
               );

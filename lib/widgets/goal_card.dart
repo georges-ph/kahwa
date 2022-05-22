@@ -5,22 +5,40 @@ import 'package:kahwa/models/goal.dart';
 import 'package:kahwa/utils/colors.dart';
 import 'package:kahwa/utils/routes.dart';
 import 'package:kahwa/utils/sizes.dart';
+import 'package:kahwa/utils/statics.dart';
 import 'package:kahwa/utils/typography.dart';
 
-class GoalCard extends StatelessWidget {
+class GoalCard extends StatefulWidget {
   const GoalCard({
     Key? key,
     this.goal,
+    this.deleted,
   }) : super(key: key);
 
   final Goal? goal;
+  final Function(bool)? deleted;
+
+  @override
+  State<GoalCard> createState() => _GoalCardState();
+}
+
+class _GoalCardState extends State<GoalCard> {
+  @override
+  void initState() {
+    super.initState();
+    Statics.goal = widget.goal!;
+  }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: goal!.id != FirebaseAuth.instance.currentUser!.uid
+      onTap: Statics.goal.id != FirebaseAuth.instance.currentUser!.uid
           ? null
-          : () => Navigator.pushNamed(context, routeGoal),
+          : () async {
+              final deleted = await Navigator.pushNamed(context, routeGoal);
+              widget.deleted!(deleted == true ? true : false);
+              setState(() {});
+            },
       child: Card(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
@@ -31,7 +49,7 @@ class GoalCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "Goal: ${goal!.title}",
+                "Goal: ${Statics.goal.title}",
                 style: Theme.of(context).textTheme.titleMedium!.copyWith(
                       fontWeight: kSemiBoldFontWeight,
                     ),
@@ -40,16 +58,17 @@ class GoalCard extends StatelessWidget {
               ClipRRect(
                 borderRadius: BorderRadius.circular(16),
                 child: LinearProgressIndicator(
-                  value: (goal!.current! / goal!.target!).toDouble(),
+                  value:
+                      (Statics.goal.current! / Statics.goal.target!).toDouble(),
                   backgroundColor: kGreyColor.withOpacity(0.1),
                   minHeight: 16,
                 ),
               ),
               verticalSpace(height: 8),
               Text(
-                  "${Currency.lbp.name.toUpperCase()} ${goal!.current} of ${Currency.lbp.name.toUpperCase()} ${goal!.target}"),
+                  "${Currency.lbp.name.toUpperCase()} ${Statics.goal.current} of ${Currency.lbp.name.toUpperCase()} ${Statics.goal.target}"),
               verticalSpace(height: 8),
-              Text("${goal!.description}"),
+              Text("${Statics.goal.description}"),
             ],
           ),
         ),

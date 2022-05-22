@@ -256,11 +256,14 @@ class _CreatorScreenState extends State<CreatorScreen> {
                             children: [
                               Expanded(
                                 child: ElevatedButton.icon(
-                                  onPressed: () => Navigator.pushNamed(
-                                    context,
-                                    routeDonate,
-                                    arguments: _userModel.id,
-                                  ),
+                                  onPressed: () async {
+                                    await Navigator.pushNamed(
+                                      context,
+                                      routeDonate,
+                                      arguments: _userModel.id,
+                                    );
+                                    setState(() {});
+                                  },
                                   icon: Image.asset(
                                     "assets/cup.png",
                                     width: 24,
@@ -325,7 +328,16 @@ class _CreatorScreenState extends State<CreatorScreen> {
                           ),
                     verticalSpace(),
                     if (_goal.title != null)
-                      GoalCard(goal: _goal)
+                      GoalCard(
+                        goal: _goal,
+                        deleted: (deleted) {
+                          setState(() {
+                            if (deleted) {
+                              _goal = Goal();
+                            }
+                          });
+                        },
+                      )
                     else if (_goalDocument.id == _user.uid)
                       const AddGoalCard()
                     else

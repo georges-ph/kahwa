@@ -3,6 +3,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:kahwa/models/user.dart' as user_model;
 import 'package:kahwa/utils/colors.dart';
 import 'package:kahwa/utils/routes.dart';
@@ -19,6 +20,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  late Size _screenSize;
+
   FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
 
@@ -50,6 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    _screenSize = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -116,13 +120,37 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: Theme.of(context).textTheme.headlineLarge,
                   ),
                   verticalSpace(),
-                  Text(
-                    "Creators you are a fan of",
-                    style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                          fontWeight: kSemiBoldFontWeight,
+                  _creators.isNotEmpty
+                      ? Container()
+                      : Align(
+                          child: SizedBox(
+                            width: _screenSize.width * 0.7,
+                            child: SvgPicture.asset(
+                              "assets/undraw_not_found.svg",
+                              height: _screenSize.width * 0.8,
+                            ),
+                          ),
                         ),
-                  ),
-                  verticalSpace(height: 16),
+                  _creators.isNotEmpty
+                      ? Container()
+                      : Align(
+                          alignment: Alignment.center,
+                          child: Text(
+                            "You are not a fan of any creator yet",
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                        ),
+                  _creators.isEmpty
+                      ? Container()
+                      : Text(
+                          "Creators you are a fan of",
+                          style:
+                              Theme.of(context).textTheme.titleMedium!.copyWith(
+                                    fontWeight: kSemiBoldFontWeight,
+                                  ),
+                        ),
+                  _creators.isEmpty ? Container() : verticalSpace(height: 16),
                   ..._creators.map(
                     (user) => Column(
                       children: [
