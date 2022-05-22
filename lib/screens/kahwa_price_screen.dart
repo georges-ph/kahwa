@@ -211,12 +211,12 @@ class _KahwaPriceScreenState extends State<KahwaPriceScreen> {
                                   _isLoading = true;
                                 });
 
-                                // _userModel.kahwa_prices!.lbp =
-                                //     int.parse(_lbpController.text);
-                                // _userModel.kahwa_prices!.usd =
-                                //     int.parse(_usdController.text);
-                                // _userModel.kahwa_prices!.thanks_message =
-                                //     _thankYouController.text;
+                                _kahwaPrices.lbp =
+                                    int.parse(_lbpController.text);
+                                _kahwaPrices.usd =
+                                    int.parse(_usdController.text);
+                                _kahwaPrices.thanks_message =
+                                    _thankYouController.text;
 
                                 await _kahwPricesDocument
                                     .update(_kahwaPrices.toMap());
@@ -230,24 +230,6 @@ class _KahwaPriceScreenState extends State<KahwaPriceScreen> {
                                 setState(() {
                                   _isLoading = false;
                                 });
-
-                                // User user = User(
-                                //   kahwa_prices: KahwaPrices(
-                                //     lbp: 1000,
-                                //     thanks_message: "dfg",
-                                //     usd: 5,
-                                //   ),
-                                // );
-
-                                // await FirebaseFirestore.instance
-                                //     .collection("col")
-                                //     .doc("h")
-                                //     .withConverter(
-                                //       fromFirestore: User.fromFirestore,
-                                //       toFirestore: (User user, options) =>
-                                //           user.toFirestore(),
-                                //     )
-                                //     .set(user);
                               },
                         child: _isLoading
                             ? const SizedBox.square(

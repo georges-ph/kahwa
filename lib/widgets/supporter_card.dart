@@ -1,5 +1,3 @@
-// ignore_for_file: prefer_const_constructors
-
 import 'package:flutter/material.dart';
 import 'package:kahwa/models/donation_supporter.dart';
 import 'package:kahwa/utils/colors.dart';
@@ -38,7 +36,7 @@ class SupporterCard extends StatelessWidget {
           ListTile(
             leading: CircleAvatar(
               backgroundImage: donationSupporter.supporter!.image == null
-                  ? AssetImage("assets/cup.png")
+                  ? const AssetImage("assets/cup.png")
                   : null,
               foregroundImage: donationSupporter.supporter!.image != null
                   ? NetworkImage(donationSupporter.supporter!.image!)
@@ -53,7 +51,7 @@ class SupporterCard extends StatelessWidget {
           donationSupporter.donation!.message!.isEmpty
               ? Container()
               : Padding(
-                  padding: EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                   child: SizedBox(
                     width: double.infinity,
                     child: Card(
@@ -67,7 +65,7 @@ class SupporterCard extends StatelessWidget {
                       color: kBrownColor.withOpacity(0.1),
                       elevation: 0,
                       child: Padding(
-                        padding: EdgeInsets.symmetric(
+                        padding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 8,
                         ),

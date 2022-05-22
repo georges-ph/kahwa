@@ -1,12 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:kahwa/enums/currency.dart';
 import 'package:kahwa/models/balance.dart';
 import 'package:kahwa/utils/routes.dart';
 import 'package:kahwa/utils/sizes.dart';
 import 'package:kahwa/widgets/balance_card.dart';
-import 'package:kahwa/widgets/input_text.dart';
 
 class BalanceScreen extends StatelessWidget {
   const BalanceScreen({Key? key}) : super(key: key);
@@ -81,7 +79,7 @@ class BalanceScreen extends StatelessWidget {
                         routeRequestWithdraw,
                         arguments: balance,
                       ),
-                      child: Text("Request Withdraw"),
+                      child: const Text("Request Withdraw"),
                     ),
                   ),
                 ],

@@ -9,15 +9,9 @@ import 'package:kahwa/utils/statics.dart';
 class SplashScreen extends StatelessWidget {
   const SplashScreen({Key? key}) : super(key: key);
 
-  // void _checkDynamicLink(PendingDynamicLinkData? deepLink) async {
-  //   deepLink = await FirebaseDynamicLinks.instance.getInitialLink();
-  // }
-
   @override
   Widget build(BuildContext context) {
     FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
-    // PendingDynamicLinkData? deepLink;
-    // _checkDynamicLink(deepLink);
 
     return StreamBuilder<User?>(
       stream: _firebaseAuth.userChanges(),

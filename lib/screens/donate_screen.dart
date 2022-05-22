@@ -168,7 +168,7 @@ class _DonateScreenState extends State<DonateScreen> {
                             width: 32,
                           ),
                           horizontalSpace(),
-                          const Text("×"),
+                          const Text("\u00d7"),
                           horizontalSpace(),
                           PriceInputText(
                             controller: _kahwasController,
@@ -227,7 +227,7 @@ class _DonateScreenState extends State<DonateScreen> {
                               });
                             },
                           ),
-                          horizontalSpace(width: 40),
+                          // horizontalSpace(width: 40),
                           Visibility(
                             // visible: _selectedCurrency == Currency.usd,
                             visible: false,

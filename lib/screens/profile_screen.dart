@@ -40,7 +40,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _aboutMeController = TextEditingController();
   final TextEditingController _websiteController = TextEditingController();
-  // final TextEditingController _linkController = TextEditingController();
 
   late user_model.User _userModel;
   late colors_enum.Colors _checkedColor;
@@ -65,7 +64,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _nameController.dispose();
     _aboutMeController.dispose();
     _websiteController.dispose();
-    // _linkController.dispose();
     super.dispose();
   }
 
@@ -79,7 +77,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _aboutMeController.text = _userModel.about ?? "";
     _websiteController.text = _userModel.website ?? "";
     _checkedColor = _userModel.color ?? colors_enum.Colors.brown;
-    // _linkController.text = "kahwa.page.link/${_userModel.link_id}";
   }
 
   Future<void> _pickImage() async {
@@ -339,24 +336,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ],
                     ),
-                    // Input(
-                    //   controller: _linkController,
-                    //   icon: Icons.link_rounded,
-                    //   readOnly: true,
-                    //   suffixIcon: Icons.content_copy_rounded,
-                    //   suffixOnTap: () async {
-                    //     await Clipboard.setData(
-                    //       ClipboardData(
-                    //         text: "https://${_linkController.text}",
-                    //       ),
-                    //     );
-                    //     SnackBar snackBar =
-                    //         SnackBar(content: Text("Copied to clipboard"));
-                    //     ScaffoldMessenger.of(context).showSnackBar(snackBar);
-                    //   },
-                    // ),
-                    // verticalSpace(),
-
                     verticalSpace(),
                     SizedBox(
                       width: double.infinity,

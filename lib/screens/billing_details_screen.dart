@@ -71,9 +71,7 @@ class _BillingDetailsScreenState extends State<BillingDetailsScreen> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        appBar: AppBar(
-          
-        ),
+        appBar: AppBar(),
         body: FutureBuilder(
           future: _runFuture,
           builder: (context, snapshot) {

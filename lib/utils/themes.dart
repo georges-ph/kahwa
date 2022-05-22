@@ -1,5 +1,3 @@
-// ignore_for_file: prefer_const_constructors
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:kahwa/utils/colors.dart';
@@ -7,14 +5,14 @@ import 'package:kahwa/utils/typography.dart';
 
 ThemeData lightTheme(BuildContext context) {
   return ThemeData(
-    appBarTheme: AppBarTheme(
+    appBarTheme: const AppBarTheme(
       backgroundColor: Colors.transparent,
       elevation: 0,
-      iconTheme: const IconThemeData(
+      iconTheme: IconThemeData(
         color: kBlackColor,
       ),
       foregroundColor: kBlackColor,
-      actionsIconTheme: const IconThemeData(
+      actionsIconTheme: IconThemeData(
         color: kGreyColor,
       ),
     ),

@@ -1,5 +1,3 @@
-// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -22,15 +20,15 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   late Size _screenSize;
 
-  FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
-  FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
+  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+  final FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
 
   late User _user;
   late DocumentReference _appDocument;
 
   late Future<void> _runFuture;
 
-  List<user_model.User> _creators = [];
+  final List<user_model.User> _creators = [];
 
   @override
   void initState() {
@@ -65,7 +63,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 await Navigator.pushNamed(context, routeSettings);
                 setState(() {});
               },
-              icon: Icon(Icons.settings_rounded),
+              icon: const Icon(Icons.settings_rounded),
             ),
           ),
           GestureDetector(
@@ -82,7 +80,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Statics.userImage.isEmpty
                   ? Text(
                       getInitials(_user.displayName!),
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: kWhiteColor,
                       ),
                       // style: Theme.of(context).textTheme.displaySmall!.copyWith(
@@ -110,8 +108,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
           if (snapshot.connectionState == ConnectionState.done) {
             return SingleChildScrollView(
-              padding: EdgeInsets.all(24),
-              physics: BouncingScrollPhysics(),
+              padding: const EdgeInsets.all(24),
+              physics: const BouncingScrollPhysics(),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
