@@ -106,6 +106,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _uploadImage(File image) {
+    setState(() {
+      _isImageLoading = true;
+    });
     final userReference =
         _profilePicturesStorageReference.child("${_user.uid}.jpg");
     userReference.putFile(image).snapshotEvents.listen((taskSnapshot) {
@@ -215,12 +218,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             bottom: 0,
                             right: 0,
                             child: ElevatedButton(
-                              onPressed: () {
-                                _pickImage();
-                                setState(() {
-                                  _isImageLoading = true;
-                                });
-                              },
+                              onPressed: () => _pickImage(),
                               child: const Icon(Icons.camera_alt_rounded),
                               style: TextButton.styleFrom(
                                 shape: const CircleBorder(),
