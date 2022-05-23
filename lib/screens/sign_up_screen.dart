@@ -268,7 +268,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                           androidParameters: AndroidParameters(
                                             packageName: "com.example.kahwa",
                                             fallbackUrl: Uri.parse(
-                                                "https://jundbits.ga/"),
+                                                "https://kahwa.jundbits.ga/download"),
                                           ),
                                           socialMetaTagParameters:
                                               SocialMetaTagParameters(
@@ -276,7 +276,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                                   description:
                                                       "Support ${_nameController.text} by buying them a kahwa",
                                                   imageUrl: Uri.parse(
-                                                    "https://firebasestorage.googleapis.com/v0/b/development-71207.appspot.com/o/kahwa%2Ffenjen.png?alt=media&token=3f476325-20d9-4f4d-9924-d39438a40c1d",
+                                                    "https://firebasestorage.googleapis.com/v0/b/development-71207.appspot.com/o/kahwa%2Fcup.png?alt=media&token=52806a83-2376-4c75-93f0-af291f8c30d0",
                                                   )),
                                         );
 

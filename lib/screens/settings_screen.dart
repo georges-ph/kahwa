@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:kahwa/utils/routes.dart';
 import 'package:kahwa/utils/sizes.dart';
 import 'package:kahwa/widgets/settings_card.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -12,6 +13,20 @@ class SettingsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         actions: [
+          Tooltip(
+            message: "Feedback",
+            child: IconButton(
+              onPressed: () async {
+                if (!await launchUrl(
+                    Uri.parse("https://kahwa.jundbits.ga/feedback"))) {
+                  SnackBar snackBar =
+                      const SnackBar(content: Text("Cannot open link"));
+                  ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                }
+              },
+              icon: const Icon(Icons.feedback_rounded),
+            ),
+          ),
           Tooltip(
             message: "Log Out",
             child: IconButton(

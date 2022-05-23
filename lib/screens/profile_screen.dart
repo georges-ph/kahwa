@@ -38,6 +38,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   late Future<void> _runFuture;
 
   final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
   final TextEditingController _aboutMeController = TextEditingController();
   final TextEditingController _websiteController = TextEditingController();
 
@@ -57,11 +58,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _userDocument = _appDocument.collection("Users").doc(_user.uid);
     _runFuture = _getUserData();
     _nameController.text = _user.displayName!;
+    _emailController.text = _user.email!;
   }
 
   @override
   void dispose() {
     _nameController.dispose();
+    _emailController.dispose();
     _aboutMeController.dispose();
     _websiteController.dispose();
     super.dispose();
@@ -231,6 +234,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       title: "Name",
                       hint: "John Doe",
                       icon: Icons.person_rounded,
+                    ),
+                    verticalSpace(),
+                    InputText(
+                      controller: _emailController,
+                      title: "Email",
+                      icon: Icons.mail_rounded,
+                      readOnly: true,
                     ),
                     verticalSpace(),
                     InputText(
