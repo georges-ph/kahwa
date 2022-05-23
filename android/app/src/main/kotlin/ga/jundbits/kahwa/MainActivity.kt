@@ -1,4 +1,4 @@
-package com.example.kahwa
+package ga.jundbits.kahwa
 
 import io.flutter.embedding.android.FlutterActivity
 
