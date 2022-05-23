@@ -25,9 +25,6 @@ class DonateScreen extends StatefulWidget {
 
   final String? creatorId;
 
-  // TODO: show thank you message in the whole screen when donation success
-  // TODO: add some firebase stuff (crashlytics, analytics, in-app messaging...)
-
   @override
   State<DonateScreen> createState() => _DonateScreenState();
 }
