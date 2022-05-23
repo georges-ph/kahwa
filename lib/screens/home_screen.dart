@@ -30,6 +30,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final List<user_model.User> _creators = [];
 
+  bool _accessDenied = false;
+
   @override
   void initState() {
     super.initState();
@@ -53,50 +55,85 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     _screenSize = MediaQuery.of(context).size;
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        actions: [
-          Tooltip(
-            message: "Settings",
-            child: IconButton(
-              onPressed: () async {
-                await Navigator.pushNamed(context, routeSettings);
-                setState(() {});
-              },
-              icon: const Icon(Icons.settings_rounded),
-            ),
-          ),
-          GestureDetector(
-            onTap: () => Navigator.pushNamed(
-              context,
-              routeCreator,
-              arguments: _user.uid,
-            ),
-            child: CircleAvatar(
-              backgroundColor: kBrownColor,
-              backgroundImage: Statics.userImage.isNotEmpty
-                  ? NetworkImage(Statics.userImage)
-                  : null,
-              child: Statics.userImage.isEmpty
-                  ? Text(
-                      getInitials(_user.displayName!),
-                      style: const TextStyle(
-                        color: kWhiteColor,
-                      ),
-                      // style: Theme.of(context).textTheme.displaySmall!.copyWith(
-                      //       color: kWhiteColor,
-                      //     ),
-                    )
-                  : null,
-            ),
-          ),
-          horizontalSpace(),
-        ],
-      ),
+      appBar: !_accessDenied
+          ? AppBar(
+              automaticallyImplyLeading: false,
+              actions: [
+                Tooltip(
+                  message: "Settings",
+                  child: IconButton(
+                    onPressed: () async {
+                      await Navigator.pushNamed(context, routeSettings);
+                      setState(() {});
+                    },
+                    icon: const Icon(Icons.settings_rounded),
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () => Navigator.pushNamed(
+                    context,
+                    routeCreator,
+                    arguments: _user.uid,
+                  ),
+                  child: CircleAvatar(
+                    backgroundColor: kBrownColor,
+                    backgroundImage: Statics.userImage.isNotEmpty
+                        ? NetworkImage(Statics.userImage)
+                        : null,
+                    child: Statics.userImage.isEmpty
+                        ? Text(
+                            getInitials(_user.displayName!),
+                            style: const TextStyle(
+                              color: kWhiteColor,
+                            ),
+                            // style: Theme.of(context).textTheme.displaySmall!.copyWith(
+                            //       color: kWhiteColor,
+                            //     ),
+                          )
+                        : null,
+                  ),
+                ),
+                horizontalSpace(),
+              ],
+            )
+          : null,
       body: FutureBuilder(
         future: _runFuture,
         builder: (context, snapshot) {
           if (snapshot.hasError) {
+            Future.delayed(
+              Duration.zero,
+              () {
+                setState(() {
+                  _accessDenied =
+                      snapshot.error.toString().contains("permission-denied");
+                });
+              },
+            );
+            if (_accessDenied) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      width: _screenSize.width * 0.7,
+                      child: SvgPicture.asset(
+                        "assets/undraw_access_denied.svg",
+                        height: _screenSize.width,
+                      ),
+                    ),
+                    Text(
+                      "Access denied",
+                      textAlign: TextAlign.center,
+                      style:
+                          Theme.of(context).textTheme.headlineSmall!.copyWith(
+                                color: kBlackColor,
+                              ),
+                    ),
+                  ],
+                ),
+              );
+            }
             return Center(
               child: Text(
                 "Error getting data",

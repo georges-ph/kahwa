@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "885538406688",
+    "firebase_url": "https://development-71207-default-rtdb.firebaseio.com",
     "project_id": "development-71207",
     "storage_bucket": "development-71207.appspot.com"
   },
@@ -13,6 +14,14 @@
         }
       },
       "oauth_client": [
+        {
+          "client_id": "885538406688-hnr9ihs742sjbe3em67j4r10i2qui4em.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.kahwa",
+            "certificate_hash": "db150d11ee108b5b0bb4cdb109f08779fcba4552"
+          }
+        },
         {
           "client_id": "885538406688-inai7a06ckb0uobdqcinf0868qpqlui8.apps.googleusercontent.com",
           "client_type": 3
