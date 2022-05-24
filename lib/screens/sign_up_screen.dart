@@ -11,6 +11,7 @@ import 'package:kahwa/models/user.dart' as user_model;
 import 'package:kahwa/utils/colors.dart';
 import 'package:kahwa/utils/routes.dart';
 import 'package:kahwa/utils/sizes.dart';
+import 'package:kahwa/utils/statics.dart';
 import 'package:kahwa/utils/typography.dart';
 import 'package:kahwa/widgets/input_text.dart';
 import 'package:kahwa/widgets/shape_painter.dart';
@@ -260,14 +261,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                         await credential.user
                                             ?.sendEmailVerification();
 
-                                        String urlPrefix =
-                                            "https://shtrile1kahwa.page.link";
+                                        
 
                                         final dynamicLinkParams =
                                             DynamicLinkParameters(
                                           link: Uri.parse(
-                                              "$urlPrefix?id=${credential.user!.uid}"),
-                                          uriPrefix: urlPrefix,
+                                              "${Statics.dynamicUrlPrefix}?id=${credential.user!.uid}"),
+                                          uriPrefix: Statics.dynamicUrlPrefix,
                                           androidParameters: AndroidParameters(
                                             packageName: "ga.jundbits.kahwa",
                                             fallbackUrl: Uri.parse(
@@ -293,8 +293,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
                                         String linkId = dynamicLink.shortUrl
                                             .toString()
-                                            .split(
-                                                "https://kahwa.page.link/")[1];
+                                            .split("$Statics.dynamicUrlPrefix/")[1];
 
                                         String userId = credential.user!.uid;
 

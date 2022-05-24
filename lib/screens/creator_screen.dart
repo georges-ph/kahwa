@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:kahwa/enums/colors.dart' as colors_enum;
 import 'package:kahwa/models/donation.dart';
 import 'package:kahwa/models/donation_supporter.dart';
@@ -11,6 +10,7 @@ import 'package:kahwa/screen_arguments/fans_supporters_args.dart';
 import 'package:kahwa/utils/colors.dart';
 import 'package:kahwa/utils/routes.dart';
 import 'package:kahwa/utils/sizes.dart';
+import 'package:kahwa/utils/statics.dart';
 import 'package:kahwa/utils/typography.dart';
 import 'package:kahwa/widgets/add_goal_card.dart';
 import 'package:kahwa/widgets/creator_counter_card.dart';
@@ -130,14 +130,8 @@ class _CreatorScreenState extends State<CreatorScreen> {
           Tooltip(
             message: "Share",
             child: IconButton(
-              onPressed: () async {
-                await Clipboard.setData(
-                  ClipboardData(
-                    text: "https://kahwa.page.link/${_userModel.link_id!}",
-                  ),
-                );
-                Share.share(_userModel.link_id!);
-              },
+              onPressed: () => Share.share(
+                  "${Statics.dynamicUrlPrefix}/${_userModel.link_id!}"),
               icon: const Icon(Icons.share_rounded),
             ),
           ),
@@ -389,7 +383,9 @@ class _CreatorScreenState extends State<CreatorScreen> {
                         : GestureDetector(
                             onTap: () async {
                               if (!await launchUrl(
-                                  Uri.parse("http://${_userModel.website}"))) {
+                                Uri.parse("http://${_userModel.website}"),
+                                mode: LaunchMode.externalApplication,
+                              )) {
                                 SnackBar snackBar = const SnackBar(
                                     content: Text("Cannot open link"));
                                 ScaffoldMessenger.of(context)

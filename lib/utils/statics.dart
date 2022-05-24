@@ -5,4 +5,5 @@ class Statics {
   static String userImage = "";
   static late PendingDynamicLinkData? initialLink;
   static late Goal goal;
+  static String dynamicUrlPrefix = "https://shtrile1kahwa.page.link";
 }

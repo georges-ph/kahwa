@@ -18,7 +18,9 @@ class SettingsScreen extends StatelessWidget {
             child: IconButton(
               onPressed: () async {
                 if (!await launchUrl(
-                    Uri.parse("https://kahwa.jundbits.ga/feedback"))) {
+                  Uri.parse("https://kahwa.jundbits.ga/feedback"),
+                  mode: LaunchMode.externalApplication,
+                )) {
                   SnackBar snackBar =
                       const SnackBar(content: Text("Cannot open link"));
                   ScaffoldMessenger.of(context).showSnackBar(snackBar);
