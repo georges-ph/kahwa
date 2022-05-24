@@ -23,25 +23,31 @@ class SplashScreen extends StatelessWidget {
           }
 
           FirebaseDynamicLinks.instance.onLink.listen((dynamicLinkData) {
-            Navigator.pushNamed(
-              context,
-              routeCreator,
-              arguments: dynamicLinkData.link
-                  .toString()
-                  .split("https://kahwa.page.link/")[1],
-            );
+            Uri uri = dynamicLinkData.link;
+            final queryParams = uri.queryParameters;
+            if (queryParams.isNotEmpty) {
+              String creatorId = queryParams["id"]!;
+              Navigator.pushNamed(
+                context,
+                routeCreator,
+                arguments: creatorId,
+              );
+            }
           });
 
           if (Statics.initialLink != null) {
-            Future.delayed(
-                Duration.zero,
-                () => Navigator.pushNamed(
-                      context,
-                      routeCreator,
-                      arguments: Statics.initialLink!.link
-                          .toString()
-                          .split("https://kahwa.page.link/")[1],
-                    ));
+            Future.delayed(Duration.zero, () {
+              Uri uri = Statics.initialLink!.link;
+              final queryParams = uri.queryParameters;
+              if (queryParams.isNotEmpty) {
+                String creatorId = queryParams["id"]!;
+                Navigator.pushNamed(
+                  context,
+                  routeCreator,
+                  arguments: creatorId,
+                );
+              }
+            });
           }
 
           return const HomeScreen();

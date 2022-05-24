@@ -260,13 +260,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                         await credential.user
                                             ?.sendEmailVerification();
 
+                                        String urlPrefix =
+                                            "https://shtrile1kahwa.page.link";
+
                                         final dynamicLinkParams =
                                             DynamicLinkParameters(
                                           link: Uri.parse(
-                                              "https://kahwa.page.link/${credential.user!.uid}"),
-                                          uriPrefix: "https://kahwa.page.link/",
+                                              "$urlPrefix?id=${credential.user!.uid}"),
+                                          uriPrefix: urlPrefix,
                                           androidParameters: AndroidParameters(
-                                            packageName: "com.example.kahwa",
+                                            packageName: "ga.jundbits.kahwa",
                                             fallbackUrl: Uri.parse(
                                                 "https://kahwa.jundbits.ga/download"),
                                           ),
@@ -276,7 +279,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                                   description:
                                                       "Support ${_nameController.text} by buying them a kahwa",
                                                   imageUrl: Uri.parse(
-                                                    "https://firebasestorage.googleapis.com/v0/b/development-71207.appspot.com/o/kahwa%2Fcup.png?alt=media&token=52806a83-2376-4c75-93f0-af291f8c30d0",
+                                                    "https://firebasestorage.googleapis.com/v0/b/jundbits-f2d30.appspot.com/o/kahwa%2Fcup.png?alt=media&token=bd238ad2-fe0f-44c0-96e4-8fe0b76ebfb6",
                                                   )),
                                         );
 
