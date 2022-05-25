@@ -40,6 +40,7 @@ class _GoalCardState extends State<GoalCard> {
               setState(() {});
             },
       child: Card(
+        margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),

@@ -279,7 +279,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                                   description:
                                                       "Support ${_nameController.text} by buying them a kahwa",
                                                   imageUrl: Uri.parse(
-                                                    "https://firebasestorage.googleapis.com/v0/b/jundbits-f2d30.appspot.com/o/kahwa%2Fcup.png?alt=media&token=bd238ad2-fe0f-44c0-96e4-8fe0b76ebfb6",
+                                                    "https://firebasestorage.googleapis.com/v0/b/jundbits-f2d30.appspot.com/o/kahwa%2Fcup.png?alt=media&token=390963d4-09ef-43ee-b722-1635c7e10607",
                                                   )),
                                         );
 

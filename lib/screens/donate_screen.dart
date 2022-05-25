@@ -401,6 +401,8 @@ class _DonateScreenState extends State<DonateScreen> {
             const SnackBar(content: Text("You do not have enough credit"));
         ScaffoldMessenger.of(context).showSnackBar(snackBar);
       } else {
+        _showThanksMessage = true;
+
         SnackBar snackBar = SnackBar(
           content: Text(
               "Congrats! You just bought ${_creator.name} ${int.parse(_kahwasController.text)} ${int.parse(_kahwasController.text) == 1 ? "kahwa" : "kahwas"}"),
@@ -411,7 +413,6 @@ class _DonateScreenState extends State<DonateScreen> {
 
       setState(() {
         _isLoading = false;
-        _showThanksMessage = true;
       });
     });
   }

@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:kahwa/models/donation_supporter.dart';
 import 'package:kahwa/utils/colors.dart';
@@ -15,15 +16,21 @@ class SupporterCard extends StatelessWidget {
   Widget build(BuildContext context) {
     String text = "";
     String kahwas = "kahwa";
+    String message = "";
+    User user = FirebaseAuth.instance.currentUser!;
+
     if (donationSupporter.donation!.kahwas! > 1) {
       kahwas = "kahwas";
     }
 
-    if (donationSupporter.donation!.keep_private == true) {
+    if (donationSupporter.donation!.keep_private == true &&
+        (donationSupporter.donation!.supporter_id != user.uid ||
+            donationSupporter.donation!.creator_id != user.uid)) {
       text = "Someone bought ${donationSupporter.donation!.kahwas} $kahwas";
     } else {
       text =
           "${donationSupporter.supporter!.name} bought ${donationSupporter.donation!.kahwas} $kahwas";
+      message = donationSupporter.donation!.message!;
     }
 
     return Card(
@@ -48,7 +55,7 @@ class SupporterCard extends StatelessWidget {
               timeago.format(donationSupporter.donation!.timestamp!.toDate()),
             ),
           ),
-          donationSupporter.donation!.message!.isEmpty
+          message.isEmpty
               ? Container()
               : Padding(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),

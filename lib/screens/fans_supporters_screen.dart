@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:kahwa/models/fan_supporter.dart';
 import 'package:kahwa/utils/colors.dart';
 import 'package:kahwa/utils/routes.dart';
@@ -66,31 +65,6 @@ class _FansSupportersScreenState extends State<FansSupportersScreen> {
           }
 
           if (snapshot.connectionState == ConnectionState.done) {
-            if (widget.list.isEmpty) {
-              final _screenSize = MediaQuery.of(context).size;
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      width: _screenSize.width * 0.7,
-                      child: SvgPicture.asset(
-                        "assets/undraw_void.svg",
-                        height: _screenSize.width,
-                      ),
-                    ),
-                    Text(
-                      "Nothing to see here",
-                      textAlign: TextAlign.center,
-                      style:
-                          Theme.of(context).textTheme.headlineSmall!.copyWith(
-                                color: kBlackColor,
-                              ),
-                    ),
-                  ],
-                ),
-              );
-            }
             return ListView.separated(
               physics: const BouncingScrollPhysics(),
               itemCount: widget.list.length,

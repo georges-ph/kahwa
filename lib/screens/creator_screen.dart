@@ -101,7 +101,9 @@ class _CreatorScreenState extends State<CreatorScreen> {
         _supportersList.add(donation.supporter_id!);
       }
 
-      if (donation.keep_private == false) {
+      if (donation.keep_private == false ||
+          donation.creator_id == _user.uid ||
+          donation.supporter_id == _user.uid) {
         DocumentSnapshot<Map<String, dynamic>> documentSnapshot =
             await _appDocument
                 .collection("Users")
@@ -199,7 +201,8 @@ class _CreatorScreenState extends State<CreatorScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
                         GestureDetector(
-                          onTap: _user.uid != widget.creatorId
+                          onTap: _user.uid != widget.creatorId ||
+                                  _userModel.fans!.isEmpty
                               ? null
                               : () => Navigator.pushNamed(
                                     context,
@@ -217,7 +220,8 @@ class _CreatorScreenState extends State<CreatorScreen> {
                           ),
                         ),
                         GestureDetector(
-                          onTap: _user.uid != widget.creatorId
+                          onTap: _user.uid != widget.creatorId ||
+                                  _supportersList.isEmpty
                               ? null
                               : () => Navigator.pushNamed(
                                     context,
