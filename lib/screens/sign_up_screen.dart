@@ -261,8 +261,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                         await credential.user
                                             ?.sendEmailVerification();
 
-                                        
-
                                         final dynamicLinkParams =
                                             DynamicLinkParameters(
                                           link: Uri.parse(
@@ -293,7 +291,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
                                         String linkId = dynamicLink.shortUrl
                                             .toString()
-                                            .split("$Statics.dynamicUrlPrefix/")[1];
+                                            .split(
+                                                "${Statics.dynamicUrlPrefix}/")[1];
 
                                         String userId = credential.user!.uid;
 
