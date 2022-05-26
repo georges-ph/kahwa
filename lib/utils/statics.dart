@@ -7,6 +7,6 @@ class Statics {
   static String userImage = "";
   static late PendingDynamicLinkData? initialLink;
   static late Goal goal;
-  static String dynamicUrlPrefix = "https://shtrile1kahwa.page.link";
+  static String dynamicUrlPrefix = "https://shtrilekahwa.page.link";
   static Color creatorColor = colors_enum.getColor(colors_enum.Colors.brown);
 }
