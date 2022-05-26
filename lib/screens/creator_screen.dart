@@ -72,6 +72,7 @@ class _CreatorScreenState extends State<CreatorScreen> {
         user_model.User.fromMap(userDocument.data() as Map<String, dynamic>);
 
     _creatorColor = colors_enum.getColor(_userModel.color!);
+    Statics.creatorColor = _creatorColor;
 
     DocumentSnapshot<Map<String, dynamic>> goalDocument =
         await _goalDocument.get();

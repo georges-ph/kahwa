@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:kahwa/models/donation_supporter.dart';
 import 'package:kahwa/utils/colors.dart';
+import 'package:kahwa/utils/statics.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class SupporterCard extends StatelessWidget {
@@ -66,10 +67,10 @@ class SupporterCard extends StatelessWidget {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                         side: BorderSide(
-                          color: kBrownColor.withOpacity(0.3),
+                          color: Statics.creatorColor.withOpacity(0.3),
                         ),
                       ),
-                      color: kBrownColor.withOpacity(0.1),
+                      color: Statics.creatorColor.withOpacity(0.1),
                       elevation: 0,
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
