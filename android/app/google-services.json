@@ -1,41 +1,33 @@
 {
   "project_info": {
-    "project_number": "465405277957",
-    "project_id": "jundbits-f2d30",
-    "storage_bucket": "jundbits-f2d30.appspot.com"
+    "project_number": "900560642717",
+    "project_id": "jundbits-27eab",
+    "storage_bucket": "jundbits-27eab.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:465405277957:android:8bc421e43a99725f1da96c",
+        "mobilesdk_app_id": "1:900560642717:android:3128610091728a8083aa74",
         "android_client_info": {
           "package_name": "ga.jundbits.kahwa"
         }
       },
       "oauth_client": [
         {
-          "client_id": "465405277957-jotaecaa9mlo0homc7u199k1khbrjhfg.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "ga.jundbits.kahwa",
-            "certificate_hash": "db150d11ee108b5b0bb4cdb109f08779fcba4552"
-          }
-        },
-        {
-          "client_id": "465405277957-ok5ah9ut9lk9pnbivp6a7b9omht1tga9.apps.googleusercontent.com",
+          "client_id": "900560642717-7gtank66lkh00aj9p8470l1t8qgivokl.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyDqKwpLF2mBKS8v60SOHnjJg4UqTUmXYBE"
+          "current_key": "AIzaSyBn0AgYzItCUt2qV2auyHIg1OcwRGcuTdg"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "465405277957-ok5ah9ut9lk9pnbivp6a7b9omht1tga9.apps.googleusercontent.com",
+              "client_id": "900560642717-7gtank66lkh00aj9p8470l1t8qgivokl.apps.googleusercontent.com",
               "client_type": 3
             }
           ]
