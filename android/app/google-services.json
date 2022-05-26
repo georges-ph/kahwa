@@ -7,12 +7,20 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:465405277957:android:a75c28b234f429be1da96c",
+        "mobilesdk_app_id": "1:465405277957:android:8bc421e43a99725f1da96c",
         "android_client_info": {
           "package_name": "ga.jundbits.kahwa"
         }
       },
       "oauth_client": [
+        {
+          "client_id": "465405277957-jotaecaa9mlo0homc7u199k1khbrjhfg.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "ga.jundbits.kahwa",
+            "certificate_hash": "db150d11ee108b5b0bb4cdb109f08779fcba4552"
+          }
+        },
         {
           "client_id": "465405277957-ok5ah9ut9lk9pnbivp6a7b9omht1tga9.apps.googleusercontent.com",
           "client_type": 3
