@@ -43,11 +43,15 @@ class _RequestWithdrawScreenState extends State<RequestWithdrawScreen> {
         padding: const EdgeInsets.all(24),
         physics: const BouncingScrollPhysics(),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               "Request Withdraw".toUpperCase(),
               style: Theme.of(context).textTheme.headlineLarge,
             ),
+            verticalSpace(height: 40),
+            const Text(
+                "Make sure you have setup your billing details. Otherwise, no withdraws will be made."),
             verticalSpace(),
             BalanceCard(
               title: "Current Balance",

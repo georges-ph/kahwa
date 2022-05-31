@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fire_auth;
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
@@ -16,6 +17,7 @@ import 'package:kahwa/utils/typography.dart';
 import 'package:kahwa/widgets/input_text.dart';
 import 'package:kahwa/widgets/kahwa_counter.dart';
 import 'package:kahwa/widgets/price_input_text.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class DonateScreen extends StatefulWidget {
   const DonateScreen({
@@ -397,8 +399,27 @@ class _DonateScreenState extends State<DonateScreen> {
       return true;
     }).then((success) {
       if (!success) {
-        SnackBar snackBar =
-            const SnackBar(content: Text("You do not have enough credit"));
+        SnackBar snackBar = SnackBar(
+          content: const Text("You do not have enough credit"),
+          action: SnackBarAction(
+            label: "Reload",
+            onPressed: () async {
+              final event = await FirebaseDatabase.instance
+                  .ref()
+                  .child("reload_balance_url")
+                  .once();
+              final reloadBalanceUrl = event.snapshot.value;
+              if (!await launchUrl(
+                Uri.parse(reloadBalanceUrl.toString()),
+                mode: LaunchMode.externalApplication,
+              )) {
+                SnackBar snackBar =
+                    const SnackBar(content: Text("Cannot open link"));
+                ScaffoldMessenger.of(context).showSnackBar(snackBar);
+              }
+            },
+          ),
+        );
         ScaffoldMessenger.of(context).showSnackBar(snackBar);
       } else {
         _showThanksMessage = true;
