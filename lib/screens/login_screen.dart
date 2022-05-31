@@ -223,7 +223,7 @@ class _LogInScreenState extends State<LogInScreen> {
                                           });
                                         } else if (e.code == "wrong-password") {
                                           setState(() {
-                                            _passwordError = e.message!;
+                                            _passwordError = "Incorrect password";
                                             _isPasswordErrorVisible = true;
                                           });
                                         } else if (e.code == "user-not-found") {

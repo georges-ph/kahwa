@@ -78,9 +78,9 @@ class _CreatorScreenState extends State<CreatorScreen> {
         await _goalDocument.get();
     if (!goalDocument.exists) {
       _goal = Goal();
-      return;
+    } else {
+      _goal = Goal.fromMap(goalDocument.data() as Map<String, dynamic>);
     }
-    _goal = Goal.fromMap(goalDocument.data() as Map<String, dynamic>);
 
     QuerySnapshot<Map<String, dynamic>> query = await _appDocument
         .collection("Donations")
