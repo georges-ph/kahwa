@@ -1,5 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
+// import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:kahwa/screens/home_screen.dart';
@@ -23,33 +23,33 @@ class SplashScreen extends StatelessWidget {
             Statics.userImage = user.photoURL!;
           }
 
-          FirebaseDynamicLinks.instance.onLink.listen((dynamicLinkData) {
-            Uri uri = dynamicLinkData.link;
-            final queryParams = uri.queryParameters;
-            if (queryParams.isNotEmpty) {
-              String creatorId = queryParams["id"]!;
-              Navigator.pushNamed(
-                context,
-                routeCreator,
-                arguments: creatorId,
-              );
-            }
-          });
+          // FirebaseDynamicLinks.instance.onLink.listen((dynamicLinkData) {
+          //   Uri uri = dynamicLinkData.link;
+          //   final queryParams = uri.queryParameters;
+          //   if (queryParams.isNotEmpty) {
+          //     String creatorId = queryParams["id"]!;
+          //     Navigator.pushNamed(
+          //       context,
+          //       routeCreator,
+          //       arguments: creatorId,
+          //     );
+          //   }
+          // });
 
-          if (!kIsWeb && Statics.initialLink != null) {
-            Future.delayed(Duration.zero, () {
-              Uri uri = Statics.initialLink!.link;
-              final queryParams = uri.queryParameters;
-              if (queryParams.isNotEmpty) {
-                String creatorId = queryParams["id"]!;
-                Navigator.pushNamed(
-                  context,
-                  routeCreator,
-                  arguments: creatorId,
-                );
-              }
-            });
-          }
+          // if (!kIsWeb && Statics.initialLink != null) {
+          //   Future.delayed(Duration.zero, () {
+          //     Uri uri = Statics.initialLink!.link;
+          //     final queryParams = uri.queryParameters;
+          //     if (queryParams.isNotEmpty) {
+          //       String creatorId = queryParams["id"]!;
+          //       Navigator.pushNamed(
+          //         context,
+          //         routeCreator,
+          //         arguments: creatorId,
+          //       );
+          //     }
+          //   });
+          // }
 
           return const HomeScreen();
         } else {

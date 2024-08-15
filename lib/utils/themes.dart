@@ -36,7 +36,7 @@ ThemeData lightTheme(BuildContext context) {
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: TextButton.styleFrom(
         padding: const EdgeInsets.all(16),
-        textStyle: Theme.of(context).textTheme.button,
+        textStyle: Theme.of(context).textTheme.bodyLarge,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),

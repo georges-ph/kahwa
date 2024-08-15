@@ -25,3 +25,8 @@ doc/api/
 
 .flutter-plugins
 .flutter-plugins-dependencies
+
+# Firebase and Local Emulator
+.firebaserc
+firebase.json
+firebase/

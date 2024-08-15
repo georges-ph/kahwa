@@ -93,9 +93,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final croppedImage = await ImageCropper().cropImage(
       sourcePath: image.path,
       aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
-      cropStyle: CropStyle.circle,
       uiSettings: [
         AndroidUiSettings(
+          cropStyle: CropStyle.circle,
           hideBottomControls: true,
         ),
       ],

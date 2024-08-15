@@ -202,8 +202,8 @@ class _GoalScreenState extends State<GoalScreen> {
                             width: double.infinity,
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                primary: kWhiteColor,
-                                onPrimary: kBrownColor,
+                                backgroundColor: kWhiteColor,
+                                foregroundColor: kBrownColor,
                                 side: const BorderSide(
                                   color: kBrownColor,
                                 ),
