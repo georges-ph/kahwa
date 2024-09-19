@@ -19,6 +19,8 @@ void main() async {
   );
 
   if (kDebugMode) {
+    /// `cd firebase`
+    /// `firebase emulators:start --export-on-exit local_data --import local_data`
     const host = "127.0.0.1";
     await FirebaseAuth.instance.useAuthEmulator(host, 9099);
     FirebaseFirestore.instance.useFirestoreEmulator(host, 8080);
