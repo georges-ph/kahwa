@@ -1,43 +1,37 @@
 import 'package:flutter/material.dart';
-import 'package:kahwa/utils/colors.dart';
 
+/// Round shortcut that sets the number of kahwas to [value].
 class KahwaCounter extends StatelessWidget {
   const KahwaCounter({
-    Key? key,
-    required this.text,
-    required this.kahwas,
+    super.key,
+    required this.value,
+    required this.selected,
     required this.onTap,
-  }) : super(key: key);
+  });
 
-  final int text;
-  final String kahwas;
-  final Function(int) onTap;
+  final int value;
+  final bool selected;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => onTap(text),
-      child: Container(
-        width: 24,
-        height: 24,
-        decoration: BoxDecoration(
-          color: kahwas == text.toString()
-              ? Theme.of(context).colorScheme.primary
-              : kWhiteColor,
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: Theme.of(context).colorScheme.primary,
-          ),
-        ),
-        child: Align(
-          alignment: Alignment.center,
-          child: Text(
-            text.toString(),
-            style: Theme.of(context).textTheme.titleSmall!.copyWith(
-                  color: kahwas == text.toString()
-                      ? kWhiteColor
-                      : Theme.of(context).colorScheme.primary,
-                ),
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Material(
+      color: selected ? colorScheme.primary : colorScheme.surface,
+      shape: CircleBorder(side: BorderSide(color: colorScheme.primary)),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: SizedBox.square(
+          dimension: 40,
+          child: Center(
+            child: Text(
+              value.toString(),
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: selected ? colorScheme.onPrimary : colorScheme.onSurface,
+              ),
+            ),
           ),
         ),
       ),

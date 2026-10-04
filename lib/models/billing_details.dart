@@ -1,33 +1,37 @@
-// ignore_for_file: non_constant_identifier_names
-
 class BillingDetails {
-  String? whish_phone;
-  String? first_name;
-  String? last_name;
-  String? phone;
-
-  BillingDetails({
-    this.whish_phone,
-    this.first_name,
-    this.last_name,
-    this.phone,
+  const BillingDetails({
+    this.whishPhone = '',
+    this.firstName = '',
+    this.lastName = '',
+    this.phone = '',
   });
+
+  final String whishPhone;
+  final String firstName;
+  final String lastName;
+  final String phone;
+
+  bool get isEmpty =>
+      whishPhone.isEmpty &&
+      firstName.isEmpty &&
+      lastName.isEmpty &&
+      phone.isEmpty;
 
   Map<String, dynamic> toMap() {
     return {
-      'whish_phone': whish_phone,
-      'first_name': first_name,
-      'last_name': last_name,
+      'whish_phone': whishPhone,
+      'first_name': firstName,
+      'last_name': lastName,
       'phone': phone,
     };
   }
 
   factory BillingDetails.fromMap(Map<String, dynamic> map) {
     return BillingDetails(
-      whish_phone: map['whish_phone'],
-      first_name: map['first_name'],
-      last_name: map['last_name'],
-      phone: map['phone'],
+      whishPhone: map['whish_phone'] ?? '',
+      firstName: map['first_name'] ?? '',
+      lastName: map['last_name'] ?? '',
+      phone: map['phone'] ?? '',
     );
   }
 }

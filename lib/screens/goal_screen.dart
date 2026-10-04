@@ -1,48 +1,42 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:kahwa/core/feedback.dart';
+import 'package:kahwa/core/formatters.dart';
+import 'package:kahwa/core/router.dart';
+import 'package:kahwa/data/repositories.dart';
+import 'package:kahwa/models/currency.dart';
 import 'package:kahwa/models/goal.dart';
-import 'package:kahwa/utils/colors.dart';
-import 'package:kahwa/utils/sizes.dart';
-import 'package:kahwa/utils/statics.dart';
+import 'package:kahwa/widgets/async_body.dart';
 import 'package:kahwa/widgets/input_text.dart';
+import 'package:kahwa/widgets/loading_button.dart';
+import 'package:kahwa/widgets/page_body.dart';
+import 'package:kahwa/widgets/sub_page.dart';
 
+/// Lets creators add, edit or delete the goal shown on their page.
 class GoalScreen extends StatefulWidget {
-  const GoalScreen({
-    Key? key,
-  }) : super(key: key);
+  const GoalScreen({super.key});
 
   @override
   State<GoalScreen> createState() => _GoalScreenState();
 }
 
 class _GoalScreenState extends State<GoalScreen> {
-  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
-  final FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
+  late Future<Goal?> _goal;
 
-  late User _user;
-  late DocumentReference _appDocument;
-  late DocumentReference<Map<String, dynamic>> _goalDocument;
+  final _titleController = TextEditingController();
+  final _descriptionController = TextEditingController();
+  final _targetController = TextEditingController();
+  final _currentController = TextEditingController();
 
-  late Goal _goal;
-
-  late Future<void> _runFuture;
-
-  final TextEditingController _titleController = TextEditingController();
-  final TextEditingController _descriptionController = TextEditingController();
-  final TextEditingController _targetController = TextEditingController();
-  final TextEditingController _currentController = TextEditingController();
-
-  bool _isLoading = false;
+  bool _isSaving = false;
   bool _isDeleting = false;
+
+  String get _userId => authRepository.userId;
 
   @override
   void initState() {
     super.initState();
-    _user = _firebaseAuth.currentUser!;
-    _appDocument = _firebaseFirestore.collection("kahwa").doc("AppCollections");
-    _goalDocument = _appDocument.collection("Goals").doc(_user.uid);
-    _runFuture = _getUserData();
+    _goal = _load();
   }
 
   @override
@@ -54,211 +48,140 @@ class _GoalScreenState extends State<GoalScreen> {
     super.dispose();
   }
 
-  Future<void> _getUserData() async {
-    DocumentSnapshot<Map<String, dynamic>> document = await _goalDocument.get();
-    if (!document.exists) {
-      _goal = Goal(
-        id: _user.uid,
+  Future<Goal?> _load() async {
+    final goal = await goalRepository.getGoal(_userId);
+    if (goal != null) {
+      _titleController.text = goal.title;
+      _descriptionController.text = goal.description;
+      _targetController.text = goal.target.toString();
+      _currentController.text = goal.current.toString();
+    }
+    return goal;
+  }
+
+  void _reload() => setState(() => _goal = _load());
+
+  void _close() {
+    context.canPop() ? context.pop() : context.go(Routes.creator(_userId));
+  }
+
+  Future<void> _save() async {
+    final title = _titleController.text.trim();
+    final description = _descriptionController.text.trim();
+    final target = parseAmount(_targetController.text);
+
+    if (title.isEmpty || description.isEmpty || target == null || target == 0) {
+      showSnack(
+        context,
+        'You cannot add a goal without a title, description and target amount',
       );
       return;
     }
-    _goal = Goal.fromMap(document.data() as Map<String, dynamic>);
 
-    _titleController.text = _goal.title ?? "";
-    _descriptionController.text = _goal.description ?? "";
-    _targetController.text = _goal.target.toString();
-    _currentController.text = _goal.current.toString();
+    setState(() => _isSaving = true);
+    try {
+      await goalRepository.saveGoal(
+        Goal(
+          id: _userId,
+          title: title,
+          description: description,
+          target: target,
+          current: parseAmount(_currentController.text) ?? 0,
+        ),
+      );
+      if (!mounted) return;
+      showSnack(context, 'Saved successfully');
+      _close();
+    } catch (_) {
+      if (mounted) showSnack(context, 'Could not save, try again');
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
+  Future<void> _delete(Goal goal) async {
+    setState(() => _isDeleting = true);
+    try {
+      await goalRepository.archiveGoal(goal);
+      if (!mounted) return;
+      showSnack(context, 'Goal deleted');
+      _close();
+    } catch (_) {
+      if (mounted) showSnack(context, 'Could not delete, try again');
+    } finally {
+      if (mounted) setState(() => _isDeleting = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => FocusScope.of(context).unfocus(),
-      child: Scaffold(
-        appBar: AppBar(),
-        body: FutureBuilder(
-          future: _runFuture,
-          builder: (context, snapshot) {
-            if (snapshot.hasError) {
-              return Center(
-                child: Text(
-                  "Error getting data",
-                  style: Theme.of(context).textTheme.displaySmall,
-                  textAlign: TextAlign.center,
+    return SubPage(
+      fallback: Routes.creator(_userId),
+      body: AsyncBody(
+        future: _goal,
+        onRetry: _reload,
+        builder: (context, goal) {
+          return PageBody(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                PageTitle(
+                  goal == null ? 'Add New Goal' : 'Edit Goal',
+                  upperCase: false,
                 ),
-              );
-            }
-
-            if (snapshot.connectionState == ConnectionState.done) {
-              return SingleChildScrollView(
-                keyboardDismissBehavior:
-                    ScrollViewKeyboardDismissBehavior.onDrag,
-                padding: const EdgeInsets.all(24),
-                physics: const BouncingScrollPhysics(),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width * 0.6,
-                      child: Text(
-                        _goal.title == null ? "Add New Goal" : "Edit Goal",
-                        style: Theme.of(context).textTheme.headlineLarge,
-                      ),
-                    ),
-                    verticalSpace(height: 40),
-                    InputText(
-                      controller: _titleController,
-                      title: "Goal Title",
-                      hint: "New camera",
-                      textInputAction: TextInputAction.next,
-                    ),
-                    verticalSpace(),
-                    InputText(
-                      controller: _descriptionController,
-                      title: "Goal Description",
-                      hint: "Enter a description for your goal",
-                      maxLines: 5,
-                      textInputAction: TextInputAction.next,
-                    ),
-                    verticalSpace(),
-                    InputText(
-                      controller: _targetController,
-                      title: "Target Amount",
-                      hint: 0.toString(),
-                      textInputAction: TextInputAction.next,
-                      keyboardType: TextInputType.number,
-                    ),
-                    verticalSpace(),
-                    InputText(
-                      controller: _currentController,
-                      title: "Current amount",
-                      hint: 0.toString(),
-                      textInputAction: TextInputAction.next,
-                      keyboardType: TextInputType.number,
-                    ),
-                    verticalSpace(),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _isLoading
-                            ? null
-                            : () async {
-                                if (_titleController.text.isEmpty ||
-                                    _descriptionController.text.isEmpty ||
-                                    _targetController.text.isEmpty) {
-                                  SnackBar snackBar = const SnackBar(
-                                    content: Text(
-                                        "You cannot add a goal without a title, description and target amount"),
-                                  );
-                                  ScaffoldMessenger.of(context)
-                                      .showSnackBar(snackBar);
-                                  return;
-                                }
-
-                                setState(() {
-                                  _isLoading = true;
-                                });
-
-                                _goal.title = _titleController.text;
-                                _goal.description = _descriptionController.text;
-                                _goal.target =
-                                    int.parse(_targetController.text);
-                                _goal.current =
-                                    _currentController.text.isNotEmpty
-                                        ? int.parse(_currentController.text)
-                                        : 0;
-
-                                Statics.goal = _goal;
-
-                                await _goalDocument.set(
-                                    _goal.toMap(), SetOptions(merge: true));
-
-                                SnackBar snackBar = const SnackBar(
-                                    content: Text("Saved successfully"));
-
-                                ScaffoldMessenger.of(context)
-                                    .showSnackBar(snackBar);
-
-                                setState(() {
-                                  _isLoading = false;
-                                });
-                              },
-                        child: _isLoading
-                            ? const SizedBox.square(
-                                dimension: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 3,
-                                ),
-                              )
-                            : const Text("Save"),
-                      ),
-                    ),
-                    _goal.title == null
-                        ? Container()
-                        : verticalSpace(height: 16),
-                    _goal.title == null
-                        ? Container()
-                        : SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: kWhiteColor,
-                                foregroundColor: kBrownColor,
-                                side: const BorderSide(
-                                  color: kBrownColor,
-                                ),
-                              ),
-                              onPressed: _isDeleting
-                                  ? null
-                                  : () async {
-                                      setState(() {
-                                        _isDeleting = true;
-                                      });
-
-                                      _firebaseFirestore
-                                          .runTransaction((transaction) async {
-                                        transaction.delete(_goalDocument);
-                                        transaction.set(
-                                            _appDocument
-                                                .collection("Users")
-                                                .doc(_user.uid)
-                                                .collection("ArchivedGoals")
-                                                .doc(),
-                                            _goal.toMap());
-                                        return true;
-                                      }).then((success) {
-                                        if (success) {
-                                          SnackBar snackBar = const SnackBar(
-                                              content: Text("Goal deleted"));
-
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(snackBar);
-
-                                          setState(() {
-                                            _isDeleting = false;
-                                          });
-
-                                          Navigator.pop(context, true);
-                                        }
-                                      });
-                                    },
-                              child: _isDeleting
-                                  ? const SizedBox.square(
-                                      dimension: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 3,
-                                      ),
-                                    )
-                                  : const Text("Delete Goal"),
-                            ),
-                          ),
-                  ],
+                const SizedBox(height: 40),
+                InputText(
+                  controller: _titleController,
+                  title: 'Goal Title',
+                  hint: 'New camera',
+                  textInputAction: TextInputAction.next,
+                  textCapitalization: TextCapitalization.sentences,
                 ),
-              );
-            }
-            return const Center(child: CircularProgressIndicator());
-          },
-        ),
+                const SizedBox(height: 24),
+                InputText(
+                  controller: _descriptionController,
+                  title: 'Goal Description',
+                  hint: 'Enter a description for your goal',
+                  maxLines: 5,
+                  textCapitalization: TextCapitalization.sentences,
+                ),
+                const SizedBox(height: 24),
+                InputText(
+                  controller: _targetController,
+                  title: 'Target Amount',
+                  hint: '0',
+                  prefixText: Currency.lbp.code,
+                  digitsOnly: true,
+                  textInputAction: TextInputAction.next,
+                ),
+                const SizedBox(height: 24),
+                InputText(
+                  controller: _currentController,
+                  title: 'Current Amount',
+                  hint: '0',
+                  prefixText: Currency.lbp.code,
+                  digitsOnly: true,
+                  textInputAction: TextInputAction.done,
+                ),
+                const SizedBox(height: 24),
+                LoadingButton(
+                  label: 'Save',
+                  isLoading: _isSaving,
+                  onPressed: _isDeleting ? null : _save,
+                ),
+                if (goal != null) ...[
+                  const SizedBox(height: 16),
+                  LoadingButton(
+                    label: 'Delete Goal',
+                    outlined: true,
+                    isLoading: _isDeleting,
+                    onPressed: _isSaving ? null : () => _delete(goal),
+                  ),
+                ],
+              ],
+            ),
+          );
+        },
       ),
     );
   }

@@ -1,30 +1,45 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:kahwa/enums/colors.dart' as colors_enum;
+import 'package:go_router/go_router.dart';
+import 'package:kahwa/core/config.dart';
+import 'package:kahwa/core/feedback.dart';
+import 'package:kahwa/core/formatters.dart';
+import 'package:kahwa/core/responsive.dart';
+import 'package:kahwa/core/router.dart';
+import 'package:kahwa/core/theme.dart';
+import 'package:kahwa/data/repositories.dart';
+import 'package:kahwa/models/app_user.dart';
 import 'package:kahwa/models/donation.dart';
-import 'package:kahwa/models/donation_supporter.dart';
 import 'package:kahwa/models/goal.dart';
-import 'package:kahwa/models/user.dart' as user_model;
-import 'package:kahwa/screen_arguments/fans_supporters_args.dart';
-import 'package:kahwa/utils/colors.dart';
-import 'package:kahwa/utils/routes.dart';
-import 'package:kahwa/utils/sizes.dart';
-import 'package:kahwa/utils/statics.dart';
-import 'package:kahwa/utils/typography.dart';
-import 'package:kahwa/widgets/add_goal_card.dart';
+import 'package:kahwa/widgets/async_body.dart';
 import 'package:kahwa/widgets/creator_counter_card.dart';
 import 'package:kahwa/widgets/goal_card.dart';
+import 'package:kahwa/widgets/page_body.dart';
 import 'package:kahwa/widgets/supporter_card.dart';
+import 'package:kahwa/widgets/user_avatar.dart';
 import 'package:readmore/readmore.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:url_launcher/url_launcher.dart';
+
+/// Everything shown on the page of a creator.
+class _CreatorPage {
+  _CreatorPage({required this.creator, this.goal, required this.donations});
+
+  final AppUser creator;
+  final Goal? goal;
+  final List<DonationSupporter> donations;
+
+  late final int supporters = {
+    for (final item in donations) item.donation.supporterId,
+  }.length;
+
+  late final int kahwas = donations.fold(
+    0,
+    (sum, item) => sum + item.donation.kahwas,
+  );
+}
 
 class CreatorScreen extends StatefulWidget {
-  const CreatorScreen({
-    Key? key,
-    required this.creatorId,
-  }) : super(key: key);
+  const CreatorScreen({super.key, required this.creatorId});
 
   final String creatorId;
 
@@ -33,417 +48,335 @@ class CreatorScreen extends StatefulWidget {
 }
 
 class _CreatorScreenState extends State<CreatorScreen> {
-  late Size _screenSize;
+  late Future<_CreatorPage> _page;
 
-  final List<String> _supportersList = [];
-  final List<DonationSupporter> _donationSupporterList = [];
+  String get _userId => authRepository.userId;
 
-  int _kahwas = 0;
-
-  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
-  final FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
-
-  late User _user;
-  late DocumentReference _appDocument;
-  late DocumentReference<Map<String, dynamic>> _goalDocument;
-
-  late Future<void> _runFuture;
-
-  late user_model.User _userModel;
-  late Color _creatorColor;
-  late Goal _goal;
+  bool get _isOwner => _userId == widget.creatorId;
 
   @override
   void initState() {
     super.initState();
-
-    _user = _firebaseAuth.currentUser!;
-    _appDocument = _firebaseFirestore.collection("kahwa").doc("AppCollections");
-    _goalDocument = _appDocument.collection("Goals").doc(widget.creatorId);
-
-    _runFuture = _getUserData();
+    _page = _load();
   }
 
-  Future<void> _getUserData() async {
-    DocumentSnapshot<Map<String, dynamic>> userDocument =
-        await _appDocument.collection("Users").doc(widget.creatorId).get();
+  @override
+  void didUpdateWidget(CreatorScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.creatorId != widget.creatorId) _page = _load();
+  }
 
-    _userModel =
-        user_model.User.fromMap(userDocument.data() as Map<String, dynamic>);
+  Future<_CreatorPage> _load() async {
+    final (creator, goal, donations) = await (
+      userRepository.getUser(widget.creatorId),
+      goalRepository.getGoal(widget.creatorId),
+      donationRepository.getDonations(
+        creatorId: widget.creatorId,
+        viewerId: _userId,
+      ),
+    ).wait;
 
-    _creatorColor = colors_enum.getColor(_userModel.color!);
-    Statics.creatorColor = _creatorColor;
+    if (creator == null) throw StateError('Creator not found');
+    return _CreatorPage(creator: creator, goal: goal, donations: donations);
+  }
 
-    DocumentSnapshot<Map<String, dynamic>> goalDocument =
-        await _goalDocument.get();
-    if (!goalDocument.exists) {
-      _goal = Goal();
-    } else {
-      _goal = Goal.fromMap(goalDocument.data() as Map<String, dynamic>);
+  void _reload() {
+    if (!mounted) return;
+    setState(() => _page = _load());
+  }
+
+  /// Opens [location] and refreshes the page when the user comes back.
+  Future<void> _open(String location) async {
+    await context.push(location);
+    _reload();
+  }
+
+  /// Updates the page right away and puts it back if saving fails.
+  Future<void> _toggleFan(_CreatorPage page) async {
+    final creator = page.creator;
+    final isFan = !creator.hasFan(_userId);
+    final fans = isFan
+        ? [...creator.fans, _userId]
+        : creator.fans.where((id) => id != _userId).toList();
+
+    setState(() {
+      _page = SynchronousFuture(
+        _CreatorPage(
+          creator: creator.copyWith(fans: fans),
+          goal: page.goal,
+          donations: page.donations,
+        ),
+      );
+    });
+    try {
+      await userRepository.setFan(
+        creatorId: creator.id,
+        userId: _userId,
+        isFan: isFan,
+      );
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _page = SynchronousFuture(page));
+      showSnack(context, 'Could not update, try again');
     }
+  }
 
-    QuerySnapshot<Map<String, dynamic>> query = await _appDocument
-        .collection("Donations")
-        .where("creator_id", isEqualTo: widget.creatorId)
-        .orderBy("timestamp", descending: true)
-        .get();
-
-    if (query.docs.isEmpty) {
-      return;
-    }
-
-    for (int i = 0; i < query.docs.length; i++) {
-      Donation donation = Donation.fromMap(query.docs[i].data());
-      user_model.User supporter = user_model.User();
-
-      _kahwas += donation.kahwas!;
-
-      if (!_supportersList.contains(donation.supporter_id)) {
-        _supportersList.add(donation.supporter_id!);
-      }
-
-      if (donation.keep_private == false ||
-          donation.creator_id == _user.uid ||
-          donation.supporter_id == _user.uid) {
-        DocumentSnapshot<Map<String, dynamic>> documentSnapshot =
-            await _appDocument
-                .collection("Users")
-                .doc(donation.supporter_id)
-                .get();
-        supporter = user_model.User.fromMap(
-            documentSnapshot.data() as Map<String, dynamic>);
-      }
-
-      _donationSupporterList.insert(
-          i,
-          DonationSupporter(
-            donation: donation,
-            supporter: supporter,
-          ));
-    }
+  void _share() {
+    SharePlus.instance.share(
+      ShareParams(uri: Uri.parse(AppConfig.creatorLink(widget.creatorId))),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    _screenSize = MediaQuery.of(context).size;
-
     return Scaffold(
       appBar: AppBar(
+        leading: BackButton(
+          onPressed: () {
+            context.canPop() ? context.pop() : context.go(Routes.home);
+          },
+        ),
         actions: [
-          Tooltip(
-            message: "Share",
-            child: IconButton(
-              onPressed: () => Share.share(
-                  "${Statics.dynamicUrlPrefix}/${_userModel.link_id!}"),
+          if (AppConfig.appUrl.isNotEmpty)
+            IconButton(
+              onPressed: _share,
+              tooltip: 'Share',
               icon: const Icon(Icons.share_rounded),
+            ),
+          SizedBox(width: context.pagePadding - 16),
+        ],
+      ),
+      body: AsyncBody(
+        future: _page,
+        onRetry: _reload,
+        builder: (context, page) {
+          return Theme(
+            data: appTheme(primary: page.creator.color.color),
+            child: Builder(builder: (context) => _buildPage(context, page)),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildPage(BuildContext context, _CreatorPage page) {
+    final profile = _buildProfile(context, page);
+    final supporters = _buildSupporters(page);
+
+    if (context.isExpanded) {
+      return PageBody(
+        maxWidth: ContentWidth.wide,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(width: 400, child: profile),
+            const SizedBox(width: 48),
+            Expanded(child: supporters),
+          ],
+        ),
+      );
+    }
+
+    return PageBody(
+      maxWidth: ContentWidth.list,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [profile, const SizedBox(height: 24), supporters],
+      ),
+    );
+  }
+
+  Widget _buildProfile(BuildContext context, _CreatorPage page) {
+    final creator = page.creator;
+    final goal = page.goal;
+    final about = creator.about ?? '';
+    final website = creator.website ?? '';
+    final fans = creator.fans.length;
+    final theme = Theme.of(context);
+    final linkStyle = theme.textTheme.bodyMedium?.copyWith(
+      fontWeight: FontWeight.w700,
+      color: theme.colorScheme.primary,
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Center(
+          child: UserAvatar(
+            name: creator.name,
+            image: creator.image,
+            radius: context.isCompact ? 64 : 80,
+          ),
+        ),
+        const SizedBox(height: 24),
+        Center(
+          child: Text(
+            creator.name,
+            textAlign: TextAlign.center,
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+        Row(
+          children: [
+            Expanded(
+              child: CreatorCounterCard(
+                counter: fans,
+                title: pluralWord(fans, 'Fan'),
+                onTap: _isOwner && fans > 0
+                    ? () => context.push(Routes.fans(creator.id))
+                    : null,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: CreatorCounterCard(
+                counter: page.supporters,
+                title: pluralWord(page.supporters, 'Supporter'),
+                onTap: _isOwner && page.supporters > 0
+                    ? () => context.push(Routes.supporters(creator.id))
+                    : null,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: CreatorCounterCard(
+                counter: page.kahwas,
+                title: pluralWord(page.kahwas, 'kahwa'),
+              ),
+            ),
+          ],
+        ),
+        if (!_isOwner) ...[
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () => _open(Routes.donate(creator.id)),
+                  icon: Image.asset('assets/cup.png', width: 24),
+                  label: const Text('Buy a kahwa'),
+                ),
+              ),
+              const SizedBox(width: 16),
+              _FanButton(
+                isFan: creator.hasFan(_userId),
+                onTap: () => _toggleFan(page),
+              ),
+            ],
+          ),
+        ],
+        if (goal != null) ...[
+          const SizedBox(height: 24),
+          GoalCard(
+            goal: goal,
+            onTap: _isOwner ? () => _open(Routes.goal) : null,
+          ),
+        ] else if (_isOwner) ...[
+          const SizedBox(height: 24),
+          AddGoalCard(onTap: () => _open(Routes.goal)),
+        ],
+        if (about.isNotEmpty) ...[
+          const SizedBox(height: 24),
+          const SectionTitle('About'),
+          const SizedBox(height: 8),
+          ReadMoreText(
+            about,
+            style: theme.textTheme.bodyMedium,
+            trimMode: TrimMode.Line,
+            trimLines: 3,
+            trimCollapsedText: 'Show More',
+            trimExpandedText: ' Show Less',
+            moreStyle: linkStyle,
+            lessStyle: linkStyle,
+          ),
+        ],
+        if (website.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          InkWell(
+            onTap: () => openLink(context, _websiteUri(website)),
+            child: Row(
+              children: [
+                const Icon(Icons.link_rounded),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    website,
+                    overflow: TextOverflow.ellipsis,
+                    style: linkStyle?.copyWith(fontWeight: FontWeight.w400),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
-      ),
-      body: FutureBuilder(
-        future: _runFuture,
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return Center(
-              child: Text(
-                "Error getting data",
-                style: Theme.of(context).textTheme.displaySmall,
-                textAlign: TextAlign.center,
-              ),
-            );
-          }
+      ],
+    );
+  }
 
-          if (snapshot.connectionState == ConnectionState.done) {
-            return Theme(
-              data: Theme.of(context).copyWith(
-                colorScheme: Theme.of(context).colorScheme.copyWith(
-                      primary: _creatorColor,
-                    ),
-              ),
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
-                physics: const BouncingScrollPhysics(),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Align(
-                      alignment: Alignment.center,
-                      child: CircleAvatar(
-                        radius: _screenSize.width / 5,
-                        backgroundImage: _userModel.image != null
-                            ? NetworkImage(_userModel.image!)
-                            : null,
-                        backgroundColor: _creatorColor,
-                        child: _userModel.image == null
-                            ? Text(
-                                getInitials(_userModel.name!),
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .displaySmall!
-                                    .copyWith(
-                                      color: kWhiteColor,
-                                    ),
-                              )
-                            : null,
-                      ),
-                    ),
-                    verticalSpace(),
-                    Align(
-                      alignment: Alignment.center,
-                      child: Text(
-                        _userModel.name!,
-                        style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                              fontWeight: kBoldFontWeight,
-                            ),
-                      ),
-                    ),
-                    verticalSpace(),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        GestureDetector(
-                          onTap: _user.uid != widget.creatorId ||
-                                  _userModel.fans!.isEmpty
-                              ? null
-                              : () => Navigator.pushNamed(
-                                    context,
-                                    routeFansSupporters,
-                                    arguments: FansSupportersArgs(
-                                      title:
-                                          "${_userModel.fans!.length} ${_userModel.fans!.length == 1 ? "Fan" : "Fans"}",
-                                      list: _userModel.fans!,
-                                    ),
-                                  ),
-                          child: CreatorCounterCard(
-                            counter: _userModel.fans!.length,
-                            title:
-                                _userModel.fans!.length == 1 ? "Fan" : "Fans",
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: _user.uid != widget.creatorId ||
-                                  _supportersList.isEmpty
-                              ? null
-                              : () => Navigator.pushNamed(
-                                    context,
-                                    routeFansSupporters,
-                                    arguments: FansSupportersArgs(
-                                      title:
-                                          "${_supportersList.length} ${_supportersList.length == 1 ? "Supporter" : "Supporters"}",
-                                      list: _supportersList,
-                                    ),
-                                  ),
-                          child: CreatorCounterCard(
-                            counter: _supportersList.length,
-                            title: _supportersList.length == 1
-                                ? "Supporter"
-                                : "Supporters",
-                          ),
-                        ),
-                        CreatorCounterCard(
-                          counter: _kahwas,
-                          title: _kahwas == 1 ? "kahwa" : "kahwas",
-                        ),
-                      ],
-                    ),
-                    _user.uid == widget.creatorId
-                        ? Container()
-                        : verticalSpace(),
-                    _user.uid == widget.creatorId
-                        ? Container()
-                        : Row(
-                            children: [
-                              Expanded(
-                                child: ElevatedButton.icon(
-                                  onPressed: () async {
-                                    await Navigator.pushNamed(
-                                      context,
-                                      routeDonate,
-                                      arguments: _userModel.id,
-                                    );
-                                    setState(() {});
-                                  },
-                                  icon: Image.asset(
-                                    "assets/cup.png",
-                                    width: 24,
-                                  ),
-                                  label: const Text("Buy a kahwa"),
-                                ),
-                              ),
-                              horizontalSpace(width: 16),
-                              GestureDetector(
-                                onTap: () async {
-                                  if (_userModel.fans!.contains(_user.uid)) {
-                                    _userModel.fans!
-                                        .removeWhere((id) => _user.uid == id);
-                                  } else {
-                                    _userModel.fans!.add(_user.uid);
-                                  }
+  Widget _buildSupporters(_CreatorPage page) {
+    if (page.donations.isEmpty) return const SizedBox.shrink();
 
-                                  setState(() {});
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SectionTitle('Recent Supporters'),
+        const SizedBox(height: 16),
+        for (final donation in page.donations) ...[
+          SupporterCard(donationSupporter: donation),
+          const SizedBox(height: 12),
+        ],
+      ],
+    );
+  }
+}
 
-                                  await _appDocument
-                                      .collection("Users")
-                                      .doc(widget.creatorId)
-                                      .update(_userModel.toMap());
-                                },
-                                child: DecoratedBox(
-                                  decoration: ShapeDecoration(
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(16),
-                                      side: BorderSide(
-                                        color: _creatorColor,
-                                      ),
-                                    ),
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 8,
-                                      horizontal: 16,
-                                    ),
-                                    child: Column(
-                                      children: [
-                                        Icon(
-                                          _userModel.fans!.contains(_user.uid)
-                                              ? Icons.favorite_rounded
-                                              : Icons.favorite_border_rounded,
-                                          color: _creatorColor,
-                                        ),
-                                        Text(
-                                          "Fan",
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .labelSmall!
-                                              .copyWith(
-                                                color: _creatorColor,
-                                              ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                    verticalSpace(),
-                    if (_goal.title != null)
-                      GoalCard(
-                        goal: _goal,
-                        deleted: (deleted) {
-                          setState(() {
-                            if (deleted) {
-                              _goal = Goal();
-                            }
-                          });
-                        },
-                      )
-                    else if (_goalDocument.id == _user.uid)
-                      const AddGoalCard()
-                    else
-                      Container(),
-                    verticalSpace(),
-                    _userModel.about == null
-                        ? Container()
-                        : Text(
-                            "About",
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleMedium!
-                                .copyWith(
-                                  fontWeight: kSemiBoldFontWeight,
-                                ),
-                          ),
-                    _userModel.about == null
-                        ? Container()
-                        : verticalSpace(height: 8),
-                    _userModel.about == null
-                        ? Container()
-                        : ReadMoreText(
-                            "${_userModel.about}",
-                            style: Theme.of(context).textTheme.bodyMedium,
-                            trimMode: TrimMode.Line,
-                            trimLines: 3,
-                            trimCollapsedText: "Show More",
-                            moreStyle: Theme.of(context)
-                                .textTheme
-                                .bodyMedium!
-                                .copyWith(
-                                  fontWeight: kBoldFontWeight,
-                                  color: _creatorColor,
-                                ),
-                            trimExpandedText: "Show Less",
-                            lessStyle: Theme.of(context)
-                                .textTheme
-                                .bodyMedium!
-                                .copyWith(
-                                  fontWeight: kBoldFontWeight,
-                                  color: _creatorColor,
-                                ),
-                          ),
-                    _userModel.website == null
-                        ? Container()
-                        : verticalSpace(height: 16),
-                    _userModel.website == null
-                        ? Container()
-                        : GestureDetector(
-                            onTap: () async {
-                              if (!await launchUrl(
-                                Uri.parse("http://${_userModel.website}"),
-                                mode: LaunchMode.externalApplication,
-                              )) {
-                                SnackBar snackBar = const SnackBar(
-                                    content: Text("Cannot open link"));
-                                ScaffoldMessenger.of(context)
-                                    .showSnackBar(snackBar);
-                              }
-                            },
-                            child: Row(
-                              children: [
-                                const Icon(Icons.link_rounded),
-                                horizontalSpace(),
-                                Text(
-                                  "${_userModel.website}",
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium!
-                                      .copyWith(
-                                        color: _creatorColor,
-                                      ),
-                                ),
-                              ],
-                            ),
-                          ),
-                    _userModel.website == null ? Container() : verticalSpace(),
-                    _donationSupporterList.isEmpty
-                        ? Container()
-                        : Text(
-                            "Recent Supporters",
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleMedium!
-                                .copyWith(
-                                  fontWeight: kSemiBoldFontWeight,
-                                ),
-                          ),
-                    _donationSupporterList.isEmpty
-                        ? Container()
-                        : verticalSpace(height: 16),
-                    ..._donationSupporterList.map((donationSupporter) => Column(
-                          children: [
-                            SupporterCard(
-                              donationSupporter: donationSupporter,
-                            ),
-                            verticalSpace(height: 12),
-                          ],
-                        )),
-                  ],
+/// Creators type their website with or without the scheme.
+Uri? _websiteUri(String website) {
+  final hasScheme = website.startsWith(RegExp(r'https?://'));
+  return Uri.tryParse(hasScheme ? website : 'https://$website');
+}
+
+class _FanButton extends StatelessWidget {
+  const _FanButton({required this.isFan, required this.onTap});
+
+  final bool isFan;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final color = theme.colorScheme.primary;
+
+    return Tooltip(
+      message: isFan ? 'Stop being a fan' : 'Become a fan',
+      child: Material(
+        color: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: color),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  isFan
+                      ? Icons.favorite_rounded
+                      : Icons.favorite_border_rounded,
+                  color: color,
                 ),
-              ),
-            );
-          }
-
-          return const Center(child: CircularProgressIndicator());
-        },
+                Text('Fan', style: theme.textTheme.labelSmall),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

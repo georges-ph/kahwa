@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>kahwa · Buy your favorite creators a kahwa</title>
+  <meta name="description" content="kahwa lets people in Lebanon support the creators they love, one kahwa at a time, in LBP or USD.">
+  <meta name="theme-color" content="#630913">
+  <meta property="og:title" content="kahwa">
+  <meta property="og:description" content="Buy your favorite Lebanese creators a kahwa.">
+  <meta property="og:type" content="website">
+  <link rel="icon" type="image/png" href="cup.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap">
+  <style>
+    /* Layout: a brown header with the curved edge of the app's own log in
+       screen, a phone overlapping that curve, then plain white sections. */
+    :root {
+      --brown: #630913;
+      --brown-soft: #f6eced;
+      --on-brown: #ffffff;
+      --bg: #ffffff;
+      --fg: #1c1213;
+      --muted: #6b5d5e;
+      --fill: #f3efef;
+      --line: #e6dfdf;
+      --link: #630913;
+      --font: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+      --gutter: clamp(20px, 5vw, 48px);
+      --width: 1120px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --brown: #7a1220;
+        --brown-soft: #2a1619;
+        --bg: #151011;
+        --fg: #f4eeee;
+        --muted: #b3a5a6;
+        --fill: #221a1b;
+        --line: #33282a;
+        --link: #f0a3ad;
+        color-scheme: dark;
+      }
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: var(--font);
+      font-size: 1.0625rem;
+      line-height: 1.6;
+      color: var(--fg);
+      background: var(--bg);
+    }
+
+    img { max-width: 100%; height: auto; display: block; }
+
+    h1, h2, h3 { margin: 0; line-height: 1.15; text-wrap: balance; }
+    h1 { font-size: clamp(2.25rem, 6vw, 3.75rem); font-weight: 800; letter-spacing: -0.02em; }
+    h2 { font-size: clamp(1.6rem, 3.5vw, 2.25rem); font-weight: 800; letter-spacing: -0.01em; }
+    h3 { font-size: 1.125rem; font-weight: 600; }
+    p { margin: 0; }
+
+    a { color: var(--link); }
+    a:focus-visible, .button:focus-visible { outline: 3px solid var(--link); outline-offset: 3px; }
+
+    .wrap {
+      max-width: var(--width);
+      margin-inline: auto;
+      padding-inline: var(--gutter);
+    }
+
+    /* Header */
+    .hero {
+      position: relative;
+      color: var(--on-brown);
+      background: var(--brown);
+      /* The curve the app draws under its log in header. */
+      border-radius: 0 0 50% 50% / 0 0 clamp(40px, 9vw, 120px) clamp(40px, 9vw, 120px);
+      margin-bottom: clamp(120px, 22vw, 260px);
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding-block: 20px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.375rem;
+      font-weight: 800;
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .brand img { width: 32px; height: 32px; }
+
+    .nav a.plain { color: inherit; font-weight: 600; text-decoration: none; }
+    .nav a.plain:hover { text-decoration: underline; }
+    .nav a:focus-visible, .hero .button:focus-visible { outline-color: var(--on-brown); }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+      gap: clamp(24px, 5vw, 64px);
+      align-items: start;
+      padding-block: clamp(24px, 6vw, 72px) 0;
+    }
+
+    .hero-copy { display: grid; gap: 20px; padding-bottom: clamp(32px, 8vw, 96px); }
+    .hero-copy p { font-size: 1.1875rem; max-width: 34ch; opacity: 0.92; }
+
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 52px;
+      padding: 12px 28px;
+      border-radius: 16px;
+      border: 2px solid transparent;
+      font: inherit;
+      font-weight: 600;
+      text-decoration: none;
+      transition: transform 0.15s ease;
+    }
+
+    .button:hover { transform: translateY(-2px); }
+    .button.light { background: #ffffff; color: #630913; }
+    .button.ghost { border-color: rgba(255, 255, 255, 0.6); color: var(--on-brown); }
+    .button.solid { background: var(--brown); color: var(--on-brown); }
+
+    .phone {
+      justify-self: center;
+      width: min(100%, 300px);
+      /* Hangs below the header, over its curved edge. */
+      margin-bottom: calc(-1 * clamp(120px, 22vw, 260px));
+      border-radius: 36px;
+      border: 8px solid #1c1213;
+      background: #1c1213;
+      box-shadow: 0 24px 48px rgba(28, 18, 19, 0.28);
+      overflow: hidden;
+    }
+
+    /* Sections */
+    section { padding-block: clamp(40px, 7vw, 88px); }
+    .section-head { display: grid; gap: 12px; max-width: 60ch; margin-bottom: clamp(24px, 4vw, 48px); }
+    .section-head p { color: var(--muted); }
+
+    .steps {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 24px;
+      counter-reset: step;
+    }
+
+    .steps li {
+      counter-increment: step;
+      display: grid;
+      gap: 8px;
+      align-content: start;
+      padding: 24px;
+      border-radius: 16px;
+      background: var(--fill);
+    }
+
+    .steps li::before {
+      content: counter(step);
+      display: grid;
+      place-items: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--brown);
+      color: var(--on-brown);
+      font-weight: 800;
+    }
+
+    .steps p, .features p { color: var(--muted); font-size: 1rem; }
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr));
+      gap: 32px 48px;
+    }
+
+    .features > div { display: grid; gap: 6px; align-content: start; min-width: 0; }
+
+    .swatches { display: flex; gap: 8px; margin-top: 6px; }
+    .swatches span { width: 22px; height: 22px; border-radius: 50%; }
+
+    .screens { background: var(--brown-soft); }
+
+    .desktop-shot {
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      box-shadow: 0 16px 40px rgba(28, 18, 19, 0.14);
+    }
+
+    .closing { text-align: center; }
+    .closing .section-head { margin-inline: auto; justify-items: center; }
+    .closing .actions { justify-content: center; }
+
+    footer {
+      border-top: 1px solid var(--line);
+      padding-block: 28px;
+      color: var(--muted);
+      font-size: 0.9375rem;
+    }
+
+    footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between; }
+
+    @media (max-width: 760px) {
+      .hero-grid { grid-template-columns: minmax(0, 1fr); }
+      .hero-copy { padding-bottom: 8px; }
+      .phone { width: min(72%, 280px); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .button { transition: none; }
+      .button:hover { transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Address of the web app. Change it here if the app moves. -->
+  <!-- APP_URL: https://kahwa-app.web.app -->
+
+  <header class="hero">
+    <div class="wrap">
+      <nav class="nav" aria-label="Main">
+        <a class="brand" href="./">
+          <img src="cup.png" alt="" width="32" height="32">
+          kahwa
+        </a>
+        <a class="plain" href="https://github.com/georges-ph/kahwa">GitHub</a>
+      </nav>
+
+      <div class="hero-grid">
+        <div class="hero-copy">
+          <h1>Buy your favorite creators a kahwa.</h1>
+          <p>kahwa lets people in Lebanon support the creators they love, one kahwa at a time, in LBP or USD.</p>
+          <div class="actions">
+            <a class="button light" href="https://kahwa-app.web.app">Open the app</a>
+            <a class="button ghost" href="#how-it-works">How it works</a>
+          </div>
+        </div>
+
+        <img class="phone" src="screenshots/phone-creator.png" width="390" height="844"
+          alt="A creator page in the kahwa app: profile picture, fans and supporters counters, a Buy a kahwa button and a goal with its progress.">
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section id="how-it-works">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>How it works</h2>
+          <p>A page of your own in a couple of minutes, and a link you can put anywhere.</p>
+        </div>
+        <ol class="steps">
+          <li>
+            <h3>Create your page</h3>
+            <p>Sign up, add a picture and a few words about what you make, and set the price of a kahwa.</p>
+          </li>
+          <li>
+            <h3>Share your link</h3>
+            <p>Every creator gets a page with its own address. Post it wherever your audience already follows you.</p>
+          </li>
+          <li>
+            <h3>Get supported</h3>
+            <p>Fans buy you kahwas and leave a message. Withdraw what you receive through Whish Money.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Made for creators in Lebanon</h2>
+        </div>
+        <div class="features">
+          <div>
+            <h3>LBP and USD</h3>
+            <p>Set a price per kahwa in both currencies. Supporters pay in the one they prefer.</p>
+          </div>
+          <div>
+            <h3>Goals</h3>
+            <p>Tell your fans what you are saving for and let them watch the bar fill up.</p>
+          </div>
+          <div>
+            <h3>Private support</h3>
+            <p>Supporters can keep their name and message between them and the creator.</p>
+          </div>
+          <div>
+            <h3>Your color</h3>
+            <p>Pick one of six colors and your whole page takes it.</p>
+            <div class="swatches" aria-hidden="true">
+              <span style="background:#630913"></span>
+              <span style="background:#BB0D98"></span>
+              <span style="background:#5F5AEA"></span>
+              <span style="background:#38CAE1"></span>
+              <span style="background:#3CF078"></span>
+              <span style="background:#FCF655"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="screens">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>On your phone, tablet or computer</h2>
+          <p>kahwa runs in the browser and on Android, and its pages rearrange themselves to fit the screen.</p>
+        </div>
+        <img class="desktop-shot" src="screenshots/desktop-creator.png" width="1440" height="900"
+          alt="The same creator page on a desktop: the profile and goal on the left, recent supporters and their messages on the right.">
+      </div>
+    </section>
+
+    <section class="closing">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Your first kahwa is one link away</h2>
+          <p>Create your page for free, or find a creator and say thanks.</p>
+        </div>
+        <div class="actions">
+          <a class="button solid" href="https://kahwa-app.web.app">Open the app</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <span>kahwa is open source under the MIT license.</span>
+      <a href="https://github.com/georges-ph/kahwa">Source on GitHub</a>
+    </div>
+  </footer>
+</body>
+</html>

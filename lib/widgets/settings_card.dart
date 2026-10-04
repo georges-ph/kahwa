@@ -1,32 +1,30 @@
 import 'package:flutter/material.dart';
-import 'package:kahwa/utils/colors.dart';
+import 'package:kahwa/core/colors.dart';
 
 class SettingsCard extends StatelessWidget {
   const SettingsCard({
-    Key? key,
+    super.key,
     required this.icon,
     required this.title,
-    required this.route,
-  }) : super(key: key);
+    required this.onTap,
+  });
 
   final IconData icon;
   final String title;
-  final String route;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      onTap: () => Navigator.pushNamed(context, route),
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: 24,
-      ),
-      minLeadingWidth: 0,
-      leading: Icon(icon),
-      iconColor: kBrownColor,
-      title: Text(title),
-      tileColor: kGreyColor.withOpacity(0.1),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+    return Material(
+      color: kFillColor,
+      borderRadius: BorderRadius.circular(16),
+      clipBehavior: Clip.antiAlias,
+      child: ListTile(
+        onTap: onTap,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+        leading: Icon(icon),
+        iconColor: Theme.of(context).colorScheme.primary,
+        title: Text(title),
       ),
     );
   }

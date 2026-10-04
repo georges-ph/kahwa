@@ -1,87 +1,52 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:kahwa/models/donation_supporter.dart';
-import 'package:kahwa/utils/colors.dart';
-import 'package:kahwa/utils/statics.dart';
+import 'package:kahwa/core/formatters.dart';
+import 'package:kahwa/models/donation.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
+/// A donation on the page of a creator. Private donations show up as made by
+/// "Someone" and without their message.
 class SupporterCard extends StatelessWidget {
-  const SupporterCard({
-    Key? key,
-    required this.donationSupporter,
-  }) : super(key: key);
+  const SupporterCard({super.key, required this.donationSupporter});
 
   final DonationSupporter donationSupporter;
 
   @override
   Widget build(BuildContext context) {
-    String text = "";
-    String kahwas = "kahwa";
-    String message = "";
-    User user = FirebaseAuth.instance.currentUser!;
+    final donation = donationSupporter.donation;
+    final supporter = donationSupporter.supporter;
+    final accent = Theme.of(context).colorScheme.primary;
 
-    if (donationSupporter.donation!.kahwas! > 1) {
-      kahwas = "kahwas";
-    }
-
-    if (donationSupporter.donation!.keep_private == true &&
-        (donationSupporter.donation!.supporter_id != user.uid ||
-            donationSupporter.donation!.creator_id != user.uid)) {
-      text = "Someone bought ${donationSupporter.donation!.kahwas} $kahwas";
-    } else {
-      text =
-          "${donationSupporter.supporter!.name} bought ${donationSupporter.donation!.kahwas} $kahwas";
-      message = donationSupporter.donation!.message!;
-    }
+    final name = supporter?.name ?? 'Someone';
+    final message = supporter == null ? '' : donation.message;
+    final image = supporter?.image;
+    final timestamp = donation.timestamp;
 
     return Card(
-      margin: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
       child: Column(
         children: [
           ListTile(
             leading: CircleAvatar(
-              backgroundImage: donationSupporter.supporter!.image == null
-                  ? const AssetImage("assets/cup.png")
-                  : null,
-              foregroundImage: donationSupporter.supporter!.image != null
-                  ? NetworkImage(donationSupporter.supporter!.image!)
-                  : null,
-              backgroundColor: kTransparentColor,
+              backgroundColor: Colors.transparent,
+              backgroundImage: const AssetImage('assets/cup.png'),
+              foregroundImage: image != null ? NetworkImage(image) : null,
             ),
-            title: Text(text),
-            subtitle: Text(
-              timeago.format(donationSupporter.donation!.timestamp!.toDate()),
-            ),
+            title: Text('$name bought ${plural(donation.kahwas, 'kahwa')}'),
+            subtitle: timestamp == null
+                ? null
+                : Text(timeago.format(timestamp)),
           ),
-          message.isEmpty
-              ? Container()
-              : Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: Card(
-                      margin: EdgeInsets.zero,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        side: BorderSide(
-                          color: Statics.creatorColor.withOpacity(0.3),
-                        ),
-                      ),
-                      color: Statics.creatorColor.withOpacity(0.1),
-                      elevation: 0,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        child: Text(donationSupporter.donation!.message!),
-                      ),
-                    ),
-                  ),
-                ),
+          if (message.isNotEmpty)
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: accent.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: accent.withValues(alpha: 0.3)),
+              ),
+              child: Text(message),
+            ),
         ],
       ),
     );

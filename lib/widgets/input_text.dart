@@ -1,128 +1,107 @@
 import 'package:flutter/material.dart';
-import 'package:kahwa/utils/colors.dart';
-import 'package:kahwa/utils/sizes.dart';
-import 'package:kahwa/utils/typography.dart';
+import 'package:flutter/services.dart';
+import 'package:kahwa/widgets/page_body.dart';
 
+/// Rounded text field with an optional [title] and [subtitle] above it.
 class InputText extends StatelessWidget {
   const InputText({
-    Key? key,
+    super.key,
+    this.controller,
+    this.title,
+    this.subtitle,
     this.hint,
     this.icon,
-    this.iconColor = kBrownColor,
+    this.prefixText,
     this.suffixIcon,
     this.suffixOnTap,
-    this.controller,
+    this.suffixTooltip,
+    this.errorText,
     this.keyboardType,
     this.textInputAction,
     this.textCapitalization = TextCapitalization.none,
+    this.autofillHints,
     this.obscureText = false,
     this.readOnly = false,
-    this.minLines,
+    this.digitsOnly = false,
     this.maxLines = 1,
-    this.enableInteractiveSelection = true,
-    this.title,
-    this.subtitle,
-    this.prefixText,
-  }) : super(key: key);
+    this.onChanged,
+    this.onSubmitted,
+  });
 
-  final String? hint;
-  final IconData? icon;
-  final Color? iconColor;
-  final IconData? suffixIcon;
-  final Function()? suffixOnTap;
   final TextEditingController? controller;
-  final TextInputType? keyboardType;
-  final TextInputAction? textInputAction;
-  final TextCapitalization? textCapitalization;
-  final bool? obscureText;
-  final bool? readOnly;
-  final int? minLines;
-  final int? maxLines;
-  final bool? enableInteractiveSelection;
   final String? title;
   final String? subtitle;
+  final String? hint;
+  final IconData? icon;
   final String? prefixText;
-
-  // TODO: try to use a TextField in a ListTile instead of all this
+  final IconData? suffixIcon;
+  final VoidCallback? suffixOnTap;
+  final String? suffixTooltip;
+  final String? errorText;
+  final TextInputType? keyboardType;
+  final TextInputAction? textInputAction;
+  final TextCapitalization textCapitalization;
+  final Iterable<String>? autofillHints;
+  final bool obscureText;
+  final bool readOnly;
+  final bool digitsOnly;
+  final int maxLines;
+  final ValueChanged<String>? onChanged;
+  final ValueChanged<String>? onSubmitted;
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+
+    Widget? prefix;
+    if (icon != null) {
+      prefix = Padding(
+        padding: const EdgeInsetsDirectional.only(start: 24, end: 16),
+        child: Icon(icon, color: primary),
+      );
+    } else if (prefixText != null) {
+      prefix = Padding(
+        padding: const EdgeInsetsDirectional.only(start: 24, end: 16),
+        child: Text(prefixText!, style: TextStyle(color: primary)),
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        title == null
-            ? Container()
-            : Text(
-                title!,
-                style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                      fontWeight: kSemiBoldFontWeight,
+        if (title != null) SectionTitle(title!),
+        if (subtitle != null) ...[const SizedBox(height: 8), Text(subtitle!)],
+        if (title != null || subtitle != null) const SizedBox(height: 16),
+        TextField(
+          controller: controller,
+          keyboardType: digitsOnly ? TextInputType.number : keyboardType,
+          textInputAction: textInputAction,
+          textCapitalization: textCapitalization,
+          autofillHints: autofillHints,
+          obscureText: obscureText,
+          readOnly: readOnly,
+          minLines: 1,
+          maxLines: maxLines,
+          inputFormatters: [
+            if (digitsOnly) FilteringTextInputFormatter.digitsOnly,
+          ],
+          onChanged: onChanged,
+          onSubmitted: onSubmitted,
+          decoration: InputDecoration(
+            hintText: hint,
+            errorText: errorText,
+            prefixIcon: prefix,
+            prefixIconConstraints: const BoxConstraints(),
+            suffixIcon: suffixIcon == null
+                ? null
+                : Padding(
+                    padding: const EdgeInsetsDirectional.only(end: 12),
+                    child: IconButton(
+                      onPressed: suffixOnTap,
+                      tooltip: suffixTooltip,
+                      icon: Icon(suffixIcon, color: primary),
                     ),
-              ),
-        subtitle == null ? Container() : verticalSpace(height: 8),
-        subtitle == null ? Container() : Text(subtitle!),
-        title == null ? Container() : verticalSpace(height: 16),
-        Container(
-          padding: EdgeInsets.only(
-            left: icon == null ? 24 : 0,
-            right: suffixIcon == null ? 24 : 0,
-          ),
-          decoration: ShapeDecoration(
-            color: kGreyColor.withOpacity(0.1),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-          ),
-          child: TextField(
-            enableInteractiveSelection: enableInteractiveSelection!,
-            minLines: minLines,
-            maxLines: maxLines,
-            textAlignVertical: TextAlignVertical.center,
-            controller: controller,
-            keyboardType: keyboardType,
-            textInputAction: textInputAction,
-            textCapitalization: textCapitalization!,
-            obscureText: obscureText!,
-            readOnly: readOnly!,
-            decoration: InputDecoration(
-              border: InputBorder.none,
-              hintText: hint ?? "Hint text",
-              prefixIcon: icon != null
-                  ? Padding(
-                      padding:
-                          const EdgeInsetsDirectional.only(start: 24, end: 16),
-                      child: Icon(
-                        icon,
-                        color: iconColor,
-                      ),
-                    )
-                  : prefixText != null
-                      ? Padding(
-                          padding: const EdgeInsetsDirectional.only(end: 16),
-                          child: Text(
-                            prefixText!,
-                            style: const TextStyle(
-                              color: kBrownColor,
-                            ),
-                          ),
-                        )
-                      : null,
-              prefixIconConstraints: prefixText != null
-                  ? const BoxConstraints(minWidth: 0, minHeight: 0)
-                  : null,
-              suffixIcon: suffixIcon != null
-                  ? GestureDetector(
-                      onTap: suffixOnTap,
-                      child: Padding(
-                        padding: const EdgeInsetsDirectional.only(
-                            start: 16, end: 24),
-                        child: Icon(
-                          suffixIcon,
-                          color: kBrownColor,
-                        ),
-                      ),
-                    )
-                  : null,
-            ),
+                  ),
           ),
         ),
       ],

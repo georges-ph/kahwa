@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <!--
     If you are serving your web app in a path other than the root, change the
@@ -8,20 +8,18 @@
     The path provided below has to start and end with a slash "/" in order for
     it to work correctly.
 
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
     This is a placeholder for base href that will be replaced by the value of
     the `--base-href` argument provided to `flutter build`.
   -->
   <base href="$FLUTTER_BASE_HREF">
 
   <meta charset="UTF-8">
-  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Buy your favorite Lebanese creators a kahwa.">
+  <meta name="theme-color" content="#630913">
 
   <!-- iOS meta tags & icons -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="kahwa">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
@@ -31,12 +29,22 @@
 
   <title>kahwa</title>
   <link rel="manifest" href="manifest.json">
+
+  <style>
+    html, body { height: 100%; margin: 0; }
+    #loading {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: sans-serif;
+      color: #630913;
+    }
+  </style>
 </head>
 <body>
-  <center>
-    <h3>Loading...Please hold</h3>
-    It may take a few seconds
-  </center>
+  <!-- Shown until Flutter draws its first frame and replaces the body. -->
+  <div id="loading">Loading kahwa...</div>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

@@ -1,32 +1,38 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:kahwa/enums/currency.dart';
+import 'package:kahwa/core/feedback.dart';
+import 'package:kahwa/core/formatters.dart';
+import 'package:kahwa/core/router.dart';
+import 'package:kahwa/data/repositories.dart';
 import 'package:kahwa/models/balance.dart';
+import 'package:kahwa/models/currency.dart';
 import 'package:kahwa/models/withdraw.dart';
-import 'package:kahwa/utils/sizes.dart';
+import 'package:kahwa/widgets/async_body.dart';
 import 'package:kahwa/widgets/balance_card.dart';
 import 'package:kahwa/widgets/input_text.dart';
+import 'package:kahwa/widgets/loading_button.dart';
+import 'package:kahwa/widgets/page_body.dart';
+import 'package:kahwa/widgets/sub_page.dart';
 
 class RequestWithdrawScreen extends StatefulWidget {
-  const RequestWithdrawScreen({
-    Key? key,
-    required this.balance,
-  }) : super(key: key);
-
-  final Balance balance;
+  const RequestWithdrawScreen({super.key});
 
   @override
   State<RequestWithdrawScreen> createState() => _RequestWithdrawScreenState();
 }
 
 class _RequestWithdrawScreenState extends State<RequestWithdrawScreen> {
-  final TextEditingController _lbpController =
-      TextEditingController(text: 0.toString());
-  final TextEditingController _usdController =
-      TextEditingController(text: 0.toString());
+  late Future<Balance> _balance;
+
+  final _lbpController = TextEditingController();
+  final _usdController = TextEditingController();
 
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _balance = _load();
+  }
 
   @override
   void dispose() {
@@ -35,116 +41,93 @@ class _RequestWithdrawScreenState extends State<RequestWithdrawScreen> {
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        physics: const BouncingScrollPhysics(),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Request Withdraw".toUpperCase(),
-              style: Theme.of(context).textTheme.headlineLarge,
-            ),
-            verticalSpace(height: 40),
-            const Text(
-                "Make sure you have setup your billing details. Otherwise, no withdraws will be made."),
-            verticalSpace(),
-            BalanceCard(
-              title: "Current Balance",
-              lbp: widget.balance.current_lbp!,
-              usd: widget.balance.current_usd!,
-            ),
-            verticalSpace(height: 24),
-            InputText(
-              controller: _lbpController,
-              title: "Withdraw amount",
-              hint: widget.balance.current_lbp!.toString(),
-              prefixText: Currency.lbp.name.toUpperCase(),
-              keyboardType: TextInputType.number,
-              textInputAction: TextInputAction.next,
-            ),
-            verticalSpace(height: 16),
-            InputText(
-              controller: _usdController,
-              hint: widget.balance.current_usd!.toString(),
-              prefixText: Currency.usd.name.toUpperCase(),
-              keyboardType: TextInputType.number,
-              textInputAction: TextInputAction.done,
-            ),
-            verticalSpace(),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _isLoading ? null : _requestWithdraw,
-                child: _isLoading
-                    ? const SizedBox.square(
-                        dimension: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 3,
-                        ),
-                      )
-                    : const Text("Request"),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+  Future<Balance> _load() {
+    return balanceRepository.getBalance(authRepository.userId);
   }
 
-  _requestWithdraw() async {
-    if (_lbpController.text.isEmpty) {
-      _lbpController.text = "0";
-    }
+  void _reload() => setState(() => _balance = _load());
 
-    if (_usdController.text.isEmpty) {
-      _usdController.text = "0";
-    }
-
-    int lbp = int.parse(_lbpController.text);
-    int usd = int.parse(_usdController.text);
-
-    if (widget.balance.current_lbp == 0 && widget.balance.current_usd == 0) {
-      return;
-    }
+  Future<void> _requestWithdraw(Balance balance) async {
+    final lbp = parseAmount(_lbpController.text) ?? 0;
+    final usd = parseAmount(_usdController.text) ?? 0;
 
     if (lbp == 0 && usd == 0) {
+      showSnack(context, 'Enter an amount to withdraw');
+      return;
+    }
+    if (lbp > balance.currentLbp || usd > balance.currentUsd) {
+      showSnack(context, 'You cannot withdraw more than your current balance');
       return;
     }
 
-    if (lbp > widget.balance.current_lbp! ||
-        usd > widget.balance.current_usd!) {
-      SnackBar snackBar = const SnackBar(
-          content: Text("You cannot withdraw more than your current balance"));
-      ScaffoldMessenger.of(context).showSnackBar(snackBar);
-      return;
+    setState(() => _isLoading = true);
+    try {
+      await balanceRepository.requestWithdraw(
+        Withdraw(userId: authRepository.userId, lbp: lbp, usd: usd),
+      );
+      if (!mounted) return;
+      _lbpController.clear();
+      _usdController.clear();
+      showSnack(context, 'Request sent');
+    } catch (_) {
+      if (mounted) showSnack(context, 'Could not send the request, try again');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
+  }
 
-    setState(() {
-      _isLoading = true;
-    });
-
-    Withdraw withdraw = Withdraw(
-      lbp: lbp,
-      usd: usd,
-      user_id: FirebaseAuth.instance.currentUser!.uid,
+  @override
+  Widget build(BuildContext context) {
+    return SubPage(
+      fallback: Routes.balance,
+      body: AsyncBody(
+        future: _balance,
+        onRetry: _reload,
+        builder: (context, balance) {
+          return PageBody(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const PageTitle('Request Withdraw'),
+                const SizedBox(height: 40),
+                const Text(
+                  'Make sure you have setup your billing details. Otherwise, '
+                  'no withdraws will be made.',
+                ),
+                const SizedBox(height: 24),
+                BalanceCard(
+                  title: 'Current Balance',
+                  lbp: balance.currentLbp,
+                  usd: balance.currentUsd,
+                ),
+                const SizedBox(height: 24),
+                InputText(
+                  controller: _lbpController,
+                  title: 'Withdraw amount',
+                  hint: '0',
+                  prefixText: Currency.lbp.code,
+                  digitsOnly: true,
+                  textInputAction: TextInputAction.next,
+                ),
+                const SizedBox(height: 16),
+                InputText(
+                  controller: _usdController,
+                  hint: '0',
+                  prefixText: Currency.usd.code,
+                  digitsOnly: true,
+                  textInputAction: TextInputAction.done,
+                ),
+                const SizedBox(height: 24),
+                LoadingButton(
+                  label: 'Request',
+                  isLoading: _isLoading,
+                  onPressed: () => _requestWithdraw(balance),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
     );
-
-    await FirebaseFirestore.instance
-        .collection("kahwa")
-        .doc("AppCollections")
-        .collection("WithdrawRequests")
-        .add(withdraw.toMap());
-
-    SnackBar snackBar = const SnackBar(content: Text("Request sent"));
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
-
-    setState(() {
-      _isLoading = false;
-    });
   }
 }

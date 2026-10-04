@@ -1,410 +1,248 @@
-import 'dart:io';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:kahwa/enums/colors.dart' as colors_enum;
-import 'package:kahwa/models/user.dart' as user_model;
-import 'package:kahwa/utils/colors.dart';
-import 'package:kahwa/utils/sizes.dart';
-import 'package:kahwa/utils/statics.dart';
-import 'package:kahwa/utils/typography.dart';
-import 'package:kahwa/widgets/check_color_box.dart';
+import 'package:kahwa/core/feedback.dart';
+import 'package:kahwa/core/responsive.dart';
+import 'package:kahwa/core/router.dart';
+import 'package:kahwa/data/repositories.dart';
+import 'package:kahwa/models/app_user.dart';
+import 'package:kahwa/models/creator_color.dart';
+import 'package:kahwa/widgets/async_body.dart';
+import 'package:kahwa/widgets/color_picker.dart';
 import 'package:kahwa/widgets/input_text.dart';
+import 'package:kahwa/widgets/loading_button.dart';
+import 'package:kahwa/widgets/page_body.dart';
+import 'package:kahwa/widgets/sub_page.dart';
+import 'package:kahwa/widgets/user_avatar.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({Key? key}) : super(key: key);
+  const ProfileScreen({super.key});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  late Size _screenSize;
+  late Future<AppUser> _user;
 
-  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
-  final FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
-  final FirebaseStorage _firebaseStorage = FirebaseStorage.instance;
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _aboutController = TextEditingController();
+  final _websiteController = TextEditingController();
 
-  late User _user;
-  late DocumentReference _appDocument;
-  late DocumentReference<Map<String, dynamic>> _userDocument;
-  late final Reference _profilePicturesStorageReference =
-      _firebaseStorage.ref().child("kahwa/Profile Pictures");
+  CreatorColor _color = CreatorColor.brown;
+  String? _image;
+  String? _nameError;
 
-  late Future<void> _runFuture;
-
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _aboutMeController = TextEditingController();
-  final TextEditingController _websiteController = TextEditingController();
-
-  late user_model.User _userModel;
-  late colors_enum.Colors _checkedColor;
-
-  bool _isImageLoading = false;
   bool _isLoading = false;
 
-  double _uploadProgress = 0;
+  /// Progress of the picture upload from 0 to 1, null when not uploading.
+  double? _uploadProgress;
 
   @override
   void initState() {
     super.initState();
-    _user = _firebaseAuth.currentUser!;
-    _appDocument = _firebaseFirestore.collection("kahwa").doc("AppCollections");
-    _userDocument = _appDocument.collection("Users").doc(_user.uid);
-    _runFuture = _getUserData();
-    _nameController.text = _user.displayName!;
-    _emailController.text = _user.email!;
+    _user = _load();
   }
 
   @override
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
-    _aboutMeController.dispose();
+    _aboutController.dispose();
     _websiteController.dispose();
     super.dispose();
   }
 
-  Future<void> _getUserData() async {
-    DocumentSnapshot<Map<String, dynamic>> document = await _userDocument.get();
-    _userModel =
-        user_model.User.fromMap(document.data() as Map<String, dynamic>);
+  Future<AppUser> _load() async {
+    final user = await userRepository.getUser(authRepository.userId);
+    if (user == null) throw StateError('User not found');
 
-    _userModel.image = _user.photoURL;
-
-    _aboutMeController.text = _userModel.about ?? "";
-    _websiteController.text = _userModel.website ?? "";
-    _checkedColor = _userModel.color ?? colors_enum.Colors.brown;
+    final account = authRepository.currentUser;
+    _nameController.text = user.name;
+    _emailController.text = account?.email ?? user.email ?? '';
+    _aboutController.text = user.about ?? '';
+    _websiteController.text = user.website ?? '';
+    _color = user.color;
+    _image = account?.photoURL ?? user.image;
+    return user;
   }
+
+  void _reload() => setState(() => _user = _load());
 
   Future<void> _pickImage() async {
-    final image = await ImagePicker().pickImage(source: ImageSource.gallery);
-    if (image == null) return;
-    final tempImage = File(image.path);
-    _cropImage(tempImage);
-  }
-
-  Future _cropImage(File image) async {
-    final croppedImage = await ImageCropper().cropImage(
-      sourcePath: image.path,
-      aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
-      uiSettings: [
-        AndroidUiSettings(
-          cropStyle: CropStyle.circle,
-          hideBottomControls: true,
-        ),
-      ],
+    final picked = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1024,
+      maxHeight: 1024,
+      imageQuality: 85,
     );
-    if (croppedImage == null) return;
-    final tempImage = File(croppedImage.path);
-    _uploadImage(tempImage);
+    if (picked == null) return;
+
+    final Uint8List bytes;
+    if (kIsWeb) {
+      bytes = await picked.readAsBytes();
+    } else {
+      final cropped = await ImageCropper().cropImage(
+        sourcePath: picked.path,
+        aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
+        uiSettings: [
+          AndroidUiSettings(
+            cropStyle: CropStyle.circle,
+            hideBottomControls: true,
+          ),
+        ],
+      );
+      if (cropped == null) return;
+      bytes = await cropped.readAsBytes();
+    }
+
+    if (!mounted) return;
+    setState(() => _uploadProgress = 0);
+    try {
+      final url = await userRepository.uploadProfilePicture(
+        userId: authRepository.userId,
+        bytes: bytes,
+        onProgress: (progress) {
+          if (mounted) setState(() => _uploadProgress = progress);
+        },
+      );
+      if (mounted) setState(() => _image = url);
+    } catch (_) {
+      if (mounted) showSnack(context, 'Error uploading image');
+    } finally {
+      if (mounted) setState(() => _uploadProgress = null);
+    }
   }
 
-  void _uploadImage(File image) {
-    setState(() {
-      _isImageLoading = true;
-    });
-    final userReference =
-        _profilePicturesStorageReference.child("${_user.uid}.jpg");
-    userReference.putFile(image).snapshotEvents.listen((taskSnapshot) {
-      switch (taskSnapshot.state) {
-        case TaskState.running:
-          final progress =
-              taskSnapshot.bytesTransferred / taskSnapshot.totalBytes;
+  Future<void> _save(AppUser user) async {
+    final name = _nameController.text.trim();
+    final about = _aboutController.text.trim();
+    final website = _websiteController.text.trim();
 
-          setState(() {
-            _uploadProgress = progress;
-          });
-          break;
+    setState(() => _nameError = name.isEmpty ? 'Name cannot be empty' : null);
+    if (_nameError != null) return;
 
-        case TaskState.success:
-          userReference.getDownloadURL().then((url) async {
-            await _user.updatePhotoURL(url);
-            setState(() {
-              Statics.userImage = url;
-              _userModel.image = url;
-              _isImageLoading = false;
-            });
-          });
-
-          break;
-
-        case TaskState.error:
-        case TaskState.canceled:
-        default:
-          setState(() {
-            _isImageLoading = false;
-          });
-          SnackBar snackBar =
-              const SnackBar(content: Text("Error uploading image"));
-          ScaffoldMessenger.of(context).showSnackBar(snackBar);
-          break;
-      }
-    });
+    setState(() => _isLoading = true);
+    try {
+      await userRepository.updateProfile(
+        AppUser(
+          id: user.id,
+          name: name,
+          about: about.isEmpty ? null : about,
+          website: website.isEmpty ? null : website,
+          color: _color,
+        ),
+      );
+      if (mounted) showSnack(context, 'Updated successfully');
+    } catch (_) {
+      if (mounted) showSnack(context, 'Could not save, try again');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    _screenSize = MediaQuery.of(context).size;
-    return GestureDetector(
-      onTap: () => FocusScope.of(context).unfocus(),
-      child: Scaffold(
-        appBar: AppBar(),
-        body: FutureBuilder(
-          future: _runFuture,
-          builder: (context, snapshot) {
-            if (snapshot.hasError) {
-              return Center(
-                child: Text(
-                  "Error getting data",
-                  style: Theme.of(context).textTheme.displaySmall,
-                  textAlign: TextAlign.center,
+    return SubPage(
+      fallback: Routes.settings,
+      body: AsyncBody(
+        future: _user,
+        onRetry: _reload,
+        builder: (context, user) {
+          return PageBody(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const PageTitle('Profile'),
+                const SizedBox(height: 40),
+                Center(child: _buildPicture(context)),
+                const SizedBox(height: 40),
+                InputText(
+                  controller: _nameController,
+                  title: 'Name',
+                  hint: 'John Doe',
+                  icon: Icons.person_rounded,
+                  errorText: _nameError,
+                  textCapitalization: TextCapitalization.words,
+                  textInputAction: TextInputAction.next,
                 ),
-              );
-            }
-
-            if (snapshot.connectionState == ConnectionState.done) {
-              return SingleChildScrollView(
-                keyboardDismissBehavior:
-                    ScrollViewKeyboardDismissBehavior.onDrag,
-                padding: const EdgeInsets.all(24),
-                physics: const BouncingScrollPhysics(),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Profile".toUpperCase(),
-                      style: Theme.of(context).textTheme.headlineLarge,
-                    ),
-                    verticalSpace(height: 40),
-                    Align(
-                      alignment: Alignment.center,
-                      child: Stack(
-                        children: [
-                          CircleAvatar(
-                            radius: _screenSize.width / 5,
-                            backgroundImage: _userModel.image != null
-                                ? NetworkImage(_userModel.image!)
-                                : null,
-                            backgroundColor: kBrownColor.withOpacity(0.6),
-                            child: _userModel.image == null
-                                ? Text(
-                                    getInitials(_user.displayName!),
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .displaySmall!
-                                        .copyWith(
-                                          color: kWhiteColor,
-                                        ),
-                                  )
-                                : null,
-                          ),
-                          Visibility(
-                            visible: _isImageLoading,
-                            child: Positioned.fill(
-                              child: CircularProgressIndicator(
-                                value: _uploadProgress == 0
-                                    ? null
-                                    : _uploadProgress,
-                              ),
-                            ),
-                          ),
-                          Positioned(
-                            bottom: 0,
-                            right: 0,
-                            child: ElevatedButton(
-                              onPressed: () => _pickImage(),
-                              child: const Icon(Icons.camera_alt_rounded),
-                              style: TextButton.styleFrom(
-                                shape: const CircleBorder(),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    verticalSpace(height: 40),
-                    InputText(
-                      controller: _nameController,
-                      title: "Name",
-                      hint: "John Doe",
-                      icon: Icons.person_rounded,
-                    ),
-                    verticalSpace(),
-                    InputText(
-                      controller: _emailController,
-                      title: "Email",
-                      icon: Icons.mail_rounded,
-                      readOnly: true,
-                    ),
-                    verticalSpace(),
-                    InputText(
-                      controller: _aboutMeController,
-                      title: "About Me",
-                      hint:
-                          "Hey 👋 I just created a page here. You can now buy me a kahwa!",
-                      maxLines: 5,
-                    ),
-                    verticalSpace(),
-                    InputText(
-                      controller: _websiteController,
-                      title: "Website",
-                      icon: Icons.link_rounded,
-                      hint: "example.com",
-                    ),
-                    verticalSpace(),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        "Change your page theme",
-                        style:
-                            Theme.of(context).textTheme.titleMedium!.copyWith(
-                                  fontWeight: kSemiBoldFontWeight,
-                                ),
-                      ),
-                    ),
-                    verticalSpace(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        CheckColorBox(
-                          color: kBrownColor,
-                          checkedValue:
-                              _checkedColor == colors_enum.Colors.brown,
-                          checked: (checked) {
-                            setState(() {
-                              if (checked) {
-                                _checkedColor = colors_enum.Colors.brown;
-                              }
-                            });
-                          },
-                        ),
-                        CheckColorBox(
-                          color: kPinkColor,
-                          checkedValue:
-                              _checkedColor == colors_enum.Colors.pink,
-                          checked: (checked) {
-                            setState(() {
-                              if (checked) {
-                                _checkedColor = colors_enum.Colors.pink;
-                              }
-                            });
-                          },
-                        ),
-                        CheckColorBox(
-                          color: kPurpleColor,
-                          checkedValue:
-                              _checkedColor == colors_enum.Colors.purple,
-                          checked: (checked) {
-                            setState(() {
-                              if (checked) {
-                                _checkedColor = colors_enum.Colors.purple;
-                              }
-                            });
-                          },
-                        ),
-                        CheckColorBox(
-                          color: kCyanColor,
-                          checkedValue:
-                              _checkedColor == colors_enum.Colors.cyan,
-                          checked: (checked) {
-                            setState(() {
-                              if (checked) {
-                                _checkedColor = colors_enum.Colors.cyan;
-                              }
-                            });
-                          },
-                        ),
-                        CheckColorBox(
-                          color: kGreenColor,
-                          checkedValue:
-                              _checkedColor == colors_enum.Colors.green,
-                          checked: (checked) {
-                            setState(() {
-                              if (checked) {
-                                _checkedColor = colors_enum.Colors.green;
-                              }
-                            });
-                          },
-                        ),
-                        CheckColorBox(
-                          color: kYellowColor,
-                          checkedValue:
-                              _checkedColor == colors_enum.Colors.yellow,
-                          checked: (checked) {
-                            setState(() {
-                              if (checked) {
-                                _checkedColor = colors_enum.Colors.yellow;
-                              }
-                            });
-                          },
-                        ),
-                      ],
-                    ),
-                    verticalSpace(),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _isLoading
-                            ? null
-                            : () async {
-                                if (_nameController.text.isEmpty ||
-                                    _aboutMeController.text.isEmpty ||
-                                    _websiteController.text.isEmpty) {
-                                  SnackBar snackBar = const SnackBar(
-                                      content: Text("Fields cannot be empty"));
-                                  ScaffoldMessenger.of(context)
-                                      .showSnackBar(snackBar);
-                                  return;
-                                }
-
-                                setState(() {
-                                  _isLoading = true;
-                                });
-
-                                _userModel.name = _nameController.text;
-                                _userModel.about = _aboutMeController.text;
-                                _userModel.website = _websiteController.text;
-                                _userModel.color = _checkedColor;
-
-                                await _user
-                                    .updateDisplayName(_nameController.text);
-
-                                await _userDocument.update(_userModel.toMap());
-
-                                SnackBar snackBar = const SnackBar(
-                                    content: Text("Updated successfully"));
-
-                                ScaffoldMessenger.of(context)
-                                    .showSnackBar(snackBar);
-
-                                setState(() {
-                                  _isLoading = false;
-                                });
-                              },
-                        child: _isLoading
-                            ? const SizedBox.square(
-                                dimension: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 3,
-                                ),
-                              )
-                            : const Text("Save"),
-                      ),
-                    ),
-                  ],
+                const SizedBox(height: 24),
+                InputText(
+                  controller: _emailController,
+                  title: 'Email',
+                  icon: Icons.mail_rounded,
+                  readOnly: true,
                 ),
-              );
-            }
-            return const Center(child: CircularProgressIndicator());
-          },
-        ),
+                const SizedBox(height: 24),
+                InputText(
+                  controller: _aboutController,
+                  title: 'About Me',
+                  hint:
+                      'Hey 👋 I just created a page here. You can now buy me '
+                      'a kahwa!',
+                  maxLines: 5,
+                  textCapitalization: TextCapitalization.sentences,
+                ),
+                const SizedBox(height: 24),
+                InputText(
+                  controller: _websiteController,
+                  title: 'Website',
+                  hint: 'example.com',
+                  icon: Icons.link_rounded,
+                  keyboardType: TextInputType.url,
+                  textInputAction: TextInputAction.done,
+                ),
+                const SizedBox(height: 24),
+                const SectionTitle('Change your page theme'),
+                const SizedBox(height: 16),
+                ColorPicker(
+                  selected: _color,
+                  onChanged: (color) => setState(() => _color = color),
+                ),
+                const SizedBox(height: 24),
+                LoadingButton(
+                  label: 'Save',
+                  isLoading: _isLoading,
+                  onPressed: () => _save(user),
+                ),
+              ],
+            ),
+          );
+        },
       ),
+    );
+  }
+
+  Widget _buildPicture(BuildContext context) {
+    final radius = context.isCompact ? 64.0 : 80.0;
+    final progress = _uploadProgress;
+
+    return Stack(
+      children: [
+        UserAvatar(
+          name: _nameController.text,
+          image: _image,
+          radius: radius,
+          color: _color.color,
+        ),
+        if (progress != null)
+          Positioned.fill(
+            child: CircularProgressIndicator(
+              value: progress == 0 ? null : progress,
+            ),
+          ),
+        Positioned(
+          bottom: 0,
+          right: 0,
+          child: IconButton.filled(
+            onPressed: progress == null ? _pickImage : null,
+            tooltip: 'Change picture',
+            icon: const Icon(Icons.camera_alt_rounded),
+          ),
+        ),
+      ],
     );
   }
 }

@@ -1,78 +1,67 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:kahwa/enums/currency.dart';
+import 'package:kahwa/core/colors.dart';
+import 'package:kahwa/models/currency.dart';
 import 'package:kahwa/models/goal.dart';
-import 'package:kahwa/utils/colors.dart';
-import 'package:kahwa/utils/routes.dart';
-import 'package:kahwa/utils/sizes.dart';
-import 'package:kahwa/utils/statics.dart';
-import 'package:kahwa/utils/typography.dart';
+import 'package:kahwa/widgets/page_body.dart';
 
-class GoalCard extends StatefulWidget {
-  const GoalCard({
-    Key? key,
-    this.goal,
-    this.deleted,
-  }) : super(key: key);
+/// Progress of the goal of a creator. [onTap] is set for the owner, who can
+/// open the goal to edit it.
+class GoalCard extends StatelessWidget {
+  const GoalCard({super.key, required this.goal, this.onTap});
 
-  final Goal? goal;
-  final Function(bool)? deleted;
-
-  @override
-  State<GoalCard> createState() => _GoalCardState();
-}
-
-class _GoalCardState extends State<GoalCard> {
-  @override
-  void initState() {
-    super.initState();
-    Statics.goal = widget.goal!;
-  }
+  final Goal goal;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: Statics.goal.id != FirebaseAuth.instance.currentUser!.uid
-          ? null
-          : () async {
-              final deleted = await Navigator.pushNamed(context, routeGoal);
-              widget.deleted!(deleted == true ? true : false);
-              setState(() {});
-            },
-      child: Card(
-        margin: EdgeInsets.zero,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+    final current = Currency.lbp.format(goal.current);
+    final target = Currency.lbp.format(goal.target);
+
+    return Card(
+      child: InkWell(
+        onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                "Goal: ${Statics.goal.title}",
-                style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                      fontWeight: kSemiBoldFontWeight,
-                    ),
-              ),
-              verticalSpace(height: 8),
-              ClipRRect(
+              SectionTitle('Goal: ${goal.title}'),
+              const SizedBox(height: 8),
+              LinearProgressIndicator(
+                value: goal.progress,
+                backgroundColor: kFillColor,
+                minHeight: 16,
                 borderRadius: BorderRadius.circular(16),
-                child: LinearProgressIndicator(
-                  value:
-                      (Statics.goal.current! / Statics.goal.target!).toDouble(),
-                  backgroundColor: kGreyColor.withOpacity(0.1),
-                  minHeight: 16,
-                ),
               ),
-              verticalSpace(height: 8),
-              Text(
-                  "${Currency.lbp.name.toUpperCase()} ${Statics.goal.current} of ${Currency.lbp.name.toUpperCase()} ${Statics.goal.target}"),
-              verticalSpace(height: 8),
-              Text("${Statics.goal.description}"),
+              const SizedBox(height: 8),
+              Text('$current of $target'),
+              const SizedBox(height: 8),
+              Text(goal.description),
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Shown to creators who do not have a goal yet.
+class AddGoalCard extends StatelessWidget {
+  const AddGoalCard({super.key, required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: ListTile(
+        onTap: onTap,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+        leading: Icon(
+          Icons.flag_rounded,
+          color: Theme.of(context).colorScheme.primary,
+        ),
+        title: const Text('Add Goal'),
       ),
     );
   }

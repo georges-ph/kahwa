@@ -1,1 +1,0 @@
-enum Currency { usd, lbp }

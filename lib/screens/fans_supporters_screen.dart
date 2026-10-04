@@ -1,106 +1,123 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:kahwa/models/fan_supporter.dart';
-import 'package:kahwa/utils/colors.dart';
-import 'package:kahwa/utils/routes.dart';
-import 'package:kahwa/utils/sizes.dart';
-import 'package:kahwa/utils/typography.dart';
+import 'package:go_router/go_router.dart';
+import 'package:kahwa/core/formatters.dart';
+import 'package:kahwa/core/responsive.dart';
+import 'package:kahwa/core/router.dart';
+import 'package:kahwa/data/repositories.dart';
+import 'package:kahwa/models/app_user.dart';
+import 'package:kahwa/widgets/async_body.dart';
+import 'package:kahwa/widgets/user_avatar.dart';
 
+enum FansSupportersKind { fans, supporters }
+
+/// The people who are fans of a creator or who supported them. Only the
+/// creator can open the lists of their own page.
 class FansSupportersScreen extends StatefulWidget {
   const FansSupportersScreen({
-    Key? key,
-    required this.title,
-    required this.list,
-  }) : super(key: key);
+    super.key,
+    required this.creatorId,
+    required this.kind,
+  });
 
-  final String title;
-  final List<String> list;
+  final String creatorId;
+  final FansSupportersKind kind;
 
   @override
   State<FansSupportersScreen> createState() => _FansSupportersScreenState();
 }
 
 class _FansSupportersScreenState extends State<FansSupportersScreen> {
-  final CollectionReference _usersCollection = FirebaseFirestore.instance
-      .collection("kahwa")
-      .doc("AppCollections")
-      .collection("Users");
-
-  final List<FanSupporter> _list = [];
-
-  late Future<void> _runFuture;
+  late Future<List<AppUser>> _users;
 
   @override
   void initState() {
     super.initState();
-    _runFuture = _getData();
+    _users = _load();
   }
 
-  Future<void> _getData() async {
-    for (var fanId in widget.list) {
-      DocumentSnapshot document = await _usersCollection.doc(fanId).get();
-      FanSupporter fan =
-          FanSupporter.fromMap(document.data() as Map<String, dynamic>);
-      _list.add(fan);
+  Future<List<AppUser>> _load() async {
+    final userId = authRepository.userId;
+    if (userId != widget.creatorId) throw accessDenied();
+
+    switch (widget.kind) {
+      case FansSupportersKind.fans:
+        final creator = await userRepository.getUser(widget.creatorId);
+        return userRepository.getUsers(creator?.fans ?? const []);
+      case FansSupportersKind.supporters:
+        final donations = await donationRepository.getDonations(
+          creatorId: widget.creatorId,
+          viewerId: userId,
+        );
+        final supporters = <String, AppUser>{
+          for (final item in donations)
+            if (item.supporter != null) item.supporter!.id: item.supporter!,
+        };
+        return supporters.values.toList();
     }
+  }
+
+  void _reload() => setState(() => _users = _load());
+
+  String _title(int count) {
+    return switch (widget.kind) {
+      FansSupportersKind.fans => plural(count, 'Fan'),
+      FansSupportersKind.supporters => plural(count, 'Supporter'),
+    };
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: FutureBuilder(
-        future: _runFuture,
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return Center(
-              child: Text(
-                "Error getting data",
-                style: Theme.of(context).textTheme.displaySmall,
-                textAlign: TextAlign.center,
-              ),
-            );
-          }
-
-          if (snapshot.connectionState == ConnectionState.done) {
-            return ListView.separated(
-              physics: const BouncingScrollPhysics(),
-              itemCount: widget.list.length,
-              separatorBuilder: (BuildContext context, int index) {
-                return verticalSpace(height: 16);
+    return FutureBuilder(
+      future: _users,
+      builder: (context, snapshot) {
+        final users = snapshot.data;
+        return Scaffold(
+          appBar: AppBar(
+            leading: BackButton(
+              onPressed: () {
+                context.canPop()
+                    ? context.pop()
+                    : context.go(Routes.creator(widget.creatorId));
               },
-              itemBuilder: (BuildContext context, int index) {
-                return ListTile(
-                  onTap: () => Navigator.pushNamed(
-                    context,
-                    routeCreator,
-                    arguments: _list.elementAt(index).id,
+            ),
+            title: users == null ? null : Text(_title(users.length)),
+          ),
+          body: AsyncBody(
+            future: _users,
+            onRetry: _reload,
+            builder: (context, users) {
+              return Align(
+                alignment: Alignment.topCenter,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    maxWidth: ContentWidth.list,
                   ),
-                  leading: CircleAvatar(
-                    backgroundColor: kBrownColor,
-                    backgroundImage: _list.elementAt(index).image != null
-                        ? NetworkImage(_list.elementAt(index).image!)
-                        : null,
-                    child: _list.elementAt(index).image == null
-                        ? Text(
-                            getInitials(_list.elementAt(index).name!),
-                            style: const TextStyle(
-                              color: kWhiteColor,
-                            ),
-                          )
-                        : null,
+                  child: ListView.builder(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    itemCount: users.length,
+                    itemBuilder: (context, index) {
+                      final user = users[index];
+                      return ListTile(
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: context.pagePadding,
+                          vertical: 4,
+                        ),
+                        onTap: () => context.push(Routes.creator(user.id)),
+                        leading: UserAvatar(
+                          name: user.name,
+                          image: user.image,
+                          color: user.color.color,
+                        ),
+                        title: Text(user.name),
+                      );
+                    },
                   ),
-                  title: Text(_list.elementAt(index).name!),
-                );
-              },
-            );
-          }
-
-          return const Center(child: CircularProgressIndicator());
-        },
-      ),
+                ),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 }

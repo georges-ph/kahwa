@@ -1,95 +1,114 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:kahwa/core/responsive.dart';
+import 'package:kahwa/core/router.dart';
+import 'package:kahwa/data/repositories.dart';
 import 'package:kahwa/models/balance.dart';
-import 'package:kahwa/utils/routes.dart';
-import 'package:kahwa/utils/sizes.dart';
+import 'package:kahwa/widgets/async_body.dart';
 import 'package:kahwa/widgets/balance_card.dart';
+import 'package:kahwa/widgets/loading_button.dart';
+import 'package:kahwa/widgets/page_body.dart';
+import 'package:kahwa/widgets/sub_page.dart';
 
-class BalanceScreen extends StatelessWidget {
-  const BalanceScreen({Key? key}) : super(key: key);
+class BalanceScreen extends StatefulWidget {
+  const BalanceScreen({super.key});
+
+  @override
+  State<BalanceScreen> createState() => _BalanceScreenState();
+}
+
+class _BalanceScreenState extends State<BalanceScreen> {
+  late Future<Balance> _balance;
+
+  @override
+  void initState() {
+    super.initState();
+    _balance = _load();
+  }
+
+  Future<Balance> _load() {
+    return balanceRepository.getBalance(authRepository.userId);
+  }
+
+  void _reload() => setState(() => _balance = _load());
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(),
-      body: FutureBuilder<DocumentSnapshot>(
-        future: FirebaseFirestore.instance
-            .collection("kahwa")
-            .doc("AppCollections")
-            .collection("Balances")
-            .doc(FirebaseAuth.instance.currentUser!.uid)
-            .get(),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return Center(
-              child: Text(
-                "Error getting data",
-                style: Theme.of(context).textTheme.displaySmall,
-                textAlign: TextAlign.center,
-              ),
-            );
-          }
+    return SubPage(
+      fallback: Routes.settings,
+      body: AsyncBody(
+        future: _balance,
+        onRetry: _reload,
+        builder: (context, balance) {
+          final cards = [
+            BalanceCard(
+              title: 'Current Balance',
+              lbp: balance.currentLbp,
+              usd: balance.currentUsd,
+            ),
+            BalanceCard(
+              title: 'Spent',
+              lbp: balance.spentLbp,
+              usd: balance.spentUsd,
+            ),
+            BalanceCard(
+              title: 'Received',
+              lbp: balance.receivedLbp,
+              usd: balance.receivedUsd,
+            ),
+            BalanceCard(
+              title: 'Withdrawn',
+              lbp: balance.withdrawnLbp,
+              usd: balance.withdrawnUsd,
+            ),
+          ];
 
-          if (snapshot.hasData &&
-              snapshot.connectionState == ConnectionState.done) {
-            Balance balance =
-                Balance.fromMap(snapshot.data!.data() as Map<String, dynamic>);
-
-            return SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Balance".toUpperCase(),
-                    style: Theme.of(context).textTheme.headlineLarge,
-                  ),
-                  verticalSpace(height: 40),
-                  BalanceCard(
-                    title: "Current Balance",
-                    lbp: balance.current_lbp!,
-                    usd: balance.current_usd!,
-                  ),
-                  verticalSpace(),
-                  BalanceCard(
-                    title: "Spent",
-                    lbp: balance.spent_lbp!,
-                    usd: balance.spent_usd!,
-                  ),
-                  verticalSpace(),
-                  BalanceCard(
-                    title: "Received",
-                    lbp: balance.received_lbp!,
-                    usd: balance.received_usd!,
-                  ),
-                  verticalSpace(),
-                  BalanceCard(
-                    title: "Withdrawn",
-                    lbp: balance.withdrawn_lbp!,
-                    usd: balance.withdrawn_usd!,
-                  ),
-                  verticalSpace(),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.pushNamed(
-                        context,
-                        routeRequestWithdraw,
-                        arguments: balance,
-                      ),
-                      child: const Text("Request Withdraw"),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          return const Center(child: CircularProgressIndicator());
+          return PageBody(
+            maxWidth: ContentWidth.list,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const PageTitle('Balance'),
+                const SizedBox(height: 40),
+                _BalanceGrid(cards: cards),
+                const SizedBox(height: 24),
+                LoadingButton(
+                  label: 'Request Withdraw',
+                  onPressed: () => context.push(Routes.requestWithdraw),
+                ),
+              ],
+            ),
+          );
         },
       ),
+    );
+  }
+}
+
+/// One column of cards on phones, two when there is room.
+class _BalanceGrid extends StatelessWidget {
+  const _BalanceGrid({required this.cards});
+
+  final List<Widget> cards;
+
+  static const _spacing = 24.0;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = constraints.maxWidth >= 520 ? 2 : 1;
+        final cardWidth =
+            (constraints.maxWidth - _spacing * (columns - 1)) / columns;
+
+        return Wrap(
+          spacing: _spacing,
+          runSpacing: _spacing,
+          children: [
+            for (final card in cards) SizedBox(width: cardWidth, child: card),
+          ],
+        );
+      },
     );
   }
 }

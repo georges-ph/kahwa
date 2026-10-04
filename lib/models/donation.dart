@@ -1,63 +1,73 @@
-// ignore_for_file: non_constant_identifier_names
-
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:kahwa/enums/currency.dart';
+import 'package:kahwa/models/app_user.dart';
+import 'package:kahwa/models/currency.dart';
 
 class Donation {
-  String? creator_id;
-  int? kahwa_price;
-  int? kahwas;
-  // enum
-  Currency? currency;
-  bool? pay_fee;
-  String? message;
-  bool? keep_private;
-  num? total;
-  Timestamp? timestamp;
-  String? supporter_id;
-
-  Donation({
-    this.creator_id,
-    this.kahwa_price,
-    this.kahwas,
-    this.currency,
-    this.pay_fee,
-    this.message,
-    this.keep_private,
-    this.total,
+  const Donation({
+    required this.creatorId,
+    required this.supporterId,
+    required this.kahwaPrice,
+    required this.kahwas,
+    required this.currency,
+    required this.total,
+    this.payFee = false,
+    this.message = '',
+    this.keepPrivate = false,
     this.timestamp,
-    this.supporter_id,
   });
+
+  final String creatorId;
+  final String supporterId;
+  final int kahwaPrice;
+  final int kahwas;
+  final Currency currency;
+  final num total;
+  final bool payFee;
+  final String message;
+  final bool keepPrivate;
+  final DateTime? timestamp;
+
+  /// Whether [userId] may see who made this donation and their message.
+  bool isVisibleTo(String userId) {
+    return !keepPrivate || userId == creatorId || userId == supporterId;
+  }
 
   Map<String, dynamic> toMap() {
     return {
-      'creator_id': creator_id,
-      'kahwa_price': kahwa_price,
+      'creator_id': creatorId,
+      'kahwa_price': kahwaPrice,
       'kahwas': kahwas,
-      'currency': currency?.name,
-      'pay_fee': pay_fee,
+      'currency': currency.name,
+      'pay_fee': payFee,
       'message': message,
-      'keep_private': keep_private,
+      'keep_private': keepPrivate,
       'total': total,
       'timestamp': FieldValue.serverTimestamp(),
-      'supporter_id': supporter_id,
+      'supporter_id': supporterId,
     };
   }
 
   factory Donation.fromMap(Map<String, dynamic> map) {
-    Currency currency = Currency.values
-        .firstWhere((element) => element.name == map['currency']);
     return Donation(
-      creator_id: map['creator_id'],
-      kahwa_price: map['kahwa_price']?.toInt(),
-      kahwas: map['kahwas']?.toInt(),
-      currency: map['currency'] != null ? currency : null,
-      pay_fee: map['pay_fee'],
-      message: map['message'],
-      keep_private: map['keep_private'],
-      total: map['total'],
-      timestamp: map['timestamp'],
-      supporter_id: map['supporter_id'],
+      creatorId: map['creator_id'] ?? '',
+      supporterId: map['supporter_id'] ?? '',
+      kahwaPrice: (map['kahwa_price'] as num?)?.toInt() ?? 0,
+      kahwas: (map['kahwas'] as num?)?.toInt() ?? 0,
+      currency: Currency.fromName(map['currency']),
+      total: map['total'] ?? 0,
+      payFee: map['pay_fee'] ?? false,
+      message: map['message'] ?? '',
+      keepPrivate: map['keep_private'] ?? false,
+      timestamp: (map['timestamp'] as Timestamp?)?.toDate(),
     );
   }
+}
+
+/// A donation together with the supporter who made it. [supporter] is null
+/// when the donation is private and hidden from the current user.
+class DonationSupporter {
+  const DonationSupporter({required this.donation, this.supporter});
+
+  final Donation donation;
+  final AppUser? supporter;
 }
