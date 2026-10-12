@@ -1,7 +1,6 @@
 import 'package:kahwa/data/collections.dart';
 import 'package:kahwa/data/user_repository.dart';
 import 'package:kahwa/models/balance.dart';
-import 'package:kahwa/models/currency.dart';
 import 'package:kahwa/models/donation.dart';
 import 'package:kahwa/models/goal.dart';
 import 'package:kahwa/models/kahwa_prices.dart';
@@ -80,9 +79,9 @@ class DonationRepository {
         creatorBalance.receive(currency, total).toMap(),
       );
 
-      // Goals are tracked in LBP only.
+      // A goal only counts donations made in its own currency.
       final goalData = goalDoc.data();
-      if (currency == Currency.lbp && goalData != null) {
+      if (goalData != null && Goal.fromMap(goalData).currency == currency) {
         final goal = Goal.fromMap(goalData);
         transaction.update(goalRef, {'current': goal.current + total});
       }

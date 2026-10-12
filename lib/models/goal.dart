@@ -1,3 +1,5 @@
+import 'package:kahwa/models/currency.dart';
+
 class Goal {
   const Goal({
     required this.id,
@@ -5,6 +7,7 @@ class Goal {
     required this.description,
     required this.target,
     this.current = 0,
+    this.currency = Currency.lbp,
   });
 
   /// Same as the id of the creator who owns the goal.
@@ -13,6 +16,9 @@ class Goal {
   final String description;
   final int current;
   final int target;
+
+  /// Only donations made in this currency count towards the goal.
+  final Currency currency;
 
   double get progress {
     if (target <= 0) return 0;
@@ -26,6 +32,7 @@ class Goal {
       'description': description,
       'current': current,
       'target': target,
+      'currency': currency.name,
     };
   }
 
@@ -36,6 +43,7 @@ class Goal {
       description: map['description'] ?? '',
       current: (map['current'] as num?)?.toInt() ?? 0,
       target: (map['target'] as num?)?.toInt() ?? 0,
+      currency: Currency.fromName(map['currency']),
     );
   }
 }

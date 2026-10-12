@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:kahwa/core/colors.dart';
-import 'package:kahwa/models/currency.dart';
 import 'package:kahwa/models/goal.dart';
 import 'package:kahwa/widgets/page_body.dart';
 
@@ -14,8 +13,8 @@ class GoalCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final current = Currency.lbp.format(goal.current);
-    final target = Currency.lbp.format(goal.target);
+    final current = goal.currency.format(goal.current);
+    final target = goal.currency.format(goal.target);
 
     return Card(
       child: InkWell(

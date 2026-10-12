@@ -28,6 +28,7 @@ class _GoalScreenState extends State<GoalScreen> {
   final _targetController = TextEditingController();
   final _currentController = TextEditingController();
 
+  Currency _currency = Currency.lbp;
   bool _isSaving = false;
   bool _isDeleting = false;
 
@@ -55,6 +56,7 @@ class _GoalScreenState extends State<GoalScreen> {
       _descriptionController.text = goal.description;
       _targetController.text = goal.target.toString();
       _currentController.text = goal.current.toString();
+      _currency = goal.currency;
     }
     return goal;
   }
@@ -87,6 +89,7 @@ class _GoalScreenState extends State<GoalScreen> {
           description: description,
           target: target,
           current: parseAmount(_currentController.text) ?? 0,
+          currency: _currency,
         ),
       );
       if (!mounted) return;
@@ -146,11 +149,29 @@ class _GoalScreenState extends State<GoalScreen> {
                   textCapitalization: TextCapitalization.sentences,
                 ),
                 const SizedBox(height: 24),
+                const SectionTitle('Currency'),
+                const SizedBox(height: 8),
+                const Text('Only kahwas bought in this currency count.'),
+                const SizedBox(height: 16),
+                Wrap(
+                  spacing: 8,
+                  children: [
+                    for (final currency in Currency.values)
+                      ChoiceChip(
+                        label: Text(currency.code),
+                        selected: _currency == currency,
+                        onSelected: (_) {
+                          setState(() => _currency = currency);
+                        },
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 24),
                 InputText(
                   controller: _targetController,
                   title: 'Target Amount',
                   hint: '0',
-                  prefixText: Currency.lbp.code,
+                  prefixText: _currency.code,
                   digitsOnly: true,
                   textInputAction: TextInputAction.next,
                 ),
@@ -159,7 +180,7 @@ class _GoalScreenState extends State<GoalScreen> {
                   controller: _currentController,
                   title: 'Current Amount',
                   hint: '0',
-                  prefixText: Currency.lbp.code,
+                  prefixText: _currency.code,
                   digitsOnly: true,
                   textInputAction: TextInputAction.done,
                 ),
