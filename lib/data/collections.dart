@@ -12,10 +12,12 @@ class Collections {
       firestore.collection('kahwa').doc('AppCollections');
 
   JsonCollection get users => _app.collection('Users');
+  JsonCollection get usernames => _app.collection('Usernames');
   JsonCollection get kahwaPrices => _app.collection('kahwaPrices');
   JsonCollection get balances => _app.collection('Balances');
   JsonCollection get goals => _app.collection('Goals');
   JsonCollection get donations => _app.collection('Donations');
+  JsonCollection get donationDetails => _app.collection('DonationDetails');
   JsonCollection get billingDetails => _app.collection('BillingDetails');
   JsonCollection get withdrawRequests => _app.collection('WithdrawRequests');
   JsonCollection get topUpRequests => _app.collection('TopUpRequests');

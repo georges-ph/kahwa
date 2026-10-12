@@ -13,6 +13,7 @@ import 'package:kahwa/screens/forgot_password_screen.dart';
 import 'package:kahwa/screens/goal_screen.dart';
 import 'package:kahwa/screens/home_screen.dart';
 import 'package:kahwa/screens/top_up_screen.dart';
+import 'package:kahwa/screens/username_screen.dart';
 import 'package:kahwa/screens/kahwa_price_screen.dart';
 import 'package:kahwa/screens/login_screen.dart';
 import 'package:kahwa/screens/profile_screen.dart';
@@ -38,8 +39,19 @@ abstract final class Routes {
   static String fans(String id) => '/c/$id/fans';
   static String supporters(String id) => '/c/$id/supporters';
 
+  /// The sign in screen, set to open [location] once the user is in.
+  static String signInThen(String location) {
+    return Uri(
+      path: logIn,
+      queryParameters: {_fromParameter: location},
+    ).toString();
+  }
+
   /// Screens that are only reachable while signed out.
   static const _auth = {logIn, forgotPassword};
+
+  /// Route patterns anyone can open without an account: creator pages.
+  static const _public = {'/c/:id', '/:username'};
 }
 
 /// Query parameter holding the page to open once the user has signed in.
@@ -53,7 +65,7 @@ GoRouter createRouter() {
       final isAuthRoute = Routes._auth.contains(state.matchedLocation);
 
       if (!isSignedIn) {
-        if (isAuthRoute) return null;
+        if (isAuthRoute || Routes._public.contains(state.fullPath)) return null;
         final from = state.uri.toString();
         return Uri(
           path: Routes.logIn,
@@ -143,6 +155,12 @@ GoRouter createRouter() {
             builder: (context, state) => const BillingDetailsScreen(),
           ),
         ],
+      ),
+      // Last, so every address above wins over a username.
+      GoRoute(
+        path: '/:username',
+        builder: (context, state) =>
+            UsernameScreen(username: state.pathParameters['username']!),
       ),
     ],
   );

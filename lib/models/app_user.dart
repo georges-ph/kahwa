@@ -4,7 +4,7 @@ class AppUser {
   const AppUser({
     required this.id,
     required this.name,
-    this.email,
+    this.username,
     this.image,
     this.about,
     this.website,
@@ -15,7 +15,9 @@ class AppUser {
 
   final String id;
   final String name;
-  final String? email;
+
+  /// Handle the creator picked for the address of their page, if any.
+  final String? username;
   final String? image;
   final String? about;
   final String? website;
@@ -36,7 +38,7 @@ class AppUser {
     return AppUser(
       id: id,
       name: name ?? this.name,
-      email: email,
+      username: username,
       image: image ?? this.image,
       about: about ?? this.about,
       website: website ?? this.website,
@@ -50,7 +52,7 @@ class AppUser {
     return {
       'id': id,
       'name': name,
-      'email': email,
+      'username': username,
       'image': image,
       'about': about,
       'website': website,
@@ -64,7 +66,7 @@ class AppUser {
     return AppUser(
       id: map['id'] ?? '',
       name: map['name'] ?? '',
-      email: map['email'],
+      username: map['username'],
       image: map['image'],
       about: map['about'],
       website: map['website'],

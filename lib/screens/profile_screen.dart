@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:kahwa/core/config.dart';
 import 'package:kahwa/core/feedback.dart';
 import 'package:kahwa/core/responsive.dart';
 import 'package:kahwa/core/router.dart';
 import 'package:kahwa/data/repositories.dart';
 import 'package:kahwa/models/app_user.dart';
 import 'package:kahwa/models/creator_color.dart';
+import 'package:kahwa/models/username.dart';
 import 'package:kahwa/widgets/async_body.dart';
 import 'package:kahwa/widgets/color_picker.dart';
 import 'package:kahwa/widgets/input_text.dart';
@@ -24,14 +26,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
   late Future<AppUser> _user;
 
   final _nameController = TextEditingController();
+  final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _aboutController = TextEditingController();
   final _websiteController = TextEditingController();
 
   CreatorColor _color = CreatorColor.brown;
   String? _nameError;
+  String? _usernameError;
 
   bool _isLoading = false;
+
+  /// Username after the last save on this screen, empty when it was removed.
+  /// Null until the first save.
+  String? _savedUsername;
 
   @override
   void initState() {
@@ -42,6 +50,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void dispose() {
     _nameController.dispose();
+    _usernameController.dispose();
     _emailController.dispose();
     _aboutController.dispose();
     _websiteController.dispose();
@@ -54,7 +63,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     final account = authRepository.currentUser;
     _nameController.text = user.name;
-    _emailController.text = account?.email ?? user.email ?? '';
+    _usernameController.text = user.username ?? '';
+    _emailController.text = account?.email ?? '';
     _aboutController.text = user.about ?? '';
     _websiteController.text = user.website ?? '';
     _color = user.color;
@@ -63,16 +73,43 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   void _reload() => setState(() => _user = _load());
 
+  /// Where pages live, shown in front of the username.
+  String get _pageHost {
+    final host = Uri.tryParse(AppConfig.appUrl)?.host ?? '';
+    return host.isEmpty ? 'kahwa' : host;
+  }
+
   Future<void> _save(AppUser user) async {
     final name = _nameController.text.trim();
     final about = _aboutController.text.trim();
     final website = _websiteController.text.trim();
 
-    setState(() => _nameError = name.isEmpty ? 'Name cannot be empty' : null);
-    if (_nameError != null) return;
+    final typed = Username.normalize(_usernameController.text);
+    final username = typed.isEmpty ? null : typed;
+
+    setState(() {
+      _nameError = name.isEmpty ? 'Name cannot be empty' : null;
+      _usernameError = username == null ? null : Username.validate(username);
+    });
+    if (_nameError != null || _usernameError != null) return;
 
     setState(() => _isLoading = true);
     try {
+      final isFree = await userRepository.setUsername(
+        userId: user.id,
+        username: username,
+        previous: switch (_savedUsername) {
+          null => user.username,
+          '' => null,
+          final saved => saved,
+        },
+      );
+      if (!mounted) return;
+      if (!isFree) {
+        setState(() => _usernameError = 'This username is taken');
+        return;
+      }
+      _savedUsername = username ?? '';
       await userRepository.updateProfile(
         AppUser(
           id: user.id,
@@ -120,6 +157,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   errorText: _nameError,
                   textCapitalization: TextCapitalization.words,
                   textInputAction: TextInputAction.next,
+                ),
+                const SizedBox(height: 24),
+                InputText(
+                  controller: _usernameController,
+                  title: 'Username',
+                  subtitle:
+                      'The address of your page: $_pageHost/'
+                      '${_usernameController.text.isEmpty ? 'username' : Username.normalize(_usernameController.text)}',
+                  hint: 'username',
+                  icon: Icons.alternate_email_rounded,
+                  errorText: _usernameError,
+                  keyboardType: TextInputType.visiblePassword,
+                  textInputAction: TextInputAction.next,
+                  onChanged: (_) => setState(() {}),
                 ),
                 const SizedBox(height: 24),
                 InputText(

@@ -75,20 +75,52 @@ void main() {
         kahwas: 3,
         currency: Currency.lbp,
         total: 3000,
+        message: 'Keep going',
         keepPrivate: keepPrivate,
       );
     }
 
-    test('public donations are visible to everyone', () {
-      expect(donation(keepPrivate: false).isVisibleTo('stranger'), isTrue);
+    test('public donations store who made them and the message', () {
+      final map = donation(keepPrivate: false).toMap();
+
+      expect(map['supporter_id'], 'supporter');
+      expect(map['message'], 'Keep going');
     });
 
-    test('private donations are only visible to both sides', () {
+    test('private donations keep them out of the public document', () {
       final private = donation(keepPrivate: true);
+      final map = private.toMap();
 
-      expect(private.isVisibleTo('stranger'), isFalse);
-      expect(private.isVisibleTo('creator'), isTrue);
-      expect(private.isVisibleTo('supporter'), isTrue);
+      expect(map.containsKey('supporter_id'), isFalse);
+      expect(map.containsKey('message'), isFalse);
+      expect(map['kahwas'], 3);
+      expect(private.toDetailsMap(), {
+        'creator_id': 'creator',
+        'supporter_id': 'supporter',
+        'message': 'Keep going',
+      });
+    });
+
+    test('a private donation read by a stranger has no supporter', () {
+      final read = Donation.fromMap(
+        donation(keepPrivate: true).toMap()..remove('timestamp'),
+      );
+
+      expect(read.supporterId, isNull);
+      expect(read.message, isEmpty);
+      expect(read.kahwas, 3);
+    });
+
+    test('details fill in the supporter and the message', () {
+      final private = donation(keepPrivate: true);
+      final read = Donation.fromMap(
+        private.toMap()..remove('timestamp'),
+        id: 'd1',
+      ).withDetails(private.toDetailsMap());
+
+      expect(read.id, 'd1');
+      expect(read.supporterId, 'supporter');
+      expect(read.message, 'Keep going');
     });
 
     test('reads the fields stored in Firestore', () {
@@ -99,14 +131,13 @@ void main() {
         'kahwas': 5,
         'currency': 'usd',
         'total': 10,
-        'keep_private': true,
+        'keep_private': false,
         'message': 'Keep going',
       });
 
       expect(read.currency, Currency.usd);
       expect(read.kahwas, 5);
       expect(read.total, 10);
-      expect(read.keepPrivate, isTrue);
       expect(read.timestamp, isNull);
     });
   });

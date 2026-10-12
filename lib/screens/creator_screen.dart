@@ -29,9 +29,12 @@ class _CreatorPage {
   final Goal? goal;
   final List<DonationSupporter> donations;
 
-  late final int supporters = {
-    for (final item in donations) item.donation.supporterId,
-  }.length;
+  /// People who supported the creator. Private donations the viewer cannot
+  /// see into count as one supporter each.
+  late final int supporters = () {
+    final ids = donations.map((item) => item.donation.supporterId);
+    return ids.nonNulls.toSet().length + ids.where((id) => id == null).length;
+  }();
 
   late final int kahwas = donations.fold(
     0,
@@ -51,9 +54,13 @@ class CreatorScreen extends StatefulWidget {
 class _CreatorScreenState extends State<CreatorScreen> {
   late Future<_CreatorPage> _page;
 
-  String get _userId => authRepository.userId;
+  /// Null for visitors who are not signed in.
+  String? get _userId => authRepository.currentUser?.uid;
 
   bool get _isOwner => _userId == widget.creatorId;
+
+  /// Address of this page, to come back to after signing in.
+  String get _location => GoRouterState.of(context).uri.toString();
 
   @override
   void initState() {
@@ -108,11 +115,17 @@ class _CreatorScreenState extends State<CreatorScreen> {
 
   /// Updates the page right away and puts it back if saving fails.
   Future<void> _toggleFan(_CreatorPage page) async {
+    final userId = _userId;
+    if (userId == null) {
+      context.go(Routes.signInThen(_location));
+      return;
+    }
+
     final creator = page.creator;
-    final isFan = !creator.hasFan(_userId);
+    final isFan = !creator.hasFan(userId);
     final fans = isFan
-        ? [...creator.fans, _userId]
-        : creator.fans.where((id) => id != _userId).toList();
+        ? [...creator.fans, userId]
+        : creator.fans.where((id) => id != userId).toList();
 
     setState(() {
       _page = SynchronousFuture(
@@ -126,7 +139,7 @@ class _CreatorScreenState extends State<CreatorScreen> {
     try {
       await userRepository.setFan(
         creatorId: creator.id,
-        userId: _userId,
+        userId: userId,
         isFan: isFan,
       );
     } catch (_) {
@@ -136,9 +149,21 @@ class _CreatorScreenState extends State<CreatorScreen> {
     }
   }
 
-  void _share() {
-    SharePlus.instance.share(
-      ShareParams(uri: Uri.parse(AppConfig.creatorLink(widget.creatorId))),
+  Future<void> _share() async {
+    // Use the username of the creator when the page has loaded and they
+    // have one.
+    final username = await _page.then(
+      (p) => p.creator.username,
+      onError: (_) {
+        return null;
+      },
+    );
+    await SharePlus.instance.share(
+      ShareParams(
+        uri: Uri.parse(
+          AppConfig.creatorLink(id: widget.creatorId, username: username),
+        ),
+      ),
     );
   }
 
@@ -146,12 +171,21 @@ class _CreatorScreenState extends State<CreatorScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: BackButton(
-          onPressed: () {
-            context.canPop() ? context.pop() : context.go(Routes.home);
-          },
-        ),
+        // Visitors who opened the page from a link have nowhere to go back to.
+        automaticallyImplyLeading: false,
+        leading: _userId == null && !context.canPop()
+            ? null
+            : BackButton(
+                onPressed: () {
+                  context.canPop() ? context.pop() : context.go(Routes.home);
+                },
+              ),
         actions: [
+          if (_userId == null)
+            TextButton(
+              onPressed: () => context.go(Routes.signInThen(_location)),
+              child: const Text('Sign in'),
+            ),
           if (AppConfig.appUrl.isNotEmpty)
             IconButton(
               onPressed: _share,
@@ -271,14 +305,19 @@ class _CreatorScreenState extends State<CreatorScreen> {
             children: [
               Expanded(
                 child: ElevatedButton.icon(
-                  onPressed: () => _open(Routes.donate(creator.id)),
+                  onPressed: () {
+                    final donate = Routes.donate(creator.id);
+                    _userId == null
+                        ? context.go(Routes.signInThen(donate))
+                        : _open(donate);
+                  },
                   icon: Image.asset('assets/cup.png', width: 24),
                   label: const Text('Buy a kahwa'),
                 ),
               ),
               const SizedBox(width: 16),
               _FanButton(
-                isFan: creator.hasFan(_userId),
+                isFan: _userId != null && creator.hasFan(_userId!),
                 onTap: () => _toggleFan(page),
               ),
             ],

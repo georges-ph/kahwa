@@ -23,33 +23,62 @@ class DonationRepository {
     return _collections.kahwaPrices.doc(creatorId).set(prices.toMap());
   }
 
-  /// Donations received by [creatorId], newest first. The supporter is only
-  /// loaded for donations that [viewerId] is allowed to see.
+  /// Donations received by [creatorId], newest first.
+  ///
+  /// Everyone gets every donation. Who made a private one, and their message,
+  /// are only filled in for the creator and for the supporter themselves.
+  /// [viewerId] is null for a visitor who is not signed in.
   Future<List<DonationSupporter>> getDonations({
     required String creatorId,
-    required String viewerId,
+    required String? viewerId,
   }) async {
-    final query = await _collections.donations
-        .where('creator_id', isEqualTo: creatorId)
-        .orderBy('timestamp', descending: true)
-        .get();
+    final (snapshot, details) = await (
+      _collections.donations
+          .where('creator_id', isEqualTo: creatorId)
+          .orderBy('timestamp', descending: true)
+          .get(),
+      _getDetails(creatorId: creatorId, viewerId: viewerId),
+    ).wait;
+
     final donations = [
-      for (final doc in query.docs) Donation.fromMap(doc.data()),
+      for (final doc in snapshot.docs)
+        if (details[doc.id] case final detail?)
+          Donation.fromMap(doc.data(), id: doc.id).withDetails(detail)
+        else
+          Donation.fromMap(doc.data(), id: doc.id),
     ];
 
-    final visible = donations.where((d) => d.isVisibleTo(viewerId));
-    final supporters = await _users.getUsers(visible.map((d) => d.supporterId));
+    final supporters = await _users.getUsers(
+      donations.map((d) => d.supporterId).nonNulls,
+    );
     final byId = {for (final user in supporters) user.id: user};
 
     return [
       for (final donation in donations)
         DonationSupporter(
           donation: donation,
-          supporter: donation.isVisibleTo(viewerId)
-              ? byId[donation.supporterId]
-              : null,
+          supporter: byId[donation.supporterId],
         ),
     ];
+  }
+
+  /// Private details [viewerId] may read among the donations [creatorId]
+  /// received, by donation id.
+  Future<Map<String, Map<String, dynamic>>> _getDetails({
+    required String creatorId,
+    required String? viewerId,
+  }) async {
+    if (viewerId == null) return {};
+
+    var query = _collections.donationDetails.where(
+      'creator_id',
+      isEqualTo: creatorId,
+    );
+    if (viewerId != creatorId) {
+      query = query.where('supporter_id', isEqualTo: viewerId);
+    }
+    final snapshot = await query.get();
+    return {for (final doc in snapshot.docs) doc.id: doc.data()};
   }
 
   /// Moves the total of [donation] from the supporter to the creator and
@@ -76,6 +105,12 @@ class DonationRepository {
       if (supporterBalance.current(currency) < total) return false;
 
       transaction.set(donationRef, donation.toMap());
+      if (donation.keepPrivate) {
+        transaction.set(
+          _collections.donationDetails.doc(donationRef.id),
+          donation.toDetailsMap(),
+        );
+      }
       transaction.update(supporterRef, {
         'current_${currency.name}': FieldValue.increment(-total),
         'spent_${currency.name}': FieldValue.increment(total),

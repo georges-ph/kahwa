@@ -16,6 +16,9 @@ abstract final class AppConfig {
     return '';
   }
 
-  /// Link to share for the page of the creator with [creatorId].
-  static String creatorLink(String creatorId) => '$appUrl/c/$creatorId';
+  /// Link to share for the page of a creator: their username when they
+  /// picked one, their id otherwise.
+  static String creatorLink({required String id, String? username}) {
+    return username == null ? '$appUrl/c/$id' : '$appUrl/$username';
+  }
 }

@@ -66,10 +66,7 @@ class AuthRepository {
     }
 
     final batch = _collections.firestore.batch();
-    batch.set(
-      userDoc,
-      AppUser(id: user.uid, name: name, email: user.email).toMap(),
-    );
+    batch.set(userDoc, AppUser(id: user.uid, name: name).toMap());
     batch.set(
       _collections.kahwaPrices.doc(user.uid),
       const KahwaPrices().toMap(),
