@@ -8,15 +8,22 @@ class PageBody extends StatelessWidget {
     super.key,
     required this.child,
     this.maxWidth = ContentWidth.form,
+    this.onRefresh,
   });
 
   final Widget child;
   final double maxWidth;
 
+  /// Loads the page again. When set, the page can be pulled down to refresh.
+  final Future<void> Function()? onRefresh;
+
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
+    final onRefresh = this.onRefresh;
+    final scrollView = SingleChildScrollView(
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      // Short pages have to scroll too, or they cannot be pulled.
+      physics: onRefresh == null ? null : const AlwaysScrollableScrollPhysics(),
       child: SafeArea(
         top: false,
         child: Align(
@@ -31,6 +38,14 @@ class PageBody extends StatelessWidget {
           ),
         ),
       ),
+    );
+
+    if (onRefresh == null) return scrollView;
+    // A scroll view is only as tall as what it holds. Stretch it over the
+    // whole page, so a nearly empty one can be pulled from anywhere.
+    return RefreshIndicator(
+      onRefresh: onRefresh,
+      child: SizedBox.expand(child: scrollView),
     );
   }
 }

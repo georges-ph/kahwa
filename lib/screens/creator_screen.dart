@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:kahwa/core/config.dart';
 import 'package:kahwa/core/feedback.dart';
 import 'package:kahwa/core/formatters.dart';
+import 'package:kahwa/core/refresh.dart';
 import 'package:kahwa/core/responsive.dart';
 import 'package:kahwa/core/router.dart';
 import 'package:kahwa/core/theme.dart';
@@ -58,6 +59,13 @@ class _CreatorScreenState extends State<CreatorScreen> {
   void initState() {
     super.initState();
     _page = _load();
+    dataChanged.addListener(_refresh);
+  }
+
+  @override
+  void dispose() {
+    dataChanged.removeListener(_refresh);
+    super.dispose();
   }
 
   @override
@@ -85,11 +93,18 @@ class _CreatorScreenState extends State<CreatorScreen> {
     setState(() => _page = _load());
   }
 
-  /// Opens [location] and refreshes the page when the user comes back.
-  Future<void> _open(String location) async {
-    await context.push(location);
-    _reload();
+  /// Loads the page again while keeping what is on screen, for a pull to
+  /// refresh or after a donation or a goal was saved on another screen.
+  Future<void> _refresh() async {
+    try {
+      final page = await _load();
+      if (mounted) setState(() => _page = SynchronousFuture(page));
+    } catch (_) {
+      if (mounted) showSnack(context, 'Could not refresh, try again');
+    }
   }
+
+  void _open(String location) => context.push(location);
 
   /// Updates the page right away and puts it back if saving fails.
   Future<void> _toggleFan(_CreatorPage page) async {
@@ -166,6 +181,7 @@ class _CreatorScreenState extends State<CreatorScreen> {
     if (context.isExpanded) {
       return PageBody(
         maxWidth: ContentWidth.wide,
+        onRefresh: _refresh,
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -179,6 +195,7 @@ class _CreatorScreenState extends State<CreatorScreen> {
 
     return PageBody(
       maxWidth: ContentWidth.list,
+      onRefresh: _refresh,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [profile, const SizedBox(height: 24), supporters],

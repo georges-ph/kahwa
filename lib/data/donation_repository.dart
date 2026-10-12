@@ -1,3 +1,4 @@
+import 'package:kahwa/core/refresh.dart';
 import 'package:kahwa/data/collections.dart';
 import 'package:kahwa/data/user_repository.dart';
 import 'package:kahwa/models/balance.dart';
@@ -52,14 +53,16 @@ class DonationRepository {
 
   /// Moves the total of [donation] from the supporter to the creator and
   /// records it. Returns false when the supporter does not have enough credit.
-  Future<bool> donate(Donation donation) {
+  Future<bool> donate(Donation donation) async {
     final total = donation.total.toInt();
     final currency = donation.currency;
     final supporterRef = _collections.balances.doc(donation.supporterId);
     final creatorRef = _collections.balances.doc(donation.creatorId);
     final goalRef = _collections.goals.doc(donation.creatorId);
 
-    return _collections.firestore.runTransaction((transaction) async {
+    final success = await _collections.firestore.runTransaction((
+      transaction,
+    ) async {
       final goalDoc = await transaction.get(goalRef);
       final supporterDoc = await transaction.get(supporterRef);
       final creatorDoc = await transaction.get(creatorRef);
@@ -88,5 +91,8 @@ class DonationRepository {
 
       return true;
     });
+
+    if (success) notifyDataChanged();
+    return success;
   }
 }

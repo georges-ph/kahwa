@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:kahwa/core/feedback.dart';
 import 'package:kahwa/core/responsive.dart';
 import 'package:kahwa/core/router.dart';
 import 'package:kahwa/data/repositories.dart';
@@ -31,6 +33,16 @@ class _BalanceScreenState extends State<BalanceScreen> {
   }
 
   void _reload() => setState(() => _balance = _load());
+
+  /// Loads the balance again while keeping what is on screen.
+  Future<void> _refresh() async {
+    try {
+      final balance = await _load();
+      if (mounted) setState(() => _balance = SynchronousFuture(balance));
+    } catch (_) {
+      if (mounted) showSnack(context, 'Could not refresh, try again');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,6 +77,7 @@ class _BalanceScreenState extends State<BalanceScreen> {
 
           return PageBody(
             maxWidth: ContentWidth.list,
+            onRefresh: _refresh,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

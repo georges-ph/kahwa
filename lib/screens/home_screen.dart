@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:kahwa/core/feedback.dart';
 import 'package:kahwa/core/responsive.dart';
 import 'package:kahwa/core/router.dart';
 import 'package:kahwa/data/repositories.dart';
@@ -35,11 +37,21 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => _creators = _load());
   }
 
+  /// Loads the list again while keeping what is on screen.
+  Future<void> _refresh() async {
+    try {
+      final creators = await _load();
+      if (mounted) setState(() => _creators = SynchronousFuture(creators));
+    } catch (_) {
+      if (mounted) showSnack(context, 'Could not refresh, try again');
+    }
+  }
+
   /// Opens [location] and refreshes the list when the user comes back, since
   /// they may have become a fan of someone or stopped being one.
   Future<void> _open(String location) async {
     await context.push(location);
-    _reload();
+    await _refresh();
   }
 
   @override
@@ -76,6 +88,7 @@ class _HomeScreenState extends State<HomeScreen> {
         builder: (context, creators) {
           return PageBody(
             maxWidth: ContentWidth.wide,
+            onRefresh: _refresh,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

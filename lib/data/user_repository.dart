@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:kahwa/core/refresh.dart';
 import 'package:kahwa/data/collections.dart';
 import 'package:kahwa/models/app_user.dart';
 
@@ -49,5 +50,6 @@ class UserRepository {
       'website': user.website,
       'color': user.color.name,
     });
+    notifyDataChanged();
   }
 }
