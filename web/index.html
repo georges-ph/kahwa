@@ -31,20 +31,59 @@
   <link rel="manifest" href="manifest.json">
 
   <style>
-    html, body { height: 100%; margin: 0; }
+    html, body { height: 100%; margin: 0; background: #ffffff; }
+
+    /* Shown while Flutter downloads and starts: the app's image filling up. */
     #loading {
-      height: 100%;
+      position: fixed;
+      inset: 0;
+      z-index: 1;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      font-family: sans-serif;
+      gap: 20px;
+      background: #ffffff;
       color: #630913;
+      font: 600 16px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif;
+      transition: opacity 0.3s ease;
+    }
+
+    #loading.done { opacity: 0; pointer-events: none; }
+
+    #loading .fill { position: relative; width: 96px; height: 96px; }
+    #loading .fill img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+    #loading .fill .empty { opacity: 0.2; filter: grayscale(1); }
+    #loading .fill .full { animation: fill 2.2s ease-in-out infinite; }
+
+    @keyframes fill {
+      0% { clip-path: inset(100% 0 0 0); }
+      70%, 100% { clip-path: inset(0 0 0 0); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #loading .fill .full { animation: none; }
     }
   </style>
 </head>
 <body>
-  <!-- Shown until Flutter draws its first frame and replaces the body. -->
-  <div id="loading">Loading kahwa...</div>
+  <div id="loading" role="status" aria-label="Loading kahwa">
+    <div class="fill" aria-hidden="true">
+      <img class="empty" src="cup.png" alt="">
+      <img class="full" src="cup.png" alt="">
+    </div>
+    <span>Pouring your kahwa...</span>
+  </div>
+
+  <script>
+    // Flutter fires this once its first frame is on screen.
+    window.addEventListener('flutter-first-frame', function () {
+      var loading = document.getElementById('loading');
+      if (!loading) return;
+      loading.classList.add('done');
+      setTimeout(function () { loading.remove(); }, 400);
+    });
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

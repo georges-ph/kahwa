@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:kahwa/core/colors.dart';
+
+const _fontFamily = 'Manrope';
 
 /// Theme of the app. Creator pages pass the color the creator picked as
 /// [primary] so the whole page takes their accent.
@@ -14,17 +15,21 @@ ThemeData appTheme({Color primary = kBrownColor}) {
     surfaceTint: Colors.transparent,
     surfaceContainerLow: kWhiteColor,
   );
-  final textTheme = GoogleFonts.manropeTextTheme().copyWith(
-    headlineLarge: GoogleFonts.manrope(
-      fontWeight: FontWeight.w800,
-      color: kBlackColor,
-    ),
-  );
+  final textTheme = Typography.material2021().black
+      .apply(fontFamily: _fontFamily)
+      .copyWith(
+        headlineLarge: const TextStyle(
+          fontFamily: _fontFamily,
+          fontWeight: FontWeight.w800,
+          color: kBlackColor,
+        ),
+      );
   final buttonShape = RoundedRectangleBorder(
     borderRadius: BorderRadius.circular(16),
   );
 
   return ThemeData(
+    fontFamily: _fontFamily,
     colorScheme: colorScheme,
     textTheme: textTheme,
     scaffoldBackgroundColor: kWhiteColor,
