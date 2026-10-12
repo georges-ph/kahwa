@@ -16,12 +16,10 @@ import 'package:kahwa/screens/login_screen.dart';
 import 'package:kahwa/screens/profile_screen.dart';
 import 'package:kahwa/screens/request_withdraw_screen.dart';
 import 'package:kahwa/screens/settings_screen.dart';
-import 'package:kahwa/screens/sign_up_screen.dart';
 
 abstract final class Routes {
   static const home = '/';
   static const logIn = '/log-in';
-  static const signUp = '/sign-up';
   static const forgotPassword = '/forgot-password';
   static const goal = '/goal';
   static const settings = '/settings';
@@ -37,20 +35,11 @@ abstract final class Routes {
   static String supporters(String id) => '/c/$id/supporters';
 
   /// Screens that are only reachable while signed out.
-  static const _auth = {logIn, signUp, forgotPassword};
+  static const _auth = {logIn, forgotPassword};
 }
 
 /// Query parameter holding the page to open once the user has signed in.
 const _fromParameter = 'from';
-
-/// The auth screen at [path], keeping the page to return to after signing in.
-String authRoute(BuildContext context, String path) {
-  final from = GoRouterState.of(context).uri.queryParameters[_fromParameter];
-  return Uri(
-    path: path,
-    queryParameters: from == null ? null : {_fromParameter: from},
-  ).toString();
-}
 
 GoRouter createRouter() {
   return GoRouter(
@@ -80,10 +69,6 @@ GoRouter createRouter() {
       GoRoute(
         path: Routes.logIn,
         builder: (context, state) => const LogInScreen(),
-      ),
-      GoRoute(
-        path: Routes.signUp,
-        builder: (context, state) => const SignUpScreen(),
       ),
       GoRoute(
         path: Routes.forgotPassword,

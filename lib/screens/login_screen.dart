@@ -8,6 +8,8 @@ import 'package:kahwa/widgets/auth_layout.dart';
 import 'package:kahwa/widgets/input_text.dart';
 import 'package:kahwa/widgets/loading_button.dart';
 
+/// The only way in: the same form logs in or creates the account, depending
+/// on whether the email is already known.
 class LogInScreen extends StatefulWidget {
   const LogInScreen({super.key});
 
@@ -31,38 +33,44 @@ class _LogInScreenState extends State<LogInScreen> {
     super.dispose();
   }
 
-  Future<void> _logIn() async {
+  Future<void> _continue() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text;
 
     setState(() {
-      _emailError = email.isEmpty ? 'Email Address cannot be empty' : null;
-      _passwordError = password.isEmpty ? 'Password cannot be empty' : null;
+      _emailError = email.isEmpty ? 'Enter your email' : null;
+      _passwordError = switch (password.length) {
+        0 => 'Enter your password',
+        < 6 => 'Password must be at least 6 characters',
+        _ => null,
+      };
     });
     if (_emailError != null || _passwordError != null) return;
 
     setState(() => _isLoading = true);
     try {
       // The router leaves this screen as soon as the user is signed in.
-      await authRepository.signIn(email: email, password: password);
+      await authRepository.continueWithEmail(email: email, password: password);
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
       setState(() {
         switch (e.code) {
           case 'invalid-email':
-            _emailError = e.message;
-          case 'user-not-found':
-            _emailError = 'Email address does not exist';
-          case 'wrong-password':
-            _passwordError = 'Incorrect password';
-          case 'invalid-credential':
-            _passwordError = 'Incorrect email or password';
+            _emailError = 'Invalid email address';
+          case 'wrong-password' || 'invalid-credential' || 'user-not-found':
+            _passwordError = 'Wrong email or password';
+          case 'weak-password':
+            _passwordError = 'Password must be at least 6 characters';
+          case 'too-many-requests':
+            showSnack(context, 'Too many attempts, try again later');
+          case 'network-request-failed':
+            showSnack(context, 'Check your internet connection');
           default:
-            showSnack(context, e.message ?? 'Could not log in');
+            showSnack(context, 'Sign in error, please try again');
         }
       });
     } catch (_) {
-      if (mounted) showSnack(context, 'Could not log in, try again');
+      if (mounted) showSnack(context, 'Sign in error, please try again');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -71,7 +79,7 @@ class _LogInScreenState extends State<LogInScreen> {
   @override
   Widget build(BuildContext context) {
     return AuthLayout(
-      title: 'Log In',
+      title: 'Sign in',
       illustration: 'assets/undraw_login.svg',
       children: [
         InputText(
@@ -99,7 +107,7 @@ class _LogInScreenState extends State<LogInScreen> {
           suffixOnTap: () {
             setState(() => _isPasswordHidden = !_isPasswordHidden);
           },
-          onSubmitted: (_) => _logIn(),
+          onSubmitted: (_) => _continue(),
         ),
         Align(
           alignment: Alignment.centerRight,
@@ -109,23 +117,9 @@ class _LogInScreenState extends State<LogInScreen> {
           ),
         ),
         LoadingButton(
-          label: 'Log In',
+          label: 'Continue',
           isLoading: _isLoading,
-          onPressed: _logIn,
-        ),
-        Wrap(
-          alignment: WrapAlignment.center,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            Text(
-              "Don't have an account?",
-              style: Theme.of(context).textTheme.labelLarge,
-            ),
-            TextButton(
-              onPressed: () => context.go(authRoute(context, Routes.signUp)),
-              child: const Text('Sign Up'),
-            ),
-          ],
+          onPressed: _continue,
         ),
       ],
     );

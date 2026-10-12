@@ -20,27 +20,55 @@ class AuthRepository {
   /// Also emits when the name of the user changes.
   Stream<User?> get userChanges => _auth.userChanges();
 
-  Future<void> signIn({required String email, required String password}) {
-    return _auth.signInWithEmailAndPassword(email: email, password: password);
-  }
-
-  /// Creates the account and the documents every user starts with.
-  Future<void> signUp({
-    required String name,
+  /// Single email and password entry point. Creates the account when the
+  /// email is new, or signs in when it already exists. The Firebase project
+  /// is shared with other apps, so an existing account may never have opened
+  /// kahwa: either way the documents kahwa needs are created if missing.
+  Future<void> continueWithEmail({
     required String email,
     required String password,
   }) async {
-    final credential = await _auth.createUserWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
-    final user = credential.user!;
-    await user.updateDisplayName(name);
+    User user;
+    var isNew = false;
+
+    try {
+      final credential = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      user = credential.user!;
+      isNew = true;
+    } on FirebaseAuthException catch (e) {
+      if (e.code != 'email-already-in-use') rethrow;
+
+      final credential = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      user = credential.user!;
+    }
+
+    await _ensureUserDocuments(user);
+    if (isNew) await user.sendEmailVerification();
+  }
+
+  /// Creates the documents every kahwa user starts with, unless they exist.
+  Future<void> _ensureUserDocuments(User user) async {
+    final userDoc = _collections.users.doc(user.uid);
+    if ((await userDoc.get()).exists) return;
+
+    var name = user.displayName ?? '';
+    if (name.isEmpty) {
+      // There is no name field on the sign in screen. Start with the part of
+      // the email before the @, it can be changed in the profile.
+      name = (user.email ?? '').split('@').first;
+      await user.updateDisplayName(name);
+    }
 
     final batch = _collections.firestore.batch();
     batch.set(
-      _collections.users.doc(user.uid),
-      AppUser(id: user.uid, name: name, email: email).toMap(),
+      userDoc,
+      AppUser(id: user.uid, name: name, email: user.email).toMap(),
     );
     batch.set(
       _collections.kahwaPrices.doc(user.uid),
@@ -48,8 +76,6 @@ class AuthRepository {
     );
     batch.set(_collections.balances.doc(user.uid), const Balance().toMap());
     await batch.commit();
-
-    await user.sendEmailVerification();
   }
 
   Future<void> sendPasswordResetEmail(String email) {
