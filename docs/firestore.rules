@@ -1,0 +1,311 @@
+rules_version = '2';
+
+// Firestore security rules kahwa expects. All of its data lives under
+// kahwa/AppCollections, so these rules can sit next to the rules of other
+// apps in a shared Firebase project.
+//
+// This file is a reference copy and is not deployed from this repository:
+// deploying rules replaces the rules of the whole project.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /kahwa/AppCollections {
+      function signedIn() {
+        return request.auth != null;
+      }
+
+      function isOwner(uid) {
+        return signedIn() && request.auth.uid == uid;
+      }
+
+      // Admins are users with a document in Admins, which can only be
+      // created from the Firebase console.
+      function isAdmin() {
+        return signedIn() && exists(path('Admins', request.auth.uid));
+      }
+
+      function changedKeys() {
+        return request.resource.data.diff(resource.data).affectedKeys();
+      }
+
+      function path(collection, id) {
+        return /databases/$(database)/documents/kahwa/AppCollections/$(collection)/$(id);
+      }
+
+      // The donation with this id is being created by the same transaction
+      // as the write being checked. Reading it with donation() fails, and so
+      // denies the write, when the transaction does not create it.
+      function isNewDonation(id) {
+        return !exists(path('Donations', id));
+      }
+
+      function donation(id) {
+        return getAfter(path('Donations', id)).data;
+      }
+
+      // Who is making the donation. Private donations keep that out of the
+      // public document, in DonationDetails.
+      function supporterOf(id) {
+        return donation(id).keep_private
+          ? getAfter(path('DonationDetails', id)).data.supporter_id
+          : donation(id).supporter_id;
+      }
+
+      // Creator pages are public: anyone can read a profile, its goal and
+      // the public donations, without an account.
+      match /Users/{uid} {
+        allow read: if true;
+        allow create: if isOwner(uid)
+          && request.resource.data.id == uid
+          && request.resource.data.fans == []
+          && request.resource.data.get('username', null) == null
+          && !('email' in request.resource.data);
+        // Owners edit their profile. Everyone else may only add or remove
+        // themselves in the list of fans.
+        // A username can only be set together with the Usernames document
+        // that reserves it.
+        allow update: if (isOwner(uid)
+            && changedKeys().hasOnly(['name', 'about', 'website', 'color', 'image', 'username', 'email'])
+            // Emails do not belong on a public page, they can only be removed.
+            && !('email' in request.resource.data)
+            && (!changedKeys().hasAny(['username'])
+                || request.resource.data.username == null
+                || getAfter(path('Usernames', request.resource.data.username)).data.user_id == uid))
+          || (signedIn()
+            && changedKeys().hasOnly(['fans'])
+            && request.resource.data.fans.toSet().difference(resource.data.fans.toSet())
+                 .union(resource.data.fans.toSet().difference(request.resource.data.fans.toSet()))
+               == [request.auth.uid].toSet());
+
+        match /ArchivedGoals/{goalId} {
+          allow read, create: if isOwner(uid);
+        }
+      }
+
+      // One document per username, named after it, so two creators cannot
+      // hold the same one. It always changes together with the user document.
+      match /Usernames/{username} {
+        allow read: if true;
+        allow create: if signedIn()
+          && username.matches('^[a-z0-9_]{3,20}$')
+          && request.resource.data.keys().hasOnly(['user_id'])
+          && request.resource.data.user_id == request.auth.uid
+          && getAfter(path('Users', request.auth.uid)).data.username == username;
+        allow delete: if signedIn()
+          && resource.data.user_id == request.auth.uid
+          && getAfter(path('Users', request.auth.uid)).data.username != username;
+      }
+
+      match /kahwaPrices/{uid} {
+        allow read: if signedIn();
+        allow write: if isOwner(uid)
+          && request.resource.data.lbp is int && request.resource.data.lbp > 0
+          && request.resource.data.usd is int && request.resource.data.usd > 0;
+      }
+
+      match /Goals/{uid} {
+        allow read: if true;
+        allow create, delete: if isOwner(uid);
+        // A supporter may only raise the goal by the total of the donation
+        // they are making in the same transaction, when it is in the
+        // currency of the goal (LBP for goals saved before currencies).
+        allow update: if isOwner(uid) || (signedIn()
+          && changedKeys().hasOnly(['current', 'last_donation'])
+          && isNewDonation(request.resource.data.last_donation)
+          && donation(request.resource.data.last_donation).creator_id == uid
+          && supporterOf(request.resource.data.last_donation) == request.auth.uid
+          && donation(request.resource.data.last_donation).currency
+               == resource.data.get('currency', 'lbp')
+          && request.resource.data.current
+               == resource.data.current + donation(request.resource.data.last_donation).total);
+      }
+
+      // Balances only move in three ways. A donation: the supporter's goes
+      // down and the creator's goes up by its total, in the same transaction.
+      // A top up or a withdrawal: an admin applies a request of the user.
+      match /Balances/{uid} {
+        function isDebit() {
+          let id = request.resource.data.last_donation;
+          let d = donation(id);
+          let current = 'current_' + d.currency;
+          let spent = 'spent_' + d.currency;
+          return isOwner(uid)
+            && isNewDonation(id)
+            && supporterOf(id) == uid
+            && changedKeys().hasOnly([current, spent, 'last_donation'])
+            && request.resource.data[current] == resource.data[current] - d.total
+            && request.resource.data[spent] == resource.data[spent] + d.total
+            && request.resource.data[current] >= 0;
+        }
+
+        function isCredit() {
+          let id = request.resource.data.last_donation;
+          let d = donation(id);
+          let current = 'current_' + d.currency;
+          let received = 'received_' + d.currency;
+          return signedIn()
+            && isNewDonation(id)
+            && d.creator_id == uid
+            && supporterOf(id) == request.auth.uid
+            && changedKeys().hasOnly([current, received, 'last_donation'])
+            && request.resource.data[current] == resource.data[current] + d.total
+            && request.resource.data[received] == resource.data[received] + d.total;
+        }
+
+        // An admin adds the amount of a top up request to the balance, in
+        // the same write that approves the request.
+        function isTopUp() {
+          let before = get(path('TopUpRequests', uid)).data;
+          let current = 'current_' + before.currency;
+          return isAdmin()
+            && before.status == 'pending'
+            && getAfter(path('TopUpRequests', uid)).data.status == 'approved'
+            && changedKeys().hasOnly([current, 'last_top_up'])
+            && request.resource.data.last_top_up == before.reference
+            && request.resource.data[current] == resource.data[current] + before.amount;
+        }
+
+        // An admin takes a withdraw request out of the balance, in the same
+        // write that marks the request as paid.
+        function isWithdraw() {
+          let id = request.resource.data.last_withdraw;
+          let before = get(path('WithdrawRequests', id)).data;
+          return isAdmin()
+            && before.user_id == uid
+            && before.status == 'pending'
+            && getAfter(path('WithdrawRequests', id)).data.status == 'paid'
+            && changedKeys().hasOnly(['current_lbp', 'current_usd', 'withdrawn_lbp', 'withdrawn_usd', 'last_withdraw'])
+            && request.resource.data.current_lbp == resource.data.current_lbp - before.lbp
+            && request.resource.data.current_usd == resource.data.current_usd - before.usd
+            && request.resource.data.withdrawn_lbp == resource.data.withdrawn_lbp + before.lbp
+            && request.resource.data.withdrawn_usd == resource.data.withdrawn_usd + before.usd
+            && request.resource.data.current_lbp >= 0
+            && request.resource.data.current_usd >= 0;
+        }
+
+        allow read: if isOwner(uid) || isAdmin();
+        allow create: if isOwner(uid)
+          && request.resource.data.keys().hasOnly([
+               'current_lbp', 'current_usd', 'spent_lbp', 'spent_usd',
+               'received_lbp', 'received_usd', 'withdrawn_lbp', 'withdrawn_usd'])
+          && request.resource.data.current_lbp == 0
+          && request.resource.data.current_usd == 0
+          && request.resource.data.spent_lbp == 0
+          && request.resource.data.spent_usd == 0
+          && request.resource.data.received_lbp == 0
+          && request.resource.data.received_usd == 0
+          && request.resource.data.withdrawn_lbp == 0
+          && request.resource.data.withdrawn_usd == 0;
+        allow update: if isDebit() || isCredit() || isTopUp() || isWithdraw();
+      }
+
+      // Donations are public, so pages can show them to visitors. A private
+      // donation says nothing about who made it: that and the message are in
+      // DonationDetails.
+      match /Donations/{donationId} {
+        allow read: if true;
+        // The price comes from the creator, the total from the price, and
+        // both balances must be updated for this donation in the same
+        // transaction.
+        allow create: if signedIn()
+          && request.resource.data.keep_private is bool
+          && (request.resource.data.keep_private
+            ? (!request.resource.data.keys().hasAny(['supporter_id', 'message'])
+              && getAfter(path('DonationDetails', donationId)).data.supporter_id
+                   == request.auth.uid)
+            : request.resource.data.supporter_id == request.auth.uid)
+          && request.resource.data.creator_id != request.auth.uid
+          && request.resource.data.currency in ['lbp', 'usd']
+          && request.resource.data.kahwas is int
+          && request.resource.data.kahwas > 0
+          && request.resource.data.kahwa_price
+               == get(path('kahwaPrices', request.resource.data.creator_id))
+                    .data[request.resource.data.currency]
+          && request.resource.data.total
+               == request.resource.data.kahwa_price * request.resource.data.kahwas
+          && request.resource.data.timestamp == request.time
+          && getAfter(path('Balances', request.auth.uid)).data.last_donation == donationId
+          && getAfter(path('Balances', request.resource.data.creator_id)).data.last_donation
+               == donationId;
+      }
+
+      // Who made a private donation and their message, readable only by
+      // the creator and the supporter. Created together with its donation.
+      match /DonationDetails/{donationId} {
+        allow read: if signedIn()
+          && (resource.data.creator_id == request.auth.uid
+            || resource.data.supporter_id == request.auth.uid);
+        allow create: if signedIn()
+          && request.resource.data.keys().hasOnly(['creator_id', 'supporter_id', 'message'])
+          && request.resource.data.supporter_id == request.auth.uid
+          && isNewDonation(donationId)
+          && donation(donationId).keep_private == true
+          && donation(donationId).creator_id == request.resource.data.creator_id;
+      }
+
+      match /BillingDetails/{uid} {
+        allow read: if isOwner(uid) || isAdmin();
+        allow write: if isOwner(uid);
+      }
+
+      match /Admins/{uid} {
+        allow get: if isOwner(uid);
+      }
+
+      // Settings an admin edits in the console, such as the number top ups
+      // are sent to.
+      match /Config/{name} {
+        allow read: if signedIn();
+      }
+
+      // One top up request per user, named after them. They create it after
+      // sending the money, an admin approves or rejects it.
+      match /TopUpRequests/{uid} {
+        function isNewRequest() {
+          return request.resource.data.keys().hasOnly([
+                   'user_id', 'amount', 'currency', 'reference', 'sender_phone', 'status', 'timestamp'])
+            && request.resource.data.user_id == uid
+            && request.resource.data.status == 'pending'
+            && request.resource.data.amount is int
+            && request.resource.data.amount > 0
+            && request.resource.data.currency in ['lbp', 'usd']
+            && request.resource.data.reference is string
+            && request.resource.data.reference.size() >= 6
+            && request.resource.data.sender_phone is string
+            && request.resource.data.timestamp == request.time;
+        }
+
+        allow read: if isOwner(uid) || isAdmin();
+        allow create: if isOwner(uid) && isNewRequest();
+        allow delete: if isOwner(uid);
+        // The user may replace a request that was answered. An admin may
+        // reject a pending one, or approve it together with the balance.
+        allow update: if (isOwner(uid)
+            && resource.data.status != 'pending'
+            && isNewRequest())
+          || (isAdmin()
+            && resource.data.status == 'pending'
+            && changedKeys().hasOnly(['status', 'resolved_at'])
+            && (request.resource.data.status == 'rejected'
+              || (request.resource.data.status == 'approved'
+                && get(path('Balances', uid)).data.get('last_top_up', '') != resource.data.reference
+                && getAfter(path('Balances', uid)).data.last_top_up == resource.data.reference)));
+      }
+
+      match /WithdrawRequests/{requestId} {
+        allow read: if signedIn()
+          && (resource.data.user_id == request.auth.uid || isAdmin());
+        allow create: if signedIn()
+          && request.resource.data.user_id == request.auth.uid
+          && request.resource.data.status == 'pending'
+          && request.resource.data.lbp is int && request.resource.data.lbp >= 0
+          && request.resource.data.usd is int && request.resource.data.usd >= 0;
+        // An admin marks it as paid together with the balance.
+        allow update: if isAdmin()
+          && resource.data.status == 'pending'
+          && changedKeys().hasOnly(['status', 'resolved_at'])
+          && request.resource.data.status == 'paid'
+          && getAfter(path('Balances', resource.data.user_id)).data.last_withdraw == requestId;
+      }
+    }
+  }
+}

@@ -47,6 +47,13 @@
 
     * { box-sizing: border-box; }
 
+    html { scroll-behavior: smooth; }
+    [id] { scroll-margin-top: 24px; }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+    }
+
     body {
       margin: 0;
       font-family: var(--font);
@@ -236,7 +243,7 @@
 </head>
 <body>
   <!-- Address of the web app. Change it here if the app moves. -->
-  <!-- APP_URL: https://kahwa-app.web.app -->
+  <!-- APP_URL: https://shtrilekahwa.web.app -->
 
   <header class="hero">
     <div class="wrap">
@@ -253,13 +260,13 @@
           <h1>Buy your favorite creators a kahwa.</h1>
           <p>kahwa lets people in Lebanon support the creators they love, one kahwa at a time, in LBP or USD.</p>
           <div class="actions">
-            <a class="button light" href="https://kahwa-app.web.app">Open the app</a>
+            <a class="button light" href="https://shtrilekahwa.web.app">Open the app</a>
             <a class="button ghost" href="#how-it-works">How it works</a>
           </div>
         </div>
 
         <img class="phone" src="screenshots/phone-creator.png" width="390" height="844"
-          alt="A creator page in the kahwa app: profile picture, fans and supporters counters, a Buy a kahwa button and a goal with its progress.">
+          alt="A creator page in the kahwa app: the creator's initials on their color, fans and supporters counters, a Buy a kahwa button and a goal with its progress.">
       </div>
     </div>
   </header>
@@ -274,7 +281,7 @@
         <ol class="steps">
           <li>
             <h3>Create your page</h3>
-            <p>Sign up, add a picture and a few words about what you make, and set the price of a kahwa.</p>
+            <p>Sign up, add a few words about what you make, pick your color and set the price of a kahwa.</p>
           </li>
           <li>
             <h3>Share your link</h3>
@@ -326,7 +333,6 @@
       <div class="wrap">
         <div class="section-head">
           <h2>On your phone, tablet or computer</h2>
-          <p>kahwa runs in the browser and on Android, and its pages rearrange themselves to fit the screen.</p>
         </div>
         <img class="desktop-shot" src="screenshots/desktop-creator.png" width="1440" height="900"
           alt="The same creator page on a desktop: the profile and goal on the left, recent supporters and their messages on the right.">
@@ -340,7 +346,7 @@
           <p>Create your page for free, or find a creator and say thanks.</p>
         </div>
         <div class="actions">
-          <a class="button solid" href="https://kahwa-app.web.app">Open the app</a>
+          <a class="button solid" href="https://shtrilekahwa.web.app">Open the app</a>
         </div>
       </div>
     </section>

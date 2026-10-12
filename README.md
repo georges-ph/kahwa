@@ -23,27 +23,32 @@ Firebase, and runs on Android and the web.
 
 ## Features
 
-- **Creator pages** with a picture, an about text, a website and one of six
-  page colors. Each page has its own address to share.
+- **Creator pages** with an about text, a website and one of six page colors.
+  Each page has its own address to share, with a username the creator picks.
 - **Kahwas** priced by the creator in LBP and USD, with an optional message.
   Supporters can keep their support private.
 - **Fans**: follow creators and find them again on your home screen.
-- **Goals** with a progress bar that fills as kahwas come in.
-- **Balance** tracking, billing details and withdraw requests through Whish
-  Money.
+- **Goals** in LBP or USD, with a progress bar that fills as kahwas come in.
+- **Balance**: top ups and withdrawals through Whish Money. A user sends the
+  money, confirms it in the app, and an admin approves the request.
+- **Admin screen** for the people running it: the total held for users and
+  the top up and withdraw requests waiting for a decision.
 - **Every screen size**: phone, tablet and desktop layouts.
 
 ## Status
 
 Version 2.0.0. The app is a working project rather than a live service. Money
-moves between balances inside the app: topping up a balance and paying out a
-withdraw request are handled manually outside of it.
+moves between balances inside the app, and the security rules only let a
+balance change in three ways: by the total of a donation made in the same
+transaction, or by an admin approving a top up or a withdraw request of that
+user. The transfers themselves happen outside the app, through Whish Money,
+and an admin checks them by hand.
 
 ## Setup
 
 You need [Flutter](https://docs.flutter.dev/get-started/install) 3.41.5 and a
 [Firebase](https://console.firebase.google.com) project with Authentication
-(email and password), Cloud Firestore, Realtime Database and Storage enabled.
+(email and password) and Cloud Firestore enabled.
 
 1. Clone the repository and install the dependencies:
 
@@ -63,7 +68,24 @@ You need [Flutter](https://docs.flutter.dev/get-started/install) 3.41.5 and a
    cp android/app/google-services.json.example android/app/google-services.json
    ```
 
-3. Run the app:
+3. Add the security rules. The Firestore rules the app expects are in
+   [`docs/firestore.rules`](docs/firestore.rules).
+
+4. In the Firebase console, under `kahwa/AppCollections` in Firestore:
+
+   - create `Config/top_up` with the text inside your "Whish Me" QR codes
+     (`https://whish.money/pay/...` links): `whish_qr_lbp` for the code of
+     your LBP balance and `whish_qr_usd` for the one of your USD balance.
+     WHISH gives a different code per currency, and top ups are only offered
+     in the currencies you fill in. Users pay through it, on a phone with a
+     button that opens the WHISH app and elsewhere by scanning the code.
+     They see your name in WHISH, never a phone number. The app itself shows
+     neither;
+   - create `Admins/<user id>` (any content) for each account that should see
+     the admin screen. The user id is in Authentication. Only the console can
+     create these documents.
+
+5. Run the app:
 
    ```sh
    flutter run -d chrome   # web
