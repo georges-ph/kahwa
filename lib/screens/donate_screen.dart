@@ -107,7 +107,10 @@ class _DonateScreenState extends State<DonateScreen> {
         showSnack(
           context,
           'You do not have enough credit',
-          action: SnackBarAction(label: 'Reload', onPressed: _reloadBalance),
+          action: SnackBarAction(
+            label: 'Top up',
+            onPressed: () => context.push(Routes.topUp),
+          ),
         );
       }
     } catch (_) {
@@ -115,13 +118,6 @@ class _DonateScreenState extends State<DonateScreen> {
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
-  }
-
-  Future<void> _reloadBalance() async {
-    final url = await balanceRepository.getReloadBalanceUrl().catchError(
-      (_) => null,
-    );
-    if (mounted) await openLink(context, url);
   }
 
   @override

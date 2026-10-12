@@ -83,6 +83,7 @@ ThemeData appTheme({Color primary = kBrownColor}) {
       labelStyle: textTheme.bodyLarge?.copyWith(color: kBlackColor),
       secondaryLabelStyle: textTheme.bodyLarge?.copyWith(color: onPrimary),
     ),
+    dialogTheme: const DialogThemeData(backgroundColor: kWhiteColor),
     snackBarTheme: const SnackBarThemeData(behavior: SnackBarBehavior.floating),
   );
 }

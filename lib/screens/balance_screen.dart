@@ -86,7 +86,16 @@ class _BalanceScreenState extends State<BalanceScreen> {
                 _BalanceGrid(cards: cards),
                 const SizedBox(height: 24),
                 LoadingButton(
+                  label: 'Top up',
+                  onPressed: () async {
+                    await context.push(Routes.topUp);
+                    await _refresh();
+                  },
+                ),
+                const SizedBox(height: 12),
+                LoadingButton(
                   label: 'Request Withdraw',
+                  outlined: true,
                   onPressed: () => context.push(Routes.requestWithdraw),
                 ),
               ],

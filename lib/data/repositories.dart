@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart';
+import 'package:kahwa/data/admin_repository.dart';
 import 'package:kahwa/data/auth_repository.dart';
 import 'package:kahwa/data/balance_repository.dart';
 import 'package:kahwa/data/collections.dart';
@@ -21,7 +21,6 @@ final goalRepository = GoalRepository(_collections);
 
 final donationRepository = DonationRepository(_collections, userRepository);
 
-final balanceRepository = BalanceRepository(
-  FirebaseDatabase.instance,
-  _collections,
-);
+final balanceRepository = BalanceRepository(_collections);
+
+final adminRepository = AdminRepository(_collections, userRepository);

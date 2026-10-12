@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kahwa/data/repositories.dart';
+import 'package:kahwa/screens/admin_screen.dart';
 import 'package:kahwa/screens/balance_screen.dart';
 import 'package:kahwa/screens/billing_details_screen.dart';
 import 'package:kahwa/screens/creator_screen.dart';
@@ -11,6 +12,7 @@ import 'package:kahwa/screens/fans_supporters_screen.dart';
 import 'package:kahwa/screens/forgot_password_screen.dart';
 import 'package:kahwa/screens/goal_screen.dart';
 import 'package:kahwa/screens/home_screen.dart';
+import 'package:kahwa/screens/top_up_screen.dart';
 import 'package:kahwa/screens/kahwa_price_screen.dart';
 import 'package:kahwa/screens/login_screen.dart';
 import 'package:kahwa/screens/profile_screen.dart';
@@ -27,6 +29,8 @@ abstract final class Routes {
   static const kahwaPrice = '/settings/kahwa-price';
   static const balance = '/settings/balance';
   static const requestWithdraw = '/settings/balance/withdraw';
+  static const topUp = '/settings/balance/top-up';
+  static const admin = '/settings/admin';
   static const billingDetails = '/settings/billing-details';
 
   static String creator(String id) => '/c/$id';
@@ -124,7 +128,15 @@ GoRouter createRouter() {
                 path: 'withdraw',
                 builder: (context, state) => const RequestWithdrawScreen(),
               ),
+              GoRoute(
+                path: 'top-up',
+                builder: (context, state) => const TopUpScreen(),
+              ),
             ],
+          ),
+          GoRoute(
+            path: 'admin',
+            builder: (context, state) => const AdminScreen(),
           ),
           GoRoute(
             path: 'billing-details',

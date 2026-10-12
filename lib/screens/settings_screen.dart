@@ -8,8 +8,17 @@ import 'package:kahwa/widgets/page_body.dart';
 import 'package:kahwa/widgets/settings_card.dart';
 import 'package:kahwa/widgets/sub_page.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  late final Future<bool> _isAdmin = adminRepository.isAdmin(
+    authRepository.userId,
+  );
 
   static const _pages = [
     (Routes.profile, Icons.person_rounded, 'Profile'),
@@ -50,6 +59,20 @@ class SettingsScreen extends StatelessWidget {
                 onTap: () => context.push(route),
               ),
             ],
+            FutureBuilder(
+              future: _isAdmin,
+              builder: (context, snapshot) {
+                if (snapshot.data != true) return const SizedBox.shrink();
+                return Padding(
+                  padding: const EdgeInsets.only(top: 16),
+                  child: SettingsCard(
+                    icon: Icons.admin_panel_settings_rounded,
+                    title: 'Admin',
+                    onTap: () => context.push(Routes.admin),
+                  ),
+                );
+              },
+            ),
           ],
         ),
       ),

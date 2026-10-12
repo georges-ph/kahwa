@@ -53,21 +53,9 @@ void main() {
   group('Balance', () {
     const balance = Balance(currentLbp: 5000, currentUsd: 10);
 
-    test('spending lowers the current balance and tracks the total', () {
-      final after = balance.spend(Currency.lbp, 2000);
-
-      expect(after.currentLbp, 3000);
-      expect(after.spentLbp, 2000);
-      expect(after.currentUsd, 10);
-      expect(after.spentUsd, 0);
-    });
-
-    test('receiving raises the current balance and tracks the total', () {
-      final after = balance.receive(Currency.usd, 5);
-
-      expect(after.currentUsd, 15);
-      expect(after.receivedUsd, 5);
-      expect(after.currentLbp, 5000);
+    test('reads the balance of each currency', () {
+      expect(balance.current(Currency.lbp), 5000);
+      expect(balance.current(Currency.usd), 10);
     });
 
     test('treats missing fields as zero', () {

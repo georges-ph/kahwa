@@ -18,6 +18,9 @@ class Collections {
   JsonCollection get donations => _app.collection('Donations');
   JsonCollection get billingDetails => _app.collection('BillingDetails');
   JsonCollection get withdrawRequests => _app.collection('WithdrawRequests');
+  JsonCollection get topUpRequests => _app.collection('TopUpRequests');
+  JsonCollection get admins => _app.collection('Admins');
+  JsonCollection get config => _app.collection('Config');
 
   JsonCollection archivedGoals(String userId) =>
       users.doc(userId).collection('ArchivedGoals');

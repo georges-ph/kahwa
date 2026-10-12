@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:kahwa/core/refresh.dart';
 import 'package:kahwa/data/collections.dart';
 import 'package:kahwa/data/user_repository.dart';
@@ -53,9 +54,14 @@ class DonationRepository {
 
   /// Moves the total of [donation] from the supporter to the creator and
   /// records it. Returns false when the supporter does not have enough credit.
+  ///
+  /// Every document touched carries the id of the donation in `last_donation`.
+  /// The security rules use it to check that balances only change by the total
+  /// of a donation made in the same transaction.
   Future<bool> donate(Donation donation) async {
     final total = donation.total.toInt();
     final currency = donation.currency;
+    final donationRef = _collections.donations.doc();
     final supporterRef = _collections.balances.doc(donation.supporterId);
     final creatorRef = _collections.balances.doc(donation.creatorId);
     final goalRef = _collections.goals.doc(donation.creatorId);
@@ -65,28 +71,31 @@ class DonationRepository {
     ) async {
       final goalDoc = await transaction.get(goalRef);
       final supporterDoc = await transaction.get(supporterRef);
-      final creatorDoc = await transaction.get(creatorRef);
 
       final supporterBalance = Balance.fromMap(supporterDoc.data() ?? {});
-      final creatorBalance = Balance.fromMap(creatorDoc.data() ?? {});
-
       if (supporterBalance.current(currency) < total) return false;
 
-      transaction.set(_collections.donations.doc(), donation.toMap());
-      transaction.set(
-        supporterRef,
-        supporterBalance.spend(currency, total).toMap(),
-      );
-      transaction.set(
-        creatorRef,
-        creatorBalance.receive(currency, total).toMap(),
-      );
+      transaction.set(donationRef, donation.toMap());
+      transaction.update(supporterRef, {
+        'current_${currency.name}': FieldValue.increment(-total),
+        'spent_${currency.name}': FieldValue.increment(total),
+        'last_donation': donationRef.id,
+      });
+      // Incremented without being read: supporters cannot see the balance of
+      // the creator.
+      transaction.update(creatorRef, {
+        'current_${currency.name}': FieldValue.increment(total),
+        'received_${currency.name}': FieldValue.increment(total),
+        'last_donation': donationRef.id,
+      });
 
       // A goal only counts donations made in its own currency.
       final goalData = goalDoc.data();
       if (goalData != null && Goal.fromMap(goalData).currency == currency) {
-        final goal = Goal.fromMap(goalData);
-        transaction.update(goalRef, {'current': goal.current + total});
+        transaction.update(goalRef, {
+          'current': FieldValue.increment(total),
+          'last_donation': donationRef.id,
+        });
       }
 
       return true;

@@ -25,54 +25,6 @@ class Balance {
     return currency == Currency.lbp ? currentLbp : currentUsd;
   }
 
-  /// The balance of a supporter after paying [amount].
-  Balance spend(Currency currency, int amount) {
-    return switch (currency) {
-      Currency.lbp => _copyWith(
-        currentLbp: currentLbp - amount,
-        spentLbp: spentLbp + amount,
-      ),
-      Currency.usd => _copyWith(
-        currentUsd: currentUsd - amount,
-        spentUsd: spentUsd + amount,
-      ),
-    };
-  }
-
-  /// The balance of a creator after receiving [amount].
-  Balance receive(Currency currency, int amount) {
-    return switch (currency) {
-      Currency.lbp => _copyWith(
-        currentLbp: currentLbp + amount,
-        receivedLbp: receivedLbp + amount,
-      ),
-      Currency.usd => _copyWith(
-        currentUsd: currentUsd + amount,
-        receivedUsd: receivedUsd + amount,
-      ),
-    };
-  }
-
-  Balance _copyWith({
-    int? currentLbp,
-    int? currentUsd,
-    int? spentLbp,
-    int? spentUsd,
-    int? receivedLbp,
-    int? receivedUsd,
-  }) {
-    return Balance(
-      currentLbp: currentLbp ?? this.currentLbp,
-      currentUsd: currentUsd ?? this.currentUsd,
-      spentLbp: spentLbp ?? this.spentLbp,
-      spentUsd: spentUsd ?? this.spentUsd,
-      receivedLbp: receivedLbp ?? this.receivedLbp,
-      receivedUsd: receivedUsd ?? this.receivedUsd,
-      withdrawnLbp: withdrawnLbp,
-      withdrawnUsd: withdrawnUsd,
-    );
-  }
-
   Map<String, dynamic> toMap() {
     return {
       'current_lbp': currentLbp,
