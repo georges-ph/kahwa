@@ -1,7 +1,4 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:image_cropper/image_cropper.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:kahwa/core/feedback.dart';
 import 'package:kahwa/core/responsive.dart';
 import 'package:kahwa/core/router.dart';
@@ -32,13 +29,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _websiteController = TextEditingController();
 
   CreatorColor _color = CreatorColor.brown;
-  String? _image;
   String? _nameError;
 
   bool _isLoading = false;
-
-  /// Progress of the picture upload from 0 to 1, null when not uploading.
-  double? _uploadProgress;
 
   @override
   void initState() {
@@ -65,56 +58,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _aboutController.text = user.about ?? '';
     _websiteController.text = user.website ?? '';
     _color = user.color;
-    _image = account?.photoURL ?? user.image;
     return user;
   }
 
   void _reload() => setState(() => _user = _load());
-
-  Future<void> _pickImage() async {
-    final picked = await ImagePicker().pickImage(
-      source: ImageSource.gallery,
-      maxWidth: 1024,
-      maxHeight: 1024,
-      imageQuality: 85,
-    );
-    if (picked == null) return;
-
-    final Uint8List bytes;
-    if (kIsWeb) {
-      bytes = await picked.readAsBytes();
-    } else {
-      final cropped = await ImageCropper().cropImage(
-        sourcePath: picked.path,
-        aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
-        uiSettings: [
-          AndroidUiSettings(
-            cropStyle: CropStyle.circle,
-            hideBottomControls: true,
-          ),
-        ],
-      );
-      if (cropped == null) return;
-      bytes = await cropped.readAsBytes();
-    }
-
-    if (!mounted) return;
-    setState(() => _uploadProgress = 0);
-    try {
-      final url = await userRepository.uploadProfilePicture(
-        userId: authRepository.userId,
-        bytes: bytes,
-        onProgress: (progress) {
-          if (mounted) setState(() => _uploadProgress = progress);
-        },
-      );
-      if (mounted) setState(() => _image = url);
-    } catch (_) {
-      if (mounted) showSnack(context, 'Error uploading image');
-    } finally {
-      if (mounted) setState(() => _uploadProgress = null);
-    }
-  }
 
   Future<void> _save(AppUser user) async {
     final name = _nameController.text.trim();
@@ -157,7 +104,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 const PageTitle('Profile'),
                 const SizedBox(height: 40),
-                Center(child: _buildPicture(context)),
+                Center(
+                  child: UserAvatar(
+                    name: _nameController.text,
+                    radius: context.isCompact ? 64 : 80,
+                    color: _color.color,
+                  ),
+                ),
                 const SizedBox(height: 40),
                 InputText(
                   controller: _nameController,
@@ -212,37 +165,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           );
         },
       ),
-    );
-  }
-
-  Widget _buildPicture(BuildContext context) {
-    final radius = context.isCompact ? 64.0 : 80.0;
-    final progress = _uploadProgress;
-
-    return Stack(
-      children: [
-        UserAvatar(
-          name: _nameController.text,
-          image: _image,
-          radius: radius,
-          color: _color.color,
-        ),
-        if (progress != null)
-          Positioned.fill(
-            child: CircularProgressIndicator(
-              value: progress == 0 ? null : progress,
-            ),
-          ),
-        Positioned(
-          bottom: 0,
-          right: 0,
-          child: IconButton.filled(
-            onPressed: progress == null ? _pickImage : null,
-            tooltip: 'Change picture',
-            icon: const Icon(Icons.camera_alt_rounded),
-          ),
-        ),
-      ],
     );
   }
 }

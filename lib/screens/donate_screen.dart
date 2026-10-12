@@ -174,7 +174,6 @@ class _DonateScreenState extends State<DonateScreen> {
               const SizedBox(width: 24),
               UserAvatar(
                 name: creator.name,
-                image: creator.image,
                 color: creator.color.color,
                 radius: context.isCompact ? 48 : 56,
               ),

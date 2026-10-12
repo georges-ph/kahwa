@@ -13,7 +13,6 @@ class CreatorCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = creator.color.color;
-    final image = creator.image;
 
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -27,17 +26,15 @@ class CreatorCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
                 child: SizedBox.square(
                   dimension: 56,
-                  child: image != null
-                      ? Image.network(image, fit: BoxFit.cover)
-                      : ColoredBox(
-                          color: color,
-                          child: Center(
-                            child: Text(
-                              getInitials(creator.name),
-                              style: TextStyle(color: foregroundOn(color)),
-                            ),
-                          ),
-                        ),
+                  child: ColoredBox(
+                    color: color,
+                    child: Center(
+                      child: Text(
+                        getInitials(creator.name),
+                        style: TextStyle(color: foregroundOn(color)),
+                      ),
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(width: 16),

@@ -17,7 +17,7 @@ class AuthRepository {
 
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 
-  /// Also emits when the name or picture of the user changes.
+  /// Also emits when the name of the user changes.
   Stream<User?> get userChanges => _auth.userChanges();
 
   Future<void> signIn({required String email, required String password}) {

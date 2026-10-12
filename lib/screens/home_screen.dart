@@ -62,10 +62,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: InkWell(
                   customBorder: const CircleBorder(),
                   onTap: () => _open(Routes.creator(authRepository.userId)),
-                  child: UserAvatar(
-                    name: user?.displayName ?? '',
-                    image: user?.photoURL,
-                  ),
+                  child: UserAvatar(name: user?.displayName ?? ''),
                 ),
               );
             },

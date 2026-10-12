@@ -1,16 +1,12 @@
-import 'dart:typed_data';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:kahwa/data/collections.dart';
 import 'package:kahwa/models/app_user.dart';
 
 class UserRepository {
-  UserRepository(this._auth, this._storage, this._collections);
+  UserRepository(this._auth, this._collections);
 
   final FirebaseAuth _auth;
-  final FirebaseStorage _storage;
   final Collections _collections;
 
   Future<AppUser?> getUser(String id) async {
@@ -53,34 +49,5 @@ class UserRepository {
       'website': user.website,
       'color': user.color.name,
     });
-  }
-
-  /// Uploads [bytes] as the profile picture of [userId] and returns its URL.
-  Future<String> uploadProfilePicture({
-    required String userId,
-    required Uint8List bytes,
-    void Function(double progress)? onProgress,
-  }) async {
-    final reference = _storage.ref('kahwa/Profile Pictures/$userId.jpg');
-    final task = reference.putData(
-      bytes,
-      SettableMetadata(contentType: 'image/jpeg'),
-    );
-    final subscription = task.snapshotEvents.listen((snapshot) {
-      if (snapshot.totalBytes > 0) {
-        onProgress?.call(snapshot.bytesTransferred / snapshot.totalBytes);
-      }
-    }, onError: (_) {});
-
-    try {
-      await task;
-    } finally {
-      await subscription.cancel();
-    }
-
-    final url = await reference.getDownloadURL();
-    await _auth.currentUser?.updatePhotoURL(url);
-    await _collections.users.doc(userId).update({'image': url});
-    return url;
   }
 }

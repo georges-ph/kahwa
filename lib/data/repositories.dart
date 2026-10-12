@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:kahwa/data/auth_repository.dart';
 import 'package:kahwa/data/balance_repository.dart';
 import 'package:kahwa/data/collections.dart';
@@ -16,11 +15,7 @@ final _collections = Collections(FirebaseFirestore.instance);
 
 final authRepository = AuthRepository(FirebaseAuth.instance, _collections);
 
-final userRepository = UserRepository(
-  FirebaseAuth.instance,
-  FirebaseStorage.instance,
-  _collections,
-);
+final userRepository = UserRepository(FirebaseAuth.instance, _collections);
 
 final goalRepository = GoalRepository(_collections);
 

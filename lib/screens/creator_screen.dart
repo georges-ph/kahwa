@@ -204,7 +204,6 @@ class _CreatorScreenState extends State<CreatorScreen> {
         Center(
           child: UserAvatar(
             name: creator.name,
-            image: creator.image,
             radius: context.isCompact ? 64 : 80,
           ),
         ),

@@ -18,7 +18,6 @@ class SupporterCard extends StatelessWidget {
 
     final name = supporter?.name ?? 'Someone';
     final message = supporter == null ? '' : donation.message;
-    final image = supporter?.image;
     final timestamp = donation.timestamp;
 
     return Card(
@@ -28,7 +27,6 @@ class SupporterCard extends StatelessWidget {
             leading: CircleAvatar(
               backgroundColor: Colors.transparent,
               backgroundImage: const AssetImage('assets/cup.png'),
-              foregroundImage: image != null ? NetworkImage(image) : null,
             ),
             title: Text('$name bought ${plural(donation.kahwas, 'kahwa')}'),
             subtitle: timestamp == null

@@ -105,7 +105,6 @@ class _FansSupportersScreenState extends State<FansSupportersScreen> {
                         onTap: () => context.push(Routes.creator(user.id)),
                         leading: UserAvatar(
                           name: user.name,
-                          image: user.image,
                           color: user.color.color,
                         ),
                         title: Text(user.name),
