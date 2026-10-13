@@ -5,7 +5,7 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.0.0] - 2026-10-04
+## [2.0.0] - 2026-10-13
 
 ### Added
 
@@ -45,6 +45,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The profile form only requires a name. About and website are optional.
 - Local emulators are opt in (`--dart-define=USE_EMULATORS=true`) instead of
   always on in debug builds.
+- Release builds use a production Firebase project and all other builds a
+  development one, each from its own local config file.
 - Balances can only change through a donation: the security rules check that
   the supporter pays exactly what the creator receives. Supporters can no
   longer read the balance of a creator.

@@ -64,9 +64,17 @@ You need [Flutter](https://docs.flutter.dev/get-started/install) 3.41.5 and a
    or copy the templates and fill in the values from your Firebase project:
 
    ```sh
-   cp lib/firebase_options.dart.example lib/firebase_options.dart
+   cp lib/firebase_options.dart.example lib/firebase_options_dev.dart
+   cp lib/firebase_options.dart.example lib/firebase_options_prod.dart
    cp android/app/google-services.json.example android/app/google-services.json
    ```
+
+   Release builds use the `prod` file and everything else, such as
+   `flutter run`, the `dev` one, so testing does not touch real data. With a
+   single Firebase project, put the same values in both. With two, also save
+   their Android files as `android/app/google-services-dev.json` and
+   `google-services-prod.json`: the build copies the right one over
+   `google-services.json`.
 
 3. Add the security rules. The Firestore rules the app expects are in
    [`docs/firestore.rules`](docs/firestore.rules).
@@ -117,6 +125,10 @@ firebase deploy --only hosting
 
 `APP_URL` is the address used in the links creators share. The web app works
 it out by itself, so it only matters for Android builds.
+
+A release build talks to the production project. To put a build that stays
+on the development project on a test site, add
+`--dart-define=FIREBASE_ENV=dev`.
 
 The landing page in [`landing/`](landing) is deployed to GitHub Pages by the
 `Landing page` workflow whenever it changes.

@@ -1,6 +1,8 @@
-// Template for lib/firebase_options.dart.
-// Copy this file to lib/firebase_options.dart and fill in your own Firebase
-// project values, or generate it with `flutterfire configure`.
+// Template for lib/firebase_options_dev.dart and lib/firebase_options_prod.dart.
+// Copy this file to both names and fill in your own Firebase project values,
+// or generate them with `flutterfire configure`. Release builds use the prod
+// file, everything else the dev one. With a single Firebase project, put the
+// same values in both.
 // ignore_for_file: type=lint
 import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'

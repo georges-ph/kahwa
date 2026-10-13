@@ -8,7 +8,8 @@ import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kahwa/app.dart';
 import 'package:kahwa/core/config.dart';
-import 'package:kahwa/firebase_options.dart';
+import 'package:kahwa/firebase_options_dev.dart' as dev;
+import 'package:kahwa/firebase_options_prod.dart' as prod;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,7 +17,11 @@ void main() async {
   // Keep the address bar in step with pages opened from inside the app, so
   // the address of a creator page can be copied and shared.
   GoRouter.optionURLReflectsImperativeAPIs = true;
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await Firebase.initializeApp(
+    options: AppConfig.useProduction
+        ? prod.DefaultFirebaseOptions.currentPlatform
+        : dev.DefaultFirebaseOptions.currentPlatform,
+  );
 
   if (AppConfig.useEmulators) {
     /// `firebase emulators:start --import local_data --export-on-exit`

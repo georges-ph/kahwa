@@ -20,7 +20,9 @@ jobs:
 
       # The real Firebase config is gitignored, the template has the same shape.
       - name: Create placeholder Firebase config
-        run: cp lib/firebase_options.dart.example lib/firebase_options.dart
+        run: |
+          cp lib/firebase_options.dart.example lib/firebase_options_dev.dart
+          cp lib/firebase_options.dart.example lib/firebase_options_prod.dart
 
       - run: flutter pub get
 
