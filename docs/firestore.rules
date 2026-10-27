@@ -226,6 +226,11 @@ service cloud.firestore {
           && getAfter(path('Balances', request.auth.uid)).data.last_donation == donationId
           && getAfter(path('Balances', request.resource.data.creator_id)).data.last_donation
                == donationId;
+        // The creator may remove a message from their page.
+        allow update: if signedIn()
+          && resource.data.creator_id == request.auth.uid
+          && changedKeys().hasOnly(['message'])
+          && request.resource.data.message == '';
       }
 
       // Who made a private donation and their message, readable only by
@@ -299,12 +304,33 @@ service cloud.firestore {
           && request.resource.data.status == 'pending'
           && request.resource.data.lbp is int && request.resource.data.lbp >= 0
           && request.resource.data.usd is int && request.resource.data.usd >= 0;
-        // An admin marks it as paid together with the balance.
+        // The user may cancel a request nobody has answered yet.
+        allow delete: if signedIn()
+          && resource.data.user_id == request.auth.uid
+          && resource.data.status == 'pending';
+        // An admin marks it as paid together with the balance, or refuses it.
         allow update: if isAdmin()
           && resource.data.status == 'pending'
           && changedKeys().hasOnly(['status', 'resolved_at'])
-          && request.resource.data.status == 'paid'
-          && getAfter(path('Balances', resource.data.user_id)).data.last_withdraw == requestId;
+          && (request.resource.data.status == 'refused'
+            || (request.resource.data.status == 'paid'
+              && getAfter(path('Balances', resource.data.user_id)).data.last_withdraw == requestId));
+      }
+
+      // A record of each answered top up, written by the admin who answered
+      // it, so users can look back at their top ups.
+      match /TopUpHistory/{entryId} {
+        allow read: if signedIn()
+          && (resource.data.user_id == request.auth.uid || isAdmin());
+        allow create: if isAdmin()
+          && request.resource.data.keys().hasOnly(['user_id', 'amount', 'currency', 'status', 'resolved_at'])
+          && request.resource.data.status in ['approved', 'rejected'];
+      }
+
+      // The kahwa a user was buying when their balance ran short, kept until
+      // they top up and finish it. Private to them.
+      match /PendingKahwas/{uid} {
+        allow read, write: if isOwner(uid);
       }
     }
   }

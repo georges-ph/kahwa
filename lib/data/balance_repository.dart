@@ -25,8 +25,26 @@ class BalanceRepository {
     return _collections.billingDetails.doc(userId).set(details.toMap());
   }
 
-  Future<void> requestWithdraw(Withdraw withdraw) {
-    return _collections.withdrawRequests.add(withdraw.toMap());
+  Future<void> requestWithdraw(Withdraw withdraw) async {
+    await _collections.withdrawRequests.add(withdraw.toMap());
+    notifyDataChanged();
+  }
+
+  /// The withdraw requests of [userId], newest first.
+  Future<List<Withdraw>> getWithdrawals(String userId) async {
+    final query = await _collections.withdrawRequests
+        .where('user_id', isEqualTo: userId)
+        .get();
+    final epoch = DateTime.fromMillisecondsSinceEpoch(0);
+    return [
+      for (final doc in query.docs) Withdraw.fromMap(doc.data(), id: doc.id),
+    ]..sort((a, b) => (b.timestamp ?? epoch).compareTo(a.timestamp ?? epoch));
+  }
+
+  /// Cancels a request an admin has not answered yet.
+  Future<void> cancelWithdraw(String id) async {
+    await _collections.withdrawRequests.doc(id).delete();
+    notifyDataChanged();
   }
 
   /// Where users send money to when topping up, set by an admin in the

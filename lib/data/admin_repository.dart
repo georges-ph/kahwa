@@ -113,14 +113,44 @@ class AdminRepository {
       'current_${request.currency.name}': FieldValue.increment(request.amount),
       'last_top_up': request.reference,
     });
+    _recordAnswer(batch, request, TopUpStatus.approved);
     await batch.commit();
     notifyDataChanged();
   }
 
   /// Turns [request] down when no matching transfer arrived.
   Future<void> rejectTopUp(TopUpRequest request) async {
-    await _collections.topUpRequests.doc(request.userId).update({
+    final batch = _collections.firestore.batch();
+    batch.update(_collections.topUpRequests.doc(request.userId), {
       'status': TopUpStatus.rejected.name,
+      'resolved_at': FieldValue.serverTimestamp(),
+    });
+    _recordAnswer(batch, request, TopUpStatus.rejected);
+    await batch.commit();
+    notifyDataChanged();
+  }
+
+  /// Keeps the answer in the history of the user, since their request is
+  /// replaced by the next one.
+  void _recordAnswer(
+    WriteBatch batch,
+    TopUpRequest request,
+    TopUpStatus status,
+  ) {
+    batch.set(_collections.topUpHistory.doc(), {
+      'user_id': request.userId,
+      'amount': request.amount,
+      'currency': request.currency.name,
+      'status': status.name,
+      'resolved_at': FieldValue.serverTimestamp(),
+    });
+  }
+
+  /// Turns [withdraw] down, for example when the billing details are wrong.
+  /// Nothing leaves the balance.
+  Future<void> refuseWithdraw(Withdraw withdraw) async {
+    await _collections.withdrawRequests.doc(withdraw.id).update({
+      'status': Withdraw.refused,
       'resolved_at': FieldValue.serverTimestamp(),
     });
     notifyDataChanged();

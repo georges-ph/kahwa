@@ -21,6 +21,8 @@ class Collections {
   JsonCollection get billingDetails => _app.collection('BillingDetails');
   JsonCollection get withdrawRequests => _app.collection('WithdrawRequests');
   JsonCollection get topUpRequests => _app.collection('TopUpRequests');
+  JsonCollection get topUpHistory => _app.collection('TopUpHistory');
+  JsonCollection get pendingKahwas => _app.collection('PendingKahwas');
   JsonCollection get admins => _app.collection('Admins');
   JsonCollection get config => _app.collection('Config');
 

@@ -11,6 +11,7 @@ import 'package:kahwa/models/top_up_request.dart';
 import 'package:kahwa/widgets/async_body.dart';
 import 'package:kahwa/widgets/input_text.dart';
 import 'package:kahwa/widgets/loading_button.dart';
+import 'package:kahwa/widgets/notice.dart';
 import 'package:kahwa/widgets/page_body.dart';
 import 'package:kahwa/widgets/sub_page.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -20,7 +21,11 @@ import 'package:url_launcher/link.dart';
 /// the admin's Whish Me link, and only then confirms here. An admin checks the transfer and
 /// the balance goes up once it is found.
 class TopUpScreen extends StatefulWidget {
-  const TopUpScreen({super.key});
+  const TopUpScreen({super.key, this.amount, this.currency});
+
+  /// What to fill in, when the user came to top up a missing amount.
+  final int? amount;
+  final Currency? currency;
 
   @override
   State<TopUpScreen> createState() => _TopUpScreenState();
@@ -32,7 +37,7 @@ class _TopUpScreenState extends State<TopUpScreen> {
   final _amountController = TextEditingController();
   final _phoneController = TextEditingController();
 
-  Currency _currency = Currency.lbp;
+  late Currency _currency = widget.currency ?? Currency.lbp;
   String? _amountError;
   String? _phoneError;
   bool _isLoading = false;
@@ -45,6 +50,9 @@ class _TopUpScreenState extends State<TopUpScreen> {
   @override
   void initState() {
     super.initState();
+    if (widget.amount case final amount? when amount > 0) {
+      _amountController.text = '$amount';
+    }
     _data = _load();
   }
 
@@ -163,18 +171,18 @@ class _TopUpScreenState extends State<TopUpScreen> {
 
     return [
       if (answered?.status == TopUpStatus.approved)
-        _Notice(
+        Notice(
           title: 'Your last top up',
           '${answered!.currency.format(answered.amount)} was added to your '
           'balance.',
         )
       else if (answered?.status == TopUpStatus.rejected)
-        _Notice(
+        Notice(
           title: 'Your last top up',
-          'We could not find your transfer of '
-          '${answered!.currency.format(answered.amount)}. Nothing was added '
-          'to your balance. If you did send it, try again with the same '
-          'details.',
+          // The amount never ends a sentence: "L.L." already has a period.
+          'Your transfer of ${answered!.currency.format(answered.amount)} '
+          'could not be found, so nothing was added to your balance. If you '
+          'did send it, try again with the same details.',
         ),
       const Text(
         'Your balance is what you buy kahwas with. You add to it by sending '
@@ -232,7 +240,7 @@ class _TopUpScreenState extends State<TopUpScreen> {
       const SizedBox(height: 24),
       // WHISH shows the sender a person's name, which nobody expects to see
       // when paying an app. The name itself is never shown here.
-      const _Notice(
+      const Notice(
         'You are paying the founder of kahwa. Each transfer is checked by '
         'hand before it is added to your balance.',
       ),
@@ -309,10 +317,9 @@ class _TopUpScreenState extends State<TopUpScreen> {
 
   List<Widget> _buildPending(TopUpRequest request) {
     return [
-      _Notice(
-        'We are checking your transfer of '
-        '${request.currency.format(request.amount)}. Your balance goes up as '
-        'soon as it is found.',
+      Notice(
+        'Your transfer of ${request.currency.format(request.amount)} is '
+        'being checked. Your balance goes up as soon as it is found.',
       ),
       LoadingButton(
         label: 'Cancel request',
@@ -321,37 +328,5 @@ class _TopUpScreenState extends State<TopUpScreen> {
         onPressed: _cancel,
       ),
     ];
-  }
-}
-
-class _Notice extends StatelessWidget {
-  const _Notice(this.text, {this.title});
-
-  final String text;
-
-  /// Shown in bold above [text], to say what the notice is about.
-  final String? title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 24),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: kFillColor,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (title != null) ...[
-            SectionTitle(title!),
-            const SizedBox(height: 4),
-          ],
-          Text(text),
-        ],
-      ),
-    );
   }
 }

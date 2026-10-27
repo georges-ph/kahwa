@@ -96,7 +96,16 @@ class _BalanceScreenState extends State<BalanceScreen> {
                 LoadingButton(
                   label: 'Request Withdraw',
                   outlined: true,
-                  onPressed: () => context.push(Routes.requestWithdraw),
+                  onPressed: () async {
+                    await context.push(Routes.requestWithdraw);
+                    await _refresh();
+                  },
+                ),
+                const SizedBox(height: 12),
+                LoadingButton(
+                  label: 'History',
+                  outlined: true,
+                  onPressed: () => context.push(Routes.history),
                 ),
               ],
             ),

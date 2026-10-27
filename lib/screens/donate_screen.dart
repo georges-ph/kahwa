@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:kahwa/core/colors.dart';
 import 'package:kahwa/core/feedback.dart';
 import 'package:kahwa/core/formatters.dart';
 import 'package:kahwa/core/responsive.dart';
@@ -7,9 +8,11 @@ import 'package:kahwa/core/router.dart';
 import 'package:kahwa/core/theme.dart';
 import 'package:kahwa/data/repositories.dart';
 import 'package:kahwa/models/app_user.dart';
+import 'package:kahwa/models/balance.dart';
 import 'package:kahwa/models/currency.dart';
 import 'package:kahwa/models/donation.dart';
 import 'package:kahwa/models/kahwa_prices.dart';
+import 'package:kahwa/models/pending_kahwa.dart';
 import 'package:kahwa/widgets/async_body.dart';
 import 'package:kahwa/widgets/input_text.dart';
 import 'package:kahwa/widgets/kahwa_counter.dart';
@@ -34,10 +37,16 @@ class _DonateScreenState extends State<DonateScreen> {
   final _kahwasController = TextEditingController(text: '1');
   final _messageController = TextEditingController();
 
+  /// What the user can spend, shown under the currencies.
+  Balance? _balance;
+
   Currency _currency = Currency.lbp;
   bool _keepPrivate = false;
   bool _isLoading = false;
   bool _isDone = false;
+
+  /// Whether the form was filled in from a kahwa kept while topping up.
+  bool _isPending = false;
 
   int get _kahwas => parseAmount(_kahwasController.text) ?? 0;
 
@@ -55,12 +64,24 @@ class _DonateScreenState extends State<DonateScreen> {
   }
 
   Future<(AppUser, KahwaPrices)> _load() async {
-    final (creator, prices) = await (
+    final (creator, prices, pending, balance) = await (
       userRepository.getUser(widget.creatorId),
       donationRepository.getPrices(widget.creatorId),
+      donationRepository.getPending(authRepository.userId),
+      balanceRepository.getBalance(authRepository.userId),
     ).wait;
 
     if (creator == null) throw StateError('Creator not found');
+    _balance = balance;
+
+    // Pick up where the user left off before topping up.
+    if (pending != null && pending.creatorId == widget.creatorId) {
+      _isPending = true;
+      _kahwasController.text = '${pending.kahwas}';
+      _currency = pending.currency;
+      _messageController.text = pending.message;
+      _keepPrivate = pending.keepPrivate;
+    }
     return (creator, prices);
   }
 
@@ -79,24 +100,38 @@ class _DonateScreenState extends State<DonateScreen> {
       return;
     }
 
+    // Everything is read once, here: the form is locked from now on, and a
+    // tap on the other currency meanwhile must not mix two prices.
+    final currency = _currency;
+    final price = prices.price(currency);
+    final donation = Donation(
+      creatorId: creator.id,
+      supporterId: authRepository.userId,
+      currency: currency,
+      kahwaPrice: price,
+      kahwas: kahwas,
+      total: price * kahwas,
+      message: _messageController.text.trim(),
+      keepPrivate: _keepPrivate,
+    );
+
     setState(() => _isLoading = true);
     try {
-      final price = prices.price(_currency);
-      final success = await donationRepository.donate(
-        Donation(
-          creatorId: creator.id,
-          supporterId: authRepository.userId,
-          currency: _currency,
-          kahwaPrice: price,
-          kahwas: kahwas,
-          total: price * kahwas,
-          message: _messageController.text.trim(),
-          keepPrivate: _keepPrivate,
-        ),
-      );
+      // When the balance is short, the top up offer asks instead.
+      final balance = _balance?.current(currency);
+      if (balance != null && balance >= donation.total) {
+        if (!await _confirm(creator, donation)) return;
+      }
+
+      final success = await donationRepository.donate(donation);
       if (!mounted) return;
 
       if (success) {
+        if (_isPending) {
+          // Bought: nothing to finish later. Failing to clear it is harmless.
+          donationRepository.clearPending(authRepository.userId).ignore();
+          _isPending = false;
+        }
         setState(() => _isDone = true);
         showSnack(
           context,
@@ -104,20 +139,91 @@ class _DonateScreenState extends State<DonateScreen> {
           '${plural(kahwas, 'kahwa')}',
         );
       } else {
-        showSnack(
-          context,
-          'You do not have enough credit',
-          action: SnackBarAction(
-            label: 'Top up',
-            onPressed: () => context.push(Routes.topUp),
-          ),
-        );
+        await _offerTopUp(creator, donation);
       }
     } catch (_) {
       if (mounted) showSnack(context, 'Something went wrong, try again');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  Future<bool> _confirm(AppUser creator, Donation donation) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Buy ${plural(donation.kahwas, 'kahwa')}?'),
+        content: Text(
+          '${donation.currency.format(donation.total)} goes from your '
+          'balance to ${creator.name}.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Buy'),
+          ),
+        ],
+      ),
+    );
+    return confirmed ?? false;
+  }
+
+  /// Offers to top up exactly what is missing, and keeps this kahwa so the
+  /// user can finish it once the money is in.
+  Future<void> _offerTopUp(AppUser creator, Donation donation) async {
+    final currency = donation.currency;
+    final userId = authRepository.userId;
+    final balance = await balanceRepository.getBalance(userId);
+    final missing = missingAmount(
+      total: donation.total.toInt(),
+      balance: balance.current(currency),
+    );
+    if (!mounted) return;
+
+    final topUp = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Not enough credit'),
+        content: Text(
+          'You need ${currency.format(missing)} more to buy '
+          '${creator.name} ${plural(donation.kahwas, 'kahwa')}. Top up that '
+          'amount and your kahwa will wait for you here until the top up is '
+          'approved.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Not now'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text('Top up ${currency.format(missing)}'),
+          ),
+        ],
+      ),
+    );
+    if (topUp != true || !mounted) return;
+
+    await donationRepository.savePending(
+      userId,
+      PendingKahwa(
+        creatorId: creator.id,
+        kahwas: donation.kahwas,
+        currency: currency,
+        message: donation.message,
+        keepPrivate: donation.keepPrivate,
+      ),
+    );
+    _isPending = true;
+    if (!mounted) return;
+    await context.push(Routes.topUpOf(missing, currency));
+    // The balance may have changed meanwhile.
+    final updated = await balanceRepository.getBalance(userId);
+    if (mounted) setState(() => _balance = updated);
   }
 
   @override
@@ -188,6 +294,7 @@ class _DonateScreenState extends State<DonateScreen> {
                   controller: _kahwasController,
                   hint: '0',
                   digitsOnly: true,
+                  readOnly: _isLoading,
                   onChanged: (_) => setState(() {}),
                 ),
               ),
@@ -198,6 +305,7 @@ class _DonateScreenState extends State<DonateScreen> {
                   value: value,
                   selected: _kahwas == value,
                   onTap: () {
+                    if (_isLoading) return;
                     setState(() => _kahwasController.text = value.toString());
                   },
                 ),
@@ -212,14 +320,24 @@ class _DonateScreenState extends State<DonateScreen> {
                 ChoiceChip(
                   label: Text(currency.code),
                   selected: _currency == currency,
-                  onSelected: (_) => setState(() => _currency = currency),
+                  onSelected: _isLoading
+                      ? null
+                      : (_) => setState(() => _currency = currency),
                 ),
             ],
           ),
+          if (_balance case final balance?) ...[
+            const SizedBox(height: 8),
+            Text(
+              'Your balance: ${_currency.format(balance.current(_currency))}',
+              style: const TextStyle(color: kGreyColor),
+            ),
+          ],
           const SizedBox(height: 24),
           InputText(
             controller: _messageController,
             hint: 'Add a nice message',
+            readOnly: _isLoading,
             maxLines: 5,
             textCapitalization: TextCapitalization.sentences,
           ),
@@ -228,7 +346,9 @@ class _DonateScreenState extends State<DonateScreen> {
             controlAffinity: ListTileControlAffinity.leading,
             title: const Text('Keep this support private'),
             value: _keepPrivate,
-            onChanged: (value) => setState(() => _keepPrivate = value ?? false),
+            onChanged: _isLoading
+                ? null
+                : (value) => setState(() => _keepPrivate = value ?? false),
           ),
           const SizedBox(height: 8),
           LoadingButton(

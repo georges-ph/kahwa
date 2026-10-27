@@ -220,8 +220,31 @@ void main() {
       });
 
       expect(pending.id, 'w1');
+      expect(pending.isPending, isTrue);
       expect(pending.isPaid, isFalse);
       expect(paid.isPaid, isTrue);
+      expect(paid.isPending, isFalse);
+    });
+
+    test('knows when an admin refused it', () {
+      final refused = Withdraw.fromMap({
+        'user_id': 'u1',
+        'usd': 5,
+        'status': 'refused',
+      });
+
+      expect(refused.isRefused, isTrue);
+      expect(refused.isPending, isFalse);
+      expect(refused.isPaid, isFalse);
+    });
+
+    test('describes the amounts asked for', () {
+      const both = Withdraw(userId: 'u1', lbp: 150000, usd: 5);
+      const usdOnly = Withdraw(userId: 'u1', lbp: 0, usd: 5);
+
+      expect(both.amountText, contains(' and '));
+      expect(both.amountText, contains('150,000'));
+      expect(usdOnly.amountText, isNot(contains(' and ')));
     });
   });
 }

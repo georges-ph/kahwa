@@ -17,7 +17,6 @@ class Donation {
     required this.kahwas,
     required this.currency,
     required this.total,
-    this.payFee = false,
     this.message = '',
     this.keepPrivate = false,
     this.timestamp,
@@ -33,7 +32,6 @@ class Donation {
   final int kahwas;
   final Currency currency;
   final num total;
-  final bool payFee;
   final String message;
   final bool keepPrivate;
   final DateTime? timestamp;
@@ -45,7 +43,6 @@ class Donation {
       'kahwa_price': kahwaPrice,
       'kahwas': kahwas,
       'currency': currency.name,
-      'pay_fee': payFee,
       'keep_private': keepPrivate,
       'total': total,
       'timestamp': FieldValue.serverTimestamp(),
@@ -71,7 +68,6 @@ class Donation {
       kahwas: (map['kahwas'] as num?)?.toInt() ?? 0,
       currency: Currency.fromName(map['currency']),
       total: map['total'] ?? 0,
-      payFee: map['pay_fee'] ?? false,
       message: map['message'] ?? '',
       keepPrivate: map['keep_private'] ?? false,
       timestamp: (map['timestamp'] as Timestamp?)?.toDate(),
@@ -88,7 +84,6 @@ class Donation {
       kahwas: kahwas,
       currency: currency,
       total: total,
-      payFee: payFee,
       message: details['message'] ?? '',
       keepPrivate: keepPrivate,
       timestamp: timestamp,

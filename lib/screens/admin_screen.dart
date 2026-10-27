@@ -5,7 +5,6 @@ import 'package:kahwa/core/responsive.dart';
 import 'package:kahwa/core/router.dart';
 import 'package:kahwa/data/admin_repository.dart';
 import 'package:kahwa/data/repositories.dart';
-import 'package:kahwa/models/currency.dart';
 import 'package:kahwa/models/top_up_request.dart';
 import 'package:kahwa/models/withdraw.dart';
 import 'package:kahwa/widgets/async_body.dart';
@@ -183,10 +182,7 @@ class _AdminScreenState extends State<AdminScreen> {
   Widget _buildWithdraw(AdminOverview overview, Withdraw withdraw) {
     final name = overview.users[withdraw.userId]?.name ?? 'Unknown user';
     final billing = overview.billingDetails[withdraw.userId];
-    final amount = [
-      if (withdraw.lbp > 0) Currency.lbp.format(withdraw.lbp),
-      if (withdraw.usd > 0) Currency.usd.format(withdraw.usd),
-    ].join(' and ');
+    final amount = withdraw.amountText;
     final fullName = '${billing?.firstName ?? ''} ${billing?.lastName ?? ''}'
         .trim();
 
@@ -203,6 +199,20 @@ class _AdminScreenState extends State<AdminScreen> {
         if (withdraw.timestamp != null) timeago.format(withdraw.timestamp!),
       ],
       actions: [
+        TextButton(
+          onPressed: _busy != null
+              ? null
+              : () => _decide(
+                  key: withdraw.id!,
+                  question:
+                      'Refuse the withdrawal of $amount for $name? Nothing '
+                      'leaves their balance and they can ask again.',
+                  confirm: 'Refuse',
+                  action: () => adminRepository.refuseWithdraw(withdraw),
+                  done: 'Refused',
+                ),
+          child: const Text('Refuse'),
+        ),
         ElevatedButton(
           onPressed: _busy != null
               ? null

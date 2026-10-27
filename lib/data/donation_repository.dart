@@ -6,6 +6,7 @@ import 'package:kahwa/models/balance.dart';
 import 'package:kahwa/models/donation.dart';
 import 'package:kahwa/models/goal.dart';
 import 'package:kahwa/models/kahwa_prices.dart';
+import 'package:kahwa/models/pending_kahwa.dart';
 
 class DonationRepository {
   DonationRepository(this._collections, this._users);
@@ -23,12 +24,13 @@ class DonationRepository {
     return _collections.kahwaPrices.doc(creatorId).set(prices.toMap());
   }
 
-  /// Donations received by [creatorId], newest first.
+  /// Donations received by [creatorId], newest first, without the profiles
+  /// of who made them: [withSupporters] loads those for the ones on screen.
   ///
   /// Everyone gets every donation. Who made a private one, and their message,
   /// are only filled in for the creator and for the supporter themselves.
   /// [viewerId] is null for a visitor who is not signed in.
-  Future<List<DonationSupporter>> getDonations({
+  Future<List<Donation>> getDonations({
     required String creatorId,
     required String? viewerId,
   }) async {
@@ -40,14 +42,20 @@ class DonationRepository {
       _getDetails(creatorId: creatorId, viewerId: viewerId),
     ).wait;
 
-    final donations = [
+    return [
       for (final doc in snapshot.docs)
         if (details[doc.id] case final detail?)
           Donation.fromMap(doc.data(), id: doc.id).withDetails(detail)
         else
           Donation.fromMap(doc.data(), id: doc.id),
     ];
+  }
 
+  /// [donations] with the profile of who made each one, when the viewer may
+  /// know it. Profiles cost a read each, so only pass the donations shown.
+  Future<List<DonationSupporter>> withSupporters(
+    Iterable<Donation> donations,
+  ) async {
     final supporters = await _users.getUsers(
       donations.map((d) => d.supporterId).nonNulls,
     );
@@ -60,6 +68,30 @@ class DonationRepository {
           supporter: byId[donation.supporterId],
         ),
     ];
+  }
+
+  /// The kahwa [userId] was buying when their balance ran short, if any.
+  Future<PendingKahwa?> getPending(String userId) async {
+    final document = await _collections.pendingKahwas.doc(userId).get();
+    final data = document.data();
+    return data == null ? null : PendingKahwa.fromMap(data);
+  }
+
+  /// Keeps [pending] for [userId] while they top up. Replaces an earlier one.
+  Future<void> savePending(String userId, PendingKahwa pending) async {
+    await _collections.pendingKahwas.doc(userId).set(pending.toMap());
+    notifyDataChanged();
+  }
+
+  Future<void> clearPending(String userId) async {
+    await _collections.pendingKahwas.doc(userId).delete();
+    notifyDataChanged();
+  }
+
+  /// Removes the message of a public donation from the page of its creator.
+  Future<void> removeMessage(String donationId) async {
+    await _collections.donations.doc(donationId).update({'message': ''});
+    notifyDataChanged();
   }
 
   /// Private details [viewerId] may read among the donations [creatorId]
