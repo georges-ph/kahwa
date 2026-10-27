@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:kahwa/app.dart';
 import 'package:kahwa/core/config.dart';
 import 'package:kahwa/firebase_options_dev.dart' as dev;
@@ -32,6 +33,9 @@ void main() async {
 
   if (!kIsWeb) {
     FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+    // Reads the Google client from the google-services.json of this build,
+    // which is of the same Firebase project as the options above.
+    await GoogleSignIn.instance.initialize();
   }
 
   runApp(const KahwaApp());

@@ -61,10 +61,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final user = await userRepository.getUser(authRepository.userId);
     if (user == null) throw StateError('User not found');
 
-    final account = authRepository.currentUser;
     _nameController.text = user.name;
     _usernameController.text = user.username ?? '';
-    _emailController.text = account?.email ?? '';
+    _emailController.text = authRepository.email ?? '';
     _aboutController.text = user.about ?? '';
     _websiteController.text = user.website ?? '';
     _color = user.color;
@@ -172,13 +171,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   textInputAction: TextInputAction.next,
                   onChanged: (_) => setState(() {}),
                 ),
-                const SizedBox(height: 24),
-                InputText(
-                  controller: _emailController,
-                  title: 'Email',
-                  icon: Icons.mail_rounded,
-                  readOnly: true,
-                ),
+                if (_emailController.text.isNotEmpty) ...[
+                  const SizedBox(height: 24),
+                  InputText(
+                    controller: _emailController,
+                    title: 'Email',
+                    icon: Icons.mail_rounded,
+                    readOnly: true,
+                  ),
+                ],
                 const SizedBox(height: 24),
                 InputText(
                   controller: _aboutController,

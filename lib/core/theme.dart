@@ -1,7 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:kahwa/core/colors.dart';
 
 const _fontFamily = 'Manrope';
+
+/// Dark status and navigation bar icons, since every page is white. The app
+/// bars are transparent, so they cannot work it out from their own color.
+const appOverlayStyle = SystemUiOverlayStyle(
+  statusBarColor: Colors.transparent,
+  statusBarIconBrightness: Brightness.dark,
+  statusBarBrightness: Brightness.light,
+  systemNavigationBarColor: kWhiteColor,
+  systemNavigationBarIconBrightness: Brightness.dark,
+);
 
 /// Theme of the app. Creator pages pass the color the creator picked as
 /// [primary] so the whole page takes their accent.
@@ -34,6 +45,7 @@ ThemeData appTheme({Color primary = kBrownColor}) {
     textTheme: textTheme,
     scaffoldBackgroundColor: kWhiteColor,
     appBarTheme: const AppBarTheme(
+      systemOverlayStyle: appOverlayStyle,
       backgroundColor: Colors.transparent,
       foregroundColor: kBlackColor,
       elevation: 0,

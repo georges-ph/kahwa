@@ -1,0 +1,15 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls",
+      "delegate_permission/common.get_login_creds"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "ga.jundbits.kahwa",
+      "sha256_cert_fingerprints": [
+        "40:B6:F4:B9:68:C6:8B:61:66:4C:9C:2A:EA:FB:89:5A:90:B8:33:86:C2:21:03:AD:28:DD:38:29:3A:9D:55:65"
+      ]
+    }
+  }
+]

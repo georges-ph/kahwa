@@ -1,0 +1,9 @@
+# Copy this file to android/key.properties (git-ignored) and fill in the
+# values of your release keystore. Never commit the real file: an app that is
+# already installed only accepts updates signed with the same key.
+# Without android/key.properties, release builds use the debug key.
+
+storePassword=YOUR_KEYSTORE_PASSWORD
+keyPassword=YOUR_KEY_PASSWORD
+keyAlias=YOUR_KEY_ALIAS
+storeFile=C:/path/to/your/keystore.jks

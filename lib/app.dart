@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kahwa/core/router.dart';
 import 'package:kahwa/core/theme.dart';
@@ -26,6 +27,13 @@ class _KahwaAppState extends State<KahwaApp> {
       title: 'kahwa',
       theme: appTheme(),
       routerConfig: _router,
+      // For the pages without an app bar, such as sign in.
+      builder: (context, child) {
+        return AnnotatedRegion<SystemUiOverlayStyle>(
+          value: appOverlayStyle,
+          child: child!,
+        );
+      },
     );
   }
 }

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The website this app shares saved sign ins with. Change the address
+         if the web app moves. -->
+    <string name="asset_statements" translatable="false">[{\"include\": \"https://shtrilekahwa.web.app/.well-known/assetlinks.json\"}]</string>
+</resources>

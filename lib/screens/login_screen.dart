@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:kahwa/core/feedback.dart';
 import 'package:kahwa/core/router.dart';
 import 'package:kahwa/data/repositories.dart';
@@ -31,6 +32,32 @@ class _LogInScreenState extends State<LogInScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _continueWithGoogle() async {
+    setState(() => _isLoading = true);
+    try {
+      // The router leaves this screen as soon as the user is signed in.
+      await authRepository.signInWithGoogle();
+    } on GoogleSignInException catch (e) {
+      if (e.code != GoogleSignInExceptionCode.canceled && mounted) {
+        showSnack(context, 'Google sign in error, please try again');
+      }
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      switch (e.code) {
+        case 'popup-closed-by-user' || 'cancelled-popup-request':
+          break;
+        case 'account-exists-with-different-credential':
+          showSnack(context, 'This email signs in with a password');
+        default:
+          showSnack(context, 'Google sign in error, please try again');
+      }
+    } catch (_) {
+      if (mounted) showSnack(context, 'Google sign in error, please try again');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   Future<void> _continue() async {
@@ -99,7 +126,12 @@ class _LogInScreenState extends State<LogInScreen> {
           errorText: _passwordError,
           obscureText: _isPasswordHidden,
           textInputAction: TextInputAction.done,
-          autofillHints: const [AutofillHints.password],
+          // The same screen signs in and creates accounts, so the password
+          // manager may offer a saved password or suggest a new strong one.
+          autofillHints: const [
+            AutofillHints.password,
+            AutofillHints.newPassword,
+          ],
           suffixIcon: _isPasswordHidden
               ? Icons.visibility_rounded
               : Icons.visibility_off_rounded,
@@ -121,6 +153,31 @@ class _LogInScreenState extends State<LogInScreen> {
           isLoading: _isLoading,
           onPressed: _continue,
         ),
+        const _Or(),
+        OutlinedButton.icon(
+          onPressed: _isLoading ? null : _continueWithGoogle,
+          icon: Image.asset('assets/google_logo.png', width: 20, height: 20),
+          label: const Text('Continue with Google'),
+        ),
+      ],
+    );
+  }
+}
+
+/// A thin line with "or" in the middle, between the two ways to sign in.
+class _Or extends StatelessWidget {
+  const _Or();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Row(
+      children: [
+        Expanded(child: Divider()),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 12),
+          child: Text('or'),
+        ),
+        Expanded(child: Divider()),
       ],
     );
   }
