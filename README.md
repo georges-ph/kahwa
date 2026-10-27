@@ -27,12 +27,15 @@ Firebase, and runs on Android and the web.
   Each page has its own address to share, with a username the creator picks.
 - **Kahwas** priced by the creator in LBP and USD, with an optional message.
   Supporters can keep their support private.
-- **Fans**: follow creators and find them again on your home screen.
+- **Fans**: find creators by name or username, follow them and find them
+  again on your home screen.
 - **Goals** in LBP or USD, with a progress bar that fills as kahwas come in.
 - **Balance**: top ups and withdrawals through Whish Money. A user sends the
-  money, confirms it in the app, and an admin approves the request.
+  money, confirms it in the app, and an admin approves the request. A
+  history shows every kahwa, top up and withdrawal.
 - **Admin screen** for the people running it: the total held for users and
   the top up and withdraw requests waiting for a decision.
+- **Sign in** with an email and a password, or with Google.
 - **Every screen size**: phone, tablet and desktop layouts.
 
 ## Status
@@ -48,7 +51,10 @@ and an admin checks them by hand.
 
 You need [Flutter](https://docs.flutter.dev/get-started/install) 3.41.5 and a
 [Firebase](https://console.firebase.google.com) project with Authentication
-(email and password) and Cloud Firestore enabled.
+(email and password, and Google) and Cloud Firestore enabled. For Google sign
+in, add the address of your site to the authorized domains of
+Authentication, and the SHA-1 fingerprint of your signing key to your
+Android app in the project settings.
 
 1. Clone the repository and install the dependencies:
 
@@ -129,6 +135,18 @@ it out by itself, so it only matters for Android builds.
 A release build talks to the production project. To put a build that stays
 on the development project on a test site, add
 `--dart-define=FIREBASE_ENV=dev`.
+
+### Android release builds
+
+Copy `android/key.properties.example` to `android/key.properties` and fill
+in your release keystore. Without it, release builds are signed with the
+debug key.
+
+The Android app and the website share saved passwords through
+[`web/.well-known/assetlinks.json`](web/.well-known/assetlinks.json) and
+`asset_statements` in `android/app/src/main/res/values/strings.xml`. If you
+build your own, put your package name, the SHA-256 fingerprint of your key
+and the address of your site in those two files.
 
 The landing page in [`landing/`](landing) is deployed to GitHub Pages by the
 `Landing page` workflow whenever it changes.

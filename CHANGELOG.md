@@ -5,6 +5,51 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Search for creators by name or username on the home screen.
+- Google sign in, on the web and on Android.
+- A "Set up your page" checklist on the home screen for new creators.
+- A QR code and a copy button to share a creator page.
+- A history of everything that moved the balance: kahwas bought and
+  received, top ups and withdrawals.
+- Withdraw requests show their status and can be cancelled while they wait.
+  An admin can refuse one.
+- Creators can remove a message from their page.
+- When the balance is too low to buy a kahwa, the app offers to top up
+  exactly what is missing and keeps the kahwa until the top up is approved.
+- A picture and a short text when a kahwa link is shared.
+- The buy screen shows the balance in the chosen currency and asks for
+  confirmation before buying.
+
+### Changed
+
+- One withdraw request can wait at a time, and billing details are needed
+  before sending one.
+- The creator page loads its supporters ten at a time.
+
+### Removed
+
+- Firebase Analytics, In-App Messaging and Performance Monitoring, which the
+  app did not use.
+
+### Fixed
+
+- The Android app is signed with the release key, not the debug key.
+- Status bar icons on Android are dark, so they show on the white pages.
+- The password field lets the password manager suggest a strong password.
+- The password manager treats the Android app and the website as the same
+  app and shares saved sign ins between them.
+- After a first sign in, the home screen shows the new account's checklist
+  without a refresh.
+- Logging out happens at once.
+- The profile shows the email of accounts made with Google.
+- Saving a form scrolls to the first field with an error.
+- Switching currency while buying could show the price in the wrong
+  currency.
+
 ## [2.0.0] - 2026-10-13
 
 ### Added
@@ -95,5 +140,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Balance, billing details and withdraw requests through Whish Money.
 - Android and web apps.
 
+[Unreleased]: https://github.com/georges-ph/kahwa/compare/v2.0.0...HEAD
 [2.0.0]: https://github.com/georges-ph/kahwa/releases/tag/v2.0.0
 [1.0.0]: https://github.com/georges-ph/kahwa/tree/49c7765
