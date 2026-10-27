@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kahwa/data/repositories.dart';
+import 'package:kahwa/models/currency.dart';
 import 'package:kahwa/screens/admin_screen.dart';
 import 'package:kahwa/screens/balance_screen.dart';
 import 'package:kahwa/screens/billing_details_screen.dart';
@@ -11,6 +12,7 @@ import 'package:kahwa/screens/donate_screen.dart';
 import 'package:kahwa/screens/fans_supporters_screen.dart';
 import 'package:kahwa/screens/forgot_password_screen.dart';
 import 'package:kahwa/screens/goal_screen.dart';
+import 'package:kahwa/screens/history_screen.dart';
 import 'package:kahwa/screens/home_screen.dart';
 import 'package:kahwa/screens/top_up_screen.dart';
 import 'package:kahwa/screens/username_screen.dart';
@@ -30,12 +32,22 @@ abstract final class Routes {
   static const kahwaPrice = '/settings/kahwa-price';
   static const balance = '/settings/balance';
   static const requestWithdraw = '/settings/balance/withdraw';
+  static const history = '/settings/balance/history';
   static const topUp = '/settings/balance/top-up';
   static const admin = '/settings/admin';
   static const billingDetails = '/settings/billing-details';
 
   static String creator(String id) => '/c/$id';
   static String donate(String id) => '/c/$id/donate';
+
+  /// The top up screen, filled in with [amount] in [currency].
+  static String topUpOf(int amount, Currency currency) {
+    return Uri(
+      path: topUp,
+      queryParameters: {'amount': '$amount', 'currency': currency.name},
+    ).toString();
+  }
+
   static String fans(String id) => '/c/$id/fans';
   static String supporters(String id) => '/c/$id/supporters';
 
@@ -59,7 +71,10 @@ const _fromParameter = 'from';
 
 GoRouter createRouter() {
   return GoRouter(
-    refreshListenable: _StreamListenable(authRepository.authStateChanges),
+    refreshListenable: Listenable.merge([
+      _StreamListenable(authRepository.authStateChanges),
+      authRepository.isSigningIn,
+    ]),
     redirect: (context, state) {
       final isSignedIn = authRepository.currentUser != null;
       final isAuthRoute = Routes._auth.contains(state.matchedLocation);
@@ -73,6 +88,8 @@ GoRouter createRouter() {
         ).toString();
       }
       if (isAuthRoute) {
+        // Stay until the new user's documents exist.
+        if (authRepository.isSigningIn.value) return null;
         return state.uri.queryParameters[_fromParameter] ?? Routes.home;
       }
       return null;
@@ -142,7 +159,19 @@ GoRouter createRouter() {
               ),
               GoRoute(
                 path: 'top-up',
-                builder: (context, state) => const TopUpScreen(),
+                builder: (context, state) {
+                  final query = state.uri.queryParameters;
+                  return TopUpScreen(
+                    amount: int.tryParse(query['amount'] ?? ''),
+                    currency: Currency.values
+                        .where((c) => c.name == query['currency'])
+                        .firstOrNull,
+                  );
+                },
+              ),
+              GoRoute(
+                path: 'history',
+                builder: (context, state) => const HistoryScreen(),
               ),
             ],
           ),

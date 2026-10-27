@@ -16,30 +16,51 @@ import 'package:kahwa/widgets/async_body.dart';
 import 'package:kahwa/widgets/creator_counter_card.dart';
 import 'package:kahwa/widgets/goal_card.dart';
 import 'package:kahwa/widgets/page_body.dart';
+import 'package:kahwa/widgets/page_link_dialog.dart';
 import 'package:kahwa/widgets/supporter_card.dart';
 import 'package:kahwa/widgets/user_avatar.dart';
 import 'package:readmore/readmore.dart';
-import 'package:share_plus/share_plus.dart';
 
 /// Everything shown on the page of a creator.
 class _CreatorPage {
-  _CreatorPage({required this.creator, this.goal, required this.donations});
+  _CreatorPage({
+    required this.creator,
+    this.goal,
+    required this.donations,
+    required this.shown,
+  });
 
   final AppUser creator;
   final Goal? goal;
-  final List<DonationSupporter> donations;
+
+  /// Every donation the creator received, to count them.
+  final List<Donation> donations;
+
+  /// The newest donations with who made them, as many as are on screen.
+  final List<DonationSupporter> shown;
+
+  bool get hasMore => shown.length < donations.length;
 
   /// People who supported the creator. Private donations the viewer cannot
   /// see into count as one supporter each.
   late final int supporters = () {
-    final ids = donations.map((item) => item.donation.supporterId);
+    final ids = donations.map((donation) => donation.supporterId);
     return ids.nonNulls.toSet().length + ids.where((id) => id == null).length;
   }();
 
   late final int kahwas = donations.fold(
     0,
-    (sum, item) => sum + item.donation.kahwas,
+    (sum, donation) => sum + donation.kahwas,
   );
+
+  _CreatorPage copyWith({AppUser? creator, List<DonationSupporter>? shown}) {
+    return _CreatorPage(
+      creator: creator ?? this.creator,
+      goal: goal,
+      donations: donations,
+      shown: shown ?? this.shown,
+    );
+  }
 }
 
 class CreatorScreen extends StatefulWidget {
@@ -52,7 +73,11 @@ class CreatorScreen extends StatefulWidget {
 }
 
 class _CreatorScreenState extends State<CreatorScreen> {
+  /// Supporters shown at first, and added by each "Show more".
+  static const _pageSize = 10;
+
   late Future<_CreatorPage> _page;
+  bool _isLoadingMore = false;
 
   /// Null for visitors who are not signed in.
   String? get _userId => authRepository.currentUser?.uid;
@@ -92,7 +117,15 @@ class _CreatorScreenState extends State<CreatorScreen> {
     ).wait;
 
     if (creator == null) throw StateError('Creator not found');
-    return _CreatorPage(creator: creator, goal: goal, donations: donations);
+    final shown = await donationRepository.withSupporters(
+      donations.take(_pageSize),
+    );
+    return _CreatorPage(
+      creator: creator,
+      goal: goal,
+      donations: donations,
+      shown: shown,
+    );
   }
 
   void _reload() {
@@ -129,11 +162,7 @@ class _CreatorScreenState extends State<CreatorScreen> {
 
     setState(() {
       _page = SynchronousFuture(
-        _CreatorPage(
-          creator: creator.copyWith(fans: fans),
-          goal: page.goal,
-          donations: page.donations,
-        ),
+        page.copyWith(creator: creator.copyWith(fans: fans)),
       );
     });
     try {
@@ -158,12 +187,10 @@ class _CreatorScreenState extends State<CreatorScreen> {
         return null;
       },
     );
-    await SharePlus.instance.share(
-      ShareParams(
-        uri: Uri.parse(
-          AppConfig.creatorLink(id: widget.creatorId, username: username),
-        ),
-      ),
+    if (!mounted) return;
+    await showPageLink(
+      context,
+      link: AppConfig.creatorLink(id: widget.creatorId, username: username),
     );
   }
 
@@ -372,19 +399,87 @@ class _CreatorScreenState extends State<CreatorScreen> {
   }
 
   Widget _buildSupporters(_CreatorPage page) {
-    if (page.donations.isEmpty) return const SizedBox.shrink();
+    if (page.shown.isEmpty) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SectionTitle('Recent Supporters'),
         const SizedBox(height: 16),
-        for (final donation in page.donations) ...[
-          SupporterCard(donationSupporter: donation),
+        for (final donation in page.shown) ...[
+          SupporterCard(
+            donationSupporter: donation,
+            // Private messages are only seen by the creator and the
+            // supporter, so only public ones can be removed.
+            onRemoveMessage: _isOwner && !donation.donation.keepPrivate
+                ? () => _removeMessage(donation.donation)
+                : null,
+          ),
           const SizedBox(height: 12),
         ],
+        if (page.hasMore)
+          Center(
+            child: _isLoadingMore
+                ? const CircularProgressIndicator()
+                : TextButton(
+                    onPressed: () => _showMore(page),
+                    child: const Text('Show more'),
+                  ),
+          ),
       ],
     );
+  }
+
+  Future<void> _removeMessage(Donation donation) async {
+    final id = donation.id;
+    if (id == null) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Remove this message?'),
+        content: Text(
+          '"${donation.message}" will no longer show on your page. This cannot '
+          'be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Remove'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    try {
+      await donationRepository.removeMessage(id);
+    } catch (_) {
+      if (mounted) showSnack(context, 'Could not remove it, try again');
+    }
+  }
+
+  /// Adds the next supporters to the list.
+  Future<void> _showMore(_CreatorPage page) async {
+    setState(() => _isLoadingMore = true);
+    try {
+      final more = await donationRepository.withSupporters(
+        page.donations.skip(page.shown.length).take(_pageSize),
+      );
+      if (!mounted) return;
+      setState(() {
+        _page = SynchronousFuture(
+          page.copyWith(shown: [...page.shown, ...more]),
+        );
+      });
+    } catch (_) {
+      if (mounted) showSnack(context, 'Could not load more, try again');
+    } finally {
+      if (mounted) setState(() => _isLoadingMore = false);
+    }
   }
 }
 

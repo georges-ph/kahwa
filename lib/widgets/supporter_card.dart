@@ -6,9 +6,16 @@ import 'package:timeago/timeago.dart' as timeago;
 /// A donation on the page of a creator. Private donations show up as made by
 /// "Someone" and without their message.
 class SupporterCard extends StatelessWidget {
-  const SupporterCard({super.key, required this.donationSupporter});
+  const SupporterCard({
+    super.key,
+    required this.donationSupporter,
+    this.onRemoveMessage,
+  });
 
   final DonationSupporter donationSupporter;
+
+  /// Shows a button to remove the message, for the creator of the page.
+  final VoidCallback? onRemoveMessage;
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +50,18 @@ class SupporterCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: accent.withValues(alpha: 0.3)),
               ),
-              child: Text(message),
+              child: Row(
+                children: [
+                  Expanded(child: Text(message)),
+                  if (onRemoveMessage != null)
+                    IconButton(
+                      onPressed: onRemoveMessage,
+                      tooltip: 'Remove this message',
+                      visualDensity: VisualDensity.compact,
+                      icon: const Icon(Icons.close_rounded, size: 18),
+                    ),
+                ],
+              ),
             ),
         ],
       ),

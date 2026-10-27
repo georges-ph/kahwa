@@ -23,6 +23,13 @@ class UserRepository {
     return [for (final id in ids) ?byId[id]];
   }
 
+  /// Every creator, to search through. There are few, so the search itself
+  /// happens on the device.
+  Future<List<AppUser>> getCreators() async {
+    final query = await _collections.users.limit(500).get();
+    return [for (final doc in query.docs) AppUser.fromMap(doc.data())];
+  }
+
   Future<List<AppUser>> getCreatorsFollowedBy(String userId) async {
     final query = await _collections.users
         .where('fans', arrayContains: userId)

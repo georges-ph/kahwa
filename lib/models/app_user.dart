@@ -27,6 +27,16 @@ class AppUser {
 
   bool hasFan(String userId) => fans.contains(userId);
 
+  /// Whether [query] is part of the name or the username, ignoring case and
+  /// a leading @.
+  bool matches(String query) {
+    var text = query.trim().toLowerCase();
+    if (text.startsWith('@')) text = text.substring(1);
+    if (text.isEmpty) return false;
+    return name.toLowerCase().contains(text) ||
+        (username?.contains(text) ?? false);
+  }
+
   AppUser copyWith({
     String? name,
     String? image,

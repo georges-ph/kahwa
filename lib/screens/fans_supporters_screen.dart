@@ -48,11 +48,10 @@ class _FansSupportersScreenState extends State<FansSupportersScreen> {
           creatorId: widget.creatorId,
           viewerId: userId,
         );
-        final supporters = <String, AppUser>{
-          for (final item in donations)
-            if (item.supporter != null) item.supporter!.id: item.supporter!,
-        };
-        return supporters.values.toList();
+        // Newest first, each supporter once.
+        return userRepository.getUsers(
+          donations.map((d) => d.supporterId).nonNulls.toSet(),
+        );
     }
   }
 

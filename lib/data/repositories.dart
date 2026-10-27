@@ -6,6 +6,7 @@ import 'package:kahwa/data/balance_repository.dart';
 import 'package:kahwa/data/collections.dart';
 import 'package:kahwa/data/donation_repository.dart';
 import 'package:kahwa/data/goal_repository.dart';
+import 'package:kahwa/data/history_repository.dart';
 import 'package:kahwa/data/user_repository.dart';
 
 // The single instances screens talk to. They are created on first use, which
@@ -24,3 +25,5 @@ final donationRepository = DonationRepository(_collections, userRepository);
 final balanceRepository = BalanceRepository(_collections);
 
 final adminRepository = AdminRepository(_collections, userRepository);
+
+final historyRepository = HistoryRepository(_collections, userRepository);
