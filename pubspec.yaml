@@ -1,7 +1,7 @@
 name: kahwa
 description: "Buy your favorite Lebanese creators a kahwa."
 publish_to: 'none'
-version: 2.1.0+3
+version: 3.0.0+4
 
 environment:
   sdk: ^3.11.0
@@ -9,34 +9,45 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
   flutter_web_plugins:
     sdk: flutter
-  cloud_firestore: ^6.10.0
-  firebase_auth: ^6.7.0
-  firebase_core: ^4.15.0
-  firebase_crashlytics: ^5.4.0
-  flutter_svg: ^2.0.10+1
+  cloud_firestore: ^7.1.0
+  firebase_auth: ^7.0.1
+  firebase_core: ^5.1.0
+  firebase_crashlytics: ^6.0.1
+  fl_chart: ^1.1.1
+  flutter_riverpod: ^2.6.1
+  font_awesome_flutter: ^10.12.0
   go_router: ^17.5.0
   google_sign_in: ^7.2.0
-  intl: ^0.20.3
-  readmore: ^3.0.0
+  intl: any
+  qr_flutter: ^4.1.0
   share_plus: ^13.3.1
+  shared_preferences: ^2.5.5
   timeago: ^3.7.0
   url_launcher: ^6.3.0
-  qr_flutter: ^4.1.0
+  device_info_plus: ^13.3.0
+  image_picker: ^1.2.4
+  web: ^1.1.1
+  zxing2: ^0.2.4
+  image: ^4.12.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
-  fake_cloud_firestore: ^4.3.0
-  firebase_auth_mocks: ^0.15.2
+  fake_cloud_firestore: ^4.5.0
+  firebase_auth_mocks: ^0.16.0
 
 flutter:
   uses-material-design: true
+  generate: true
   assets:
     - assets/
   # Bundled so the web app does not wait on a font download to look right.
+  # IBM Plex Sans Arabic covers the Arabic letters Manrope does not have.
   fonts:
     - family: Manrope
       fonts:
@@ -50,3 +61,13 @@ flutter:
           weight: 700
         - asset: assets/fonts/Manrope-800.ttf
           weight: 800
+    - family: PlexArabic
+      fonts:
+        - asset: assets/fonts/IBMPlexSansArabic-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/IBMPlexSansArabic-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/IBMPlexSansArabic-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/IBMPlexSansArabic-Bold.ttf
+          weight: 700
