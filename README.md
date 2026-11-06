@@ -60,7 +60,8 @@ web, and speaks English, French and Arabic.
 ## Status
 
 Version 3.0.0, a rewrite of the whole app: the web app is live, and the
-Android app is on the [releases page](https://github.com/georges-ph/kahwa/releases/latest).
+Android app is a [direct download](https://github.com/georges-ph/kahwa/releases/latest/download/kahwa.apk)
+from the latest release.
 It is a working project rather than a live service. Money moves between balances inside the app, and the
 security rules only let a balance change in four ways: by the total of a
 kahwa or a membership month paid in the same transaction, by an admin
