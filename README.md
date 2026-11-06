@@ -2,14 +2,15 @@
 
 [![CI](https://github.com/georges-ph/kahwa/actions/workflows/ci.yml/badge.svg)](https://github.com/georges-ph/kahwa/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/georges-ph/kahwa)](https://github.com/georges-ph/kahwa/releases)
-[![License](https://img.shields.io/github/license/georges-ph/kahwa)](LICENSE)
+[![License](https://img.shields.io/badge/license-PolyForm%20Noncommercial-blue)](LICENSE)
 
 Buy your favorite Lebanese creators a kahwa.
 
 kahwa is a Lebanese take on Ko-fi and Buy Me a Coffee. Creators get a page of
-their own, fans support them one kahwa at a time in LBP or USD, and creators
-withdraw what they receive through Whish Money. It is built with Flutter and
-Firebase, and runs on Android and the web.
+their own, fans support them one kahwa at a time or with a monthly
+membership, in LBP or USD, and creators withdraw what they receive through
+Whish Money. It is built with Flutter and Firebase, runs on Android and the
+web, and speaks English, French and Arabic.
 
 **[Landing page](https://georges-ph.github.io/kahwa/)**
 
@@ -23,29 +24,53 @@ Firebase, and runs on Android and the web.
 
 ## Features
 
-- **Creator pages** with an about text, a website and one of six page colors.
-  Each page has its own address to share, with a username the creator picks.
-- **Kahwas** priced by the creator in LBP and USD, with an optional message.
-  Supporters can keep their support private.
-- **Fans**: find creators by name or username, follow them and find them
-  again on your home screen.
+- **Creator pages** with a banner in one of twelve colors and six patterns,
+  an emoji avatar, a tagline, an about text, a category and up to eight
+  links. Each page has its own address and QR code to share, with a username
+  the creator picks.
+- **Kahwas** priced by the creator in LBP and USD, with an optional message
+  the creator can answer. Supporters can keep their support private.
+- **Memberships**: up to three monthly tiers per page. Members are charged
+  from their balance every 30 days, when they open the app (kahwa has no
+  server), and see members-only posts.
+- **Posts** on the page, public or for members only, and a feed of the
+  creators you are a fan of on the home screen.
+- **Activity**: an inbox in the app for kahwas, new members, fans, replies,
+  top ups and withdrawals. No push notifications, which would need a server.
+- **Explore**: every creator, by category, with search and sorting.
 - **Goals** in LBP or USD, with a progress bar that fills as kahwas come in.
+- **Stats** for creators: kahwas over time, top supporters and members.
 - **Balance**: top ups and withdrawals through Whish Money. A user sends the
   money, confirms it in the app, and an admin approves the request. A
   history shows every kahwa, top up and withdrawal.
-- **Admin screen** for the people running it: the total held for users and
-  the top up and withdraw requests waiting for a decision.
-- **Sign in** with an email and a password, or with Google.
-- **Every screen size**: phone, tablet and desktop layouts.
+- **Paid straight to WHISH**: a creator can also take kahwas on their own
+  WHISH account, set up from a screenshot of their Whish Me QR code. They
+  confirm each payment before it counts.
+- **Admin screen** for the people running it: the total held for users, the
+  top up and withdraw requests waiting for a decision, every user's money,
+  balance corrections with a written reason, and a log of who did what.
+- **Account security** without a server: money only moves once the email is
+  verified (Google accounts are), a password change, and a list of signed in
+  devices that can each be signed out.
+- **Sign in** with an email and a password, or with Google, then a short
+  first setup.
+- **English, French and Arabic**, light and dark, on phone, tablet and
+  desktop.
 
 ## Status
 
-Version 2.0.0. The app is a working project rather than a live service. Money
-moves between balances inside the app, and the security rules only let a
-balance change in three ways: by the total of a donation made in the same
-transaction, or by an admin approving a top up or a withdraw request of that
-user. The transfers themselves happen outside the app, through Whish Money,
-and an admin checks them by hand.
+Version 3.0.0, a rewrite of the whole app: the web app is live, and the
+Android app is on the [releases page](https://github.com/georges-ph/kahwa/releases/latest).
+It is a working project rather than a live service. Money moves between balances inside the app, and the
+security rules only let a balance change in four ways: by the total of a
+kahwa or a membership month paid in the same transaction, by an admin
+approving a top up or a withdraw request of that user, or by an admin
+correction that keeps its reason. The transfers
+themselves happen outside the app, through Whish Money, and an admin checks
+them by hand.
+
+kahwa 3 keeps its data under `kahwa/AppData` in Firestore. kahwa 2 used
+`kahwa/AppCollections`, and its data is not carried over.
 
 ## Setup
 
@@ -85,7 +110,7 @@ Android app in the project settings.
 3. Add the security rules. The Firestore rules the app expects are in
    [`docs/firestore.rules`](docs/firestore.rules).
 
-4. In the Firebase console, under `kahwa/AppCollections` in Firestore:
+4. In the Firebase console, under `kahwa/AppData` in Firestore:
 
    - create `Config/top_up` with the text inside your "Whish Me" QR codes
      (`https://whish.money/pay/...` links): `whish_qr_lbp` for the code of
@@ -110,14 +135,33 @@ Android app in the project settings.
 
 To work without touching a real Firebase project, start the
 [Firebase emulators](https://firebase.google.com/docs/emulator-suite) and tell
-the app to use them. The emulators need Java.
+the app to use them. The emulators need Java and enforce the rules in
+`docs/firestore.rules`.
 
 ```sh
-firebase emulators:start --config firebase.emulators.json --import local_data --export-on-exit
+firebase emulators:start --only auth,firestore --config firebase.emulators.json --import local_data --export-on-exit
 flutter run -d chrome --dart-define=USE_EMULATORS=true
 ```
 
-On the web, reloading the page signs you out while using the emulators.
+On the web, reloading the page signs you out while using the emulators. A
+build made for the emulators never holds the production configuration. If
+the emulators answer elsewhere, set `EMULATOR_HOST` (`10.0.2.2` from an Android
+emulator), `AUTH_EMULATOR_PORT` and `FIRESTORE_EMULATOR_PORT` with
+`--dart-define`.
+
+To try the whole app with demo data in one go, on Windows:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tool\try_local.ps1
+```
+
+It builds the web app, starts the emulators in a new window, fills them with
+[`tool/seed_emulators.mjs`](tool/seed_emulators.mjs) and opens
+http://localhost:5000. Sign in as `nour@example.com` / `kahwa-demo-1` (a
+creator with a page, posts and memberships, and an admin) or
+`sami@example.com` / `kahwa-demo-2` (a supporter with a balance), or with
+any other email to start a new account. Close the emulators window to stop;
+the data goes with it.
 
 ### Deploying the web app
 
@@ -134,7 +178,9 @@ it out by itself, so it only matters for Android builds.
 
 A release build talks to the production project. To put a build that stays
 on the development project on a test site, add
-`--dart-define=FIREBASE_ENV=dev`.
+`--dart-define=FIREBASE_ENV=dev`. The same works for Android:
+`flutter build apk --release --dart-define=FIREBASE_ENV=dev` builds a full
+speed "kahwa dev", signed with the debug key.
 
 ### Android release builds
 
@@ -156,13 +202,18 @@ The landing page in [`landing/`](landing) is deployed to GitHub Pages by the
 ```
 lib/
   main.dart        Firebase setup and app start
-  app.dart         MaterialApp and router
-  core/            theme, routes, breakpoints, small helpers
+  app.dart         MaterialApp, theme and language
+  router.dart      every address of the app
+  core/            config, money, usernames, text helpers
   models/          plain data classes that map to Firestore documents
   data/            repositories, the only code that talks to Firebase
-  screens/         one file per screen
-  widgets/         pieces shared between screens
+  state/           Riverpod providers and saved settings
+  features/        screens, one folder per part of the app
+  ui/              pieces shared between screens
+  theme/           colors and the Material theme
+  l10n/            English, French and Arabic strings
 test/              unit and widget tests
+tool/              local demo with the emulators
 landing/           landing page (GitHub Pages)
 ```
 
@@ -172,4 +223,7 @@ Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
-[MIT](LICENSE)
+[PolyForm Noncommercial 1.0.0](LICENSE): free to use, change and share for
+any non-commercial purpose, keeping the copyright notice. Selling kahwa or
+using it commercially, including a fork or copy, is not allowed. Releases up
+to 2.0.0 were published under the MIT license.

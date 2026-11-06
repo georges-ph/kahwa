@@ -21,9 +21,11 @@ You do not need a real Firebase project to work on most things. The
 1. Create a branch from `main`.
 2. Keep the change focused. One fix or feature per pull request.
 3. Follow the structure of the code: models hold data, repositories in
-   `lib/data` are the only place that talks to Firebase, screens and widgets
-   build the interface.
-4. Check any screen you touch at phone, tablet and desktop widths.
+   `lib/data` are the only place that talks to Firebase, screens in
+   `lib/features` and shared pieces in `lib/ui` build the interface. Text
+   users see goes in `lib/l10n/app_en.arb`, `app_fr.arb` and `app_ar.arb`.
+4. Check any screen you touch at phone, tablet and desktop widths, in light
+   and dark, and in Arabic.
 5. Before pushing, run the same checks as CI:
 
    ```sh

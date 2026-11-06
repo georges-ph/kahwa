@@ -7,6 +7,91 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-11-06
+
+kahwa 3.0.0, a rewrite of the whole app with a new look and new features.
+Its data lives apart from kahwa 2's, so accounts start over with an empty
+page and balance.
+
+### Added
+
+- Monthly memberships: a creator offers up to three tiers, each a number of
+  kahwas a month with its perks. Members pay from their balance every 30
+  days, charged when they open the app, and can switch tier, cancel and
+  come back.
+- Posts on a creator page, for everyone or for members only, with likes,
+  and a feed of the creators you are a fan of on the home screen.
+- Activity, an inbox in the app: kahwas, new members and fans, replies, top
+  ups and withdrawals, with an unread count. No push notifications.
+- Explore: every creator, by category, with search and sorting.
+- A first setup after signing up: a name, a username, a look, and whether
+  you make things or are here to support.
+- Pages get a banner in one of twelve colors and six patterns, an emoji
+  avatar, a tagline, a category and up to eight links with their icons.
+- Creators can answer a message, and set a thank-you note shown after a
+  purchase.
+- Stats for creators: kahwas over time, what came in per currency, top
+  supporters and members.
+- A list of supporters and members, and a list of your own memberships.
+- French and Arabic next to English, Arabic right to left with its own font,
+  and a choice of language in the settings and on the welcome page.
+- The email of an account can be changed in the settings, through a link sent
+  to the new address.
+- A dark mode, which follows the device or can be picked in the settings.
+- Account security without a server: money only moves once the email is
+  verified (link sent at sign up, sent again on request; Google accounts
+  count as verified), a password change in the app, and a list of signed in
+  devices that can each be signed out, even while closed.
+- Creators can be paid straight to their own WHISH account, set up from a
+  screenshot of their Whish Me QR code. The supporter says what they sent,
+  the creator confirms it from the balance page, and only then do the kahwas
+  count. Paying from the kahwa balance still works.
+- Admins can look up any user's money (balance, history, memberships, last
+  top up) and correct a balance with a written reason. Each correction is
+  kept for good, in the user's history and an admin log that also shows who
+  answered each top up and withdrawal.
+- An intro on the first start of the app, in place of the website-like
+  welcome page.
+- A demo on the local Firebase emulators, `tool/try_local.ps1`, with two
+  ready accounts.
+
+### Changed
+
+- License: PolyForm Noncommercial 1.0.0 instead of MIT. kahwa stays free to
+  use, change and share for non-commercial purposes, but may not be sold or
+  used commercially.
+- A new design: a colored banner on every page, tabs for the wall, posts,
+  memberships and about, and Home, Explore, Activity and Me tabs.
+- The buy screen offers one time kahwas or a monthly membership, says what
+  each one gives, and will not charge a month already paid.
+- Amount fields mark thousands as you type and always show their currency.
+- A goal's currency can change until the first kahwa counts towards it.
+- A post can be switched between members only and everyone when editing it.
+- Sign out and feedback are in the settings only.
+- Pages read their data when they open, when the app comes back to the
+  front and on pull to refresh, instead of listening for every change, which
+  keeps Firestore reads low.
+- On wide screens, forms show a live preview beside them (page, goal, post),
+  and the admin screens use the full width.
+- Money history and requests show the time as well as the date.
+- Back on another tab goes to Home first, then leaves the app.
+- Messages and posts written in English read left to right in the Arabic
+  app, and the other way round.
+- New Firestore layout under `kahwa/AppData`, with its own security rules.
+- Firebase packages updated (Firebase JS SDK 13, Android BoM 35) with
+  Kotlin 2.3.20.
+- A build made for the local emulators never holds the production Firebase
+  configuration.
+
+### Removed
+
+- kahwa 2 data (`kahwa/AppCollections`) is not read anymore.
+
+## [2.1.0] - not released
+
+Committed on 2026-10-27 and not released: production runs 2.0.0. These
+changes are also part of the 3.0 rewrite above.
+
 ### Added
 
 - Search for creators by name or username on the home screen.
@@ -140,6 +225,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Balance, billing details and withdraw requests through Whish Money.
 - Android and web apps.
 
-[Unreleased]: https://github.com/georges-ph/kahwa/compare/v2.0.0...HEAD
+[Unreleased]: https://github.com/georges-ph/kahwa/compare/v3.0.0...HEAD
+[3.0.0]: https://github.com/georges-ph/kahwa/releases/tag/v3.0.0
+[2.1.0]: https://github.com/georges-ph/kahwa/commit/4e36144
 [2.0.0]: https://github.com/georges-ph/kahwa/releases/tag/v2.0.0
 [1.0.0]: https://github.com/georges-ph/kahwa/tree/49c7765

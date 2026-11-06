@@ -150,6 +150,7 @@
     .button.light { background: #ffffff; color: #630913; }
     .button.ghost { border-color: rgba(255, 255, 255, 0.6); color: var(--on-brown); }
     .button.solid { background: var(--brown); color: var(--on-brown); }
+    .button.outline { border-color: var(--brown); color: var(--brown); }
 
     .phone {
       justify-self: center;
@@ -210,7 +211,7 @@
 
     .features > div { display: grid; gap: 6px; align-content: start; min-width: 0; }
 
-    .swatches { display: flex; gap: 8px; margin-top: 6px; }
+    .swatches { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
     .swatches span { width: 22px; height: 22px; border-radius: 50%; }
 
     .screens { background: var(--brown-soft); }
@@ -263,7 +264,7 @@
       <div class="hero-grid">
         <div class="hero-copy">
           <h1>Buy your favorite creators a kahwa.</h1>
-          <p>kahwa lets people in Lebanon support the creators they love, one kahwa at a time, in LBP or USD.</p>
+          <p>kahwa lets people in Lebanon support the creators they love: one kahwa at a time or every month, in LBP or USD.</p>
           <div class="actions">
             <a class="button light" href="https://shtrilekahwa.web.app">Open the app</a>
             <a class="button ghost" href="#how-it-works">How it works</a>
@@ -271,7 +272,7 @@
         </div>
 
         <img class="phone" src="screenshots/phone-creator.png" width="390" height="844"
-          alt="A creator page in the kahwa app: the creator's initials on their color, fans and supporters counters, a Buy a kahwa button and a goal with its progress.">
+          alt="A creator page in the kahwa app: a colored banner, the creator's avatar and links, kahwas, supporters and fans counters, a Buy a kahwa button and tabs for the wall, posts, memberships and about.">
       </div>
     </div>
   </header>
@@ -286,15 +287,15 @@
         <ol class="steps">
           <li>
             <h3>Create your page</h3>
-            <p>Sign up, add a few words about what you make, pick your color and set the price of a kahwa.</p>
+            <p>Sign up, pick a name, an avatar and a color, say what you make and set the price of a kahwa. It takes two minutes.</p>
           </li>
           <li>
             <h3>Share your link</h3>
-            <p>Every creator gets a page with its own address. Post it wherever your audience already follows you.</p>
+            <p>Every creator gets a page at their own address, with a QR code. Post it wherever your audience already follows you.</p>
           </li>
           <li>
             <h3>Get supported</h3>
-            <p>Fans buy you kahwas and leave a message. Withdraw what you receive through Whish Money.</p>
+            <p>Fans buy you kahwas, leave a message or join a monthly membership. Withdraw what you receive through Whish Money, or get paid straight to your own WHISH account.</p>
           </li>
         </ol>
       </div>
@@ -307,27 +308,41 @@
         </div>
         <div class="features">
           <div>
+            <h3>Memberships</h3>
+            <p>Offer up to three monthly tiers with their own perks. Members are charged from their balance every 30 days.</p>
+          </div>
+          <div>
+            <h3>Posts</h3>
+            <p>Share updates on your page, for everyone or for members only. Your fans see them on their home screen.</p>
+          </div>
+          <div>
             <h3>LBP and USD</h3>
-            <p>Set a price per kahwa in both currencies. Supporters pay in the one they prefer.</p>
+            <p>Set a price per kahwa in both currencies. Supporters pay in the one they prefer, and goals fill up in theirs.</p>
           </div>
           <div>
-            <h3>Goals</h3>
-            <p>Tell your fans what you are saving for and let them watch the bar fill up.</p>
+            <h3>An inbox, no spam</h3>
+            <p>Kahwas, new members, replies and top ups land in your activity. Reply to a message in one tap.</p>
           </div>
           <div>
-            <h3>Private support</h3>
-            <p>Supporters can keep their name and message between them and the creator.</p>
+            <h3>English, French and Arabic</h3>
+            <p>The whole app speaks all three, right to left included, with a dark mode for late nights.</p>
           </div>
           <div>
-            <h3>Your color</h3>
-            <p>Pick one of six colors and your whole page takes it.</p>
+            <h3>Your look</h3>
+            <p>Pick one of twelve colors, a banner pattern and an avatar. Your whole page takes them.</p>
             <div class="swatches" aria-hidden="true">
-              <span style="background:#630913"></span>
-              <span style="background:#BB0D98"></span>
-              <span style="background:#5F5AEA"></span>
-              <span style="background:#38CAE1"></span>
-              <span style="background:#3CF078"></span>
-              <span style="background:#FCF655"></span>
+              <span style="background:#7B1424"></span>
+              <span style="background:#C2185B"></span>
+              <span style="background:#E2583E"></span>
+              <span style="background:#DB8A0B"></span>
+              <span style="background:#5E8C1F"></span>
+              <span style="background:#0F8060"></span>
+              <span style="background:#0E7C86"></span>
+              <span style="background:#1E7BD8"></span>
+              <span style="background:#4F46E5"></span>
+              <span style="background:#7C3AED"></span>
+              <span style="background:#9D3C8F"></span>
+              <span style="background:#3A3F4B"></span>
             </div>
           </div>
         </div>
@@ -340,7 +355,7 @@
           <h2>On your phone, tablet or computer</h2>
         </div>
         <img class="desktop-shot" src="screenshots/desktop-creator.png" width="1440" height="900"
-          alt="The same creator page on a desktop: the profile and goal on the left, recent supporters and their messages on the right.">
+          alt="The same creator page on a desktop: the profile, buy button and goal on the left, the wall of kahwas and messages on the right.">
       </div>
     </section>
 
@@ -352,6 +367,7 @@
         </div>
         <div class="actions">
           <a class="button solid" href="https://shtrilekahwa.web.app">Open the app</a>
+          <a class="button outline" href="https://github.com/georges-ph/kahwa/releases/latest">Get the Android app</a>
         </div>
       </div>
     </section>
@@ -359,7 +375,7 @@
 
   <footer>
     <div class="wrap">
-      <span>kahwa is open source under the MIT license.</span>
+      <span>kahwa's source is public, free for non-commercial use.</span>
       <a href="https://github.com/georges-ph/kahwa">Source on GitHub</a>
     </div>
   </footer>
