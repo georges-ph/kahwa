@@ -1,49 +1,65 @@
-import 'package:kahwa/models/currency.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:kahwa/core/money.dart';
 
+/// What a creator is saving up for. Kahwas bought in the currency of the
+/// goal count towards it.
 class Goal {
   const Goal({
-    required this.id,
     required this.title,
-    required this.description,
     required this.target,
+    this.description = '',
     this.current = 0,
     this.currency = Currency.lbp,
+    this.createdAt,
+    this.endedAt,
   });
 
-  /// Same as the id of the creator who owns the goal.
-  final String id;
   final String title;
   final String description;
-  final int current;
   final int target;
-
-  /// Only donations made in this currency count towards the goal.
+  final int current;
   final Currency currency;
+  final DateTime? createdAt;
 
-  double get progress {
-    if (target <= 0) return 0;
-    return (current / target).clamp(0, 1).toDouble();
-  }
+  /// Set on goals in the past goals list.
+  final DateTime? endedAt;
 
-  Map<String, dynamic> toMap() {
+  double get progress => target <= 0 ? 0 : (current / target).clamp(0, 1);
+
+  bool get isReached => current >= target;
+
+  Map<String, dynamic> toNewMap() {
     return {
-      'id': id,
       'title': title,
       'description': description,
-      'current': current,
       'target': target,
+      'current': 0,
       'currency': currency.name,
+      'created_at': FieldValue.serverTimestamp(),
+    };
+  }
+
+  Map<String, dynamic> toPastMap() {
+    return {
+      'title': title,
+      'description': description,
+      'target': target,
+      'current': current,
+      'currency': currency.name,
+      'created_at': createdAt == null ? null : Timestamp.fromDate(createdAt!),
+      'ended_at': FieldValue.serverTimestamp(),
     };
   }
 
   factory Goal.fromMap(Map<String, dynamic> map) {
     return Goal(
-      id: map['id'] ?? '',
-      title: map['title'] ?? '',
-      description: map['description'] ?? '',
-      current: (map['current'] as num?)?.toInt() ?? 0,
+      title: map['title'] as String? ?? '',
+      description: map['description'] as String? ?? '',
       target: (map['target'] as num?)?.toInt() ?? 0,
+      current: (map['current'] as num?)?.toInt() ?? 0,
       currency: Currency.fromName(map['currency']),
+      createdAt: (map['created_at'] as Timestamp?)?.toDate(),
+      endedAt: (map['ended_at'] as Timestamp?)?.toDate(),
     );
   }
 }

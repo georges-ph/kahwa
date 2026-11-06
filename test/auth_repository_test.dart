@@ -2,46 +2,46 @@ import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kahwa/data/auth_repository.dart';
-import 'package:kahwa/data/collections.dart';
+import 'package:kahwa/data/db.dart';
+import 'package:kahwa/models/profile.dart';
 
 void main() {
-  late MockFirebaseAuth auth;
-  late Collections collections;
-  late AuthRepository repository;
+  late Db db;
+  late AuthRepository auth;
 
   setUp(() {
-    auth = MockFirebaseAuth();
-    collections = Collections(FakeFirebaseFirestore());
-    repository = AuthRepository(auth, collections);
+    db = Db(FakeFirebaseFirestore());
+    auth = AuthRepository(MockFirebaseAuth(), db);
   });
 
-  test('a new account has its documents before the sign in ends', () async {
-    final states = <bool>[];
-    repository.isSigningIn.addListener(
-      () => states.add(repository.isSigningIn.value),
+  test('a new account gets a profile named after its email', () async {
+    await auth.ensureUserDocuments(
+      MockUser(uid: 'u1', email: 'nour.h@example.com'),
     );
-
-    await repository.continueWithEmail(
-      email: 'new@example.com',
-      password: 'secret-password',
+    final profile = Profile.fromMap(
+      (await db.profiles.doc('u1').get()).data()!,
+      id: 'u1',
     );
-
-    final id = repository.userId;
-    expect((await collections.users.doc(id).get()).exists, isTrue);
-    expect((await collections.balances.doc(id).get()).exists, isTrue);
-    expect((await collections.kahwaPrices.doc(id).get()).exists, isTrue);
-    expect(states, [true, false]);
-    expect(repository.email, 'new@example.com');
+    expect(profile.name, 'nour.h');
+    expect(profile.onboarded, isFalse);
+    final wallet = (await db.wallets.doc('u1').get()).data()!;
+    expect(wallet['current_lbp'], 0);
   });
 
-  test('signing out leaves nobody signed in', () async {
-    await repository.continueWithEmail(
-      email: 'new@example.com',
-      password: 'secret-password',
+  test('a Google account keeps its display name', () async {
+    await auth.ensureUserDocuments(
+      MockUser(uid: 'u2', email: 'x@example.com', displayName: 'Sami Khoury'),
     );
-    await repository.signOut();
+    expect((await db.profiles.doc('u2').get()).data()!['name'], 'Sami Khoury');
+  });
 
-    expect(repository.currentUser, isNull);
-    expect(repository.email, isNull);
+  test('existing documents are left as they are', () async {
+    await db.profiles.doc('u3').set({'name': 'Maya', 'onboarded': true});
+    await db.wallets.doc('u3').set({'current_lbp': 5000});
+    await auth.ensureUserDocuments(
+      MockUser(uid: 'u3', email: 'maya@example.com'),
+    );
+    expect((await db.profiles.doc('u3').get()).data()!['name'], 'Maya');
+    expect((await db.wallets.doc('u3').get()).data()!['current_lbp'], 5000);
   });
 }

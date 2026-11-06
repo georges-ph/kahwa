@@ -1,193 +1,199 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kahwa/models/app_user.dart';
-import 'package:kahwa/models/balance.dart';
-import 'package:kahwa/models/creator_color.dart';
-import 'package:kahwa/models/currency.dart';
-import 'package:kahwa/models/donation.dart';
-import 'package:kahwa/models/goal.dart';
-import 'package:kahwa/models/kahwa_prices.dart';
+import 'package:kahwa/core/money.dart';
+import 'package:kahwa/models/membership.dart';
+import 'package:kahwa/models/money_requests.dart';
+import 'package:kahwa/models/profile.dart';
+import 'package:kahwa/models/social_link.dart';
+import 'package:kahwa/models/tier.dart';
+import 'package:kahwa/models/wallet.dart';
+import 'package:kahwa/theme/palette.dart';
 
 void main() {
-  group('AppUser', () {
-    test('reads the fields stored in Firestore', () {
-      final user = AppUser.fromMap({
-        'id': 'u1',
-        'name': 'Rima Khoury',
-        'email': 'rima@example.com',
-        'color': 'purple',
-        'fans': ['u2', 'u3'],
-        'link_id': 'abc',
-      });
-
-      expect(user.id, 'u1');
-      expect(user.name, 'Rima Khoury');
-      expect(user.color, CreatorColor.purple);
-      expect(user.fans, ['u2', 'u3']);
-      expect(user.linkId, 'abc');
-      expect(user.hasFan('u2'), isTrue);
-      expect(user.hasFan('u9'), isFalse);
-    });
-
-    test('falls back to defaults when fields are missing', () {
-      final user = AppUser.fromMap({'id': 'u1', 'name': 'Rima'});
-
-      expect(user.color, CreatorColor.brown);
-      expect(user.fans, isEmpty);
-      expect(user.image, isNull);
-    });
-
-    test('writes the same keys it reads', () {
-      const user = AppUser(
-        id: 'u1',
-        name: 'Rima',
-        color: CreatorColor.cyan,
-        fans: ['u2'],
+  group('WHISH links', () {
+    test('pay links open in the WHISH app', () {
+      final app = Uri.https('whish.money', '/app/pay/abc123');
+      expect(whishAppLink('https://whish.money/pay/abc123'), app);
+      expect(whishAppLink(' whish.money/pay/abc123 '), app);
+      expect(whishAppLink('https://www.whish.money/app/pay/abc123'), app);
+      expect(
+        whishPayLink('www.whish.money/app/pay/abc123?x=1'),
+        'https://whish.money/pay/abc123',
       );
+    });
 
-      final copy = AppUser.fromMap(user.toMap());
+    test('anything else is refused', () {
+      expect(isWhishPayLink('70123456'), isFalse);
+      expect(isWhishPayLink('https://evil.com/pay/abc123'), isFalse);
+      expect(isWhishPayLink('https://whish.money/abc123'), isFalse);
+      expect(isWhishPayLink(''), isFalse);
+      expect(isWhishPayLink(null), isFalse);
+    });
 
-      expect(copy.toMap(), user.toMap());
+    test('a creator takes the currencies they have a link for', () {
+      final pay = DirectPay.fromMap({
+        'enabled': true,
+        'whish_link_lbp': '',
+        'whish_link_usd': 'https://whish.money/pay/abc123',
+      });
+      expect(pay.isOn, isTrue);
+      expect(pay.currencies, [Currency.usd]);
+      expect(const DirectPay(enabled: true).isOn, isFalse);
     });
   });
 
-  group('Balance', () {
-    const balance = Balance(currentLbp: 5000, currentUsd: 10);
+  group('Profile', () {
+    test('reads a page written by the app', () {
+      final profile = Profile(
+        id: 'nour',
+        name: 'Nour Haddad',
+        username: 'nour',
+        tagline: 'Illustrator in Beirut',
+        color: creatorColors[3].toARGB32(),
+        cover: 2,
+        links: const [
+          SocialLink(kind: LinkKind.instagram, url: 'instagram.com/nour'),
+        ],
+        priceLbp: 100000,
+        priceUsd: 1,
+        tiers: const [
+          Tier(id: 'b', name: 'Patron', kahwas: 10),
+          Tier(id: 'a', name: 'Sketch club', kahwas: 1, perks: 'Sketches'),
+        ],
+        onboarded: true,
+      );
+      final read = Profile.fromMap(profile.toEditableMap(), id: 'nour');
 
-    test('reads the balance of each currency', () {
-      expect(balance.current(Currency.lbp), 5000);
-      expect(balance.current(Currency.usd), 10);
+      expect(read.name, 'Nour Haddad');
+      expect(read.username, 'nour');
+      expect(read.color, creatorColors[3].toARGB32());
+      expect(read.cover, 2);
+      expect(read.links.single.kind, LinkKind.instagram);
+      expect(read.isCreator, isTrue);
+      expect(read.price(Currency.usd), 1);
+      // Cheapest tier first.
+      expect(read.tiers.map((t) => t.name), ['Sketch club', 'Patron']);
+      expect(read.tier('a')?.perks, 'Sketches');
+      expect(read.onboarded, isTrue);
     });
 
-    test('treats missing fields as zero', () {
-      final empty = Balance.fromMap({});
+    test('survives missing or odd fields', () {
+      final read = Profile.fromMap({
+        'name': '  ',
+        'color': 123,
+        'links': [
+          {'kind': 'instagram', 'url': 'not a link'},
+        ],
+        'tiers': {'x': 'broken'},
+      }, id: 'u1');
+      expect(read.name, 'kahwa user');
+      expect(read.color, creatorColors.first.toARGB32());
+      expect(read.links, isEmpty);
+      expect(read.tiers, isEmpty);
+      expect(read.isCreator, isFalse);
+    });
 
-      expect(empty.current(Currency.lbp), 0);
-      expect(empty.current(Currency.usd), 0);
+    test('matches searches on name, username and tagline', () {
+      const profile = Profile(
+        id: 'n',
+        name: 'Nour Haddad',
+        username: 'nour',
+        tagline: 'Illustrator in Beirut',
+      );
+      expect(profile.matches('haddad'), isTrue);
+      expect(profile.matches('@nou'), isTrue);
+      expect(profile.matches('beirut'), isTrue);
+      expect(profile.matches('sami'), isFalse);
+      expect(profile.matches('  '), isTrue);
+    });
+
+    test('copyWith can clear nullable fields', () {
+      const profile = Profile(id: 'n', name: 'Nour', username: 'nour');
+      expect(profile.copyWith(username: () => null).username, isNull);
+      expect(profile.copyWith(name: 'N').username, 'nour');
     });
   });
 
-  group('Donation', () {
-    Donation donation({required bool keepPrivate}) {
-      return Donation(
-        creatorId: 'creator',
-        supporterId: 'supporter',
-        kahwaPrice: 1000,
-        kahwas: 3,
+  group('Membership', () {
+    Membership charged(DateTime? at, {bool cancelled = false}) {
+      return Membership(
+        creatorId: 'c',
+        supporterId: 's',
+        tierId: 't',
+        tierName: 'Sketch club',
+        kahwas: 1,
         currency: Currency.lbp,
-        total: 3000,
-        message: 'Keep going',
-        keepPrivate: keepPrivate,
+        total: 100000,
+        status: cancelled
+            ? MembershipStatus.cancelled
+            : MembershipStatus.active,
+        lastChargedAt: at,
       );
     }
 
-    test('public donations store who made them and the message', () {
-      final map = donation(keepPrivate: false).toMap();
+    final paid = DateTime(2026, 10, 1);
 
-      expect(map['supporter_id'], 'supporter');
-      expect(map['message'], 'Keep going');
+    test('is named creator_supporter', () {
+      expect(charged(paid).id, 'c_s');
     });
 
-    test('private donations keep them out of the public document', () {
-      final private = donation(keepPrivate: true);
-      final map = private.toMap();
-
-      expect(map.containsKey('supporter_id'), isFalse);
-      expect(map.containsKey('message'), isFalse);
-      expect(map['kahwas'], 3);
-      expect(private.toDetailsMap(), {
-        'creator_id': 'creator',
-        'supporter_id': 'supporter',
-        'message': 'Keep going',
-      });
+    test('is due once the month is over', () {
+      expect(charged(paid).isDue(DateTime(2026, 10, 30)), isFalse);
+      expect(charged(paid).isDue(DateTime(2026, 10, 31)), isTrue);
+      expect(charged(paid, cancelled: true).isDue(DateTime(2026, 11)), isFalse);
+      expect(charged(null).isDue(DateTime(2026, 11)), isFalse);
     });
 
-    test('a private donation read by a stranger has no supporter', () {
-      final read = Donation.fromMap(
-        donation(keepPrivate: true).toMap()..remove('timestamp'),
+    test('a cancelled one comes back free while its month lasts', () {
+      final cancelled = charged(paid, cancelled: true);
+      expect(cancelled.canResume(DateTime(2026, 10, 30)), isTrue);
+      expect(cancelled.canResume(DateTime(2026, 10, 31)), isFalse);
+      expect(charged(paid).canResume(DateTime(2026, 10, 10)), isFalse);
+    });
+
+    test('keeps its perks for the month paid, plus a day', () {
+      expect(charged(paid).isPaidAt(DateTime(2026, 10, 31, 12)), isTrue);
+      expect(charged(paid).isPaidAt(DateTime(2026, 11, 2)), isFalse);
+      expect(
+        charged(paid, cancelled: true).isPaidAt(DateTime(2026, 10, 20)),
+        isTrue,
       );
-
-      expect(read.supporterId, isNull);
-      expect(read.message, isEmpty);
-      expect(read.kahwas, 3);
     });
 
-    test('details fill in the supporter and the message', () {
-      final private = donation(keepPrivate: true);
-      final read = Donation.fromMap(
-        private.toMap()..remove('timestamp'),
-        id: 'd1',
-      ).withDetails(private.toDetailsMap());
-
-      expect(read.id, 'd1');
-      expect(read.supporterId, 'supporter');
-      expect(read.message, 'Keep going');
-    });
-
-    test('reads the fields stored in Firestore', () {
-      final read = Donation.fromMap({
-        'creator_id': 'creator',
-        'supporter_id': 'supporter',
-        'kahwa_price': 2,
-        'kahwas': 5,
+    test('reads dates from Firestore', () {
+      final m = Membership.fromMap({
+        'creator_id': 'c',
+        'supporter_id': 's',
+        'tier': 't',
         'currency': 'usd',
-        'total': 10,
-        'keep_private': false,
-        'message': 'Keep going',
+        'total': 3,
+        'status': 'cancelled',
+        'last_charged_at': Timestamp.fromDate(paid),
       });
-
-      expect(read.currency, Currency.usd);
-      expect(read.kahwas, 5);
-      expect(read.total, 10);
-      expect(read.timestamp, isNull);
+      expect(m.currency, Currency.usd);
+      expect(m.isActive, isFalse);
+      expect(m.nextCharge, paid.add(Membership.period));
     });
   });
 
-  group('Goal', () {
-    test('progress is the share of the target reached', () {
-      const goal = Goal(
-        id: 'u1',
-        title: 'Camera',
-        description: 'A new camera',
-        current: 250,
-        target: 1000,
-      );
-
-      expect(goal.progress, 0.25);
-    });
-
-    test('progress stays between 0 and 1', () {
-      const over = Goal(
-        id: 'u1',
-        title: 'Camera',
-        description: '',
-        current: 5000,
-        target: 1000,
-      );
-      const noTarget = Goal(id: 'u1', title: '', description: '', target: 0);
-
-      expect(over.progress, 1);
-      expect(noTarget.progress, 0);
-    });
+  test('a tier costs its kahwas at the page price', () {
+    const tier = Tier(id: 't', name: 'Regular', kahwas: 3);
+    expect(tier.monthly(100000), 300000);
+    expect(tier.monthlyText(1, Currency.usd), r'$3');
+    expect(tier.monthlyText(null, Currency.usd), '');
   });
 
-  group('KahwaPrices', () {
-    test('new creators start at 1,000 L.L. and 1 dollar', () {
-      const prices = KahwaPrices();
-
-      expect(prices.price(Currency.lbp), 1000);
-      expect(prices.price(Currency.usd), 1);
+  test('a wallet starts empty and reads every amount', () {
+    expect(Wallet.emptyMap().values.every((v) => v == 0), isTrue);
+    expect(Wallet.emptyMap().length, 8);
+    final wallet = Wallet.fromMap({
+      'current_lbp': 200000,
+      'spent_usd': 4,
+      'received_lbp': 100,
     });
-  });
-
-  group('Currency', () {
-    test('formats amounts the way they are shown', () {
-      expect(Currency.lbp.format(150000), '150,000 L.L.');
-      expect(Currency.usd.format(5), '\$5');
-    });
-
-    test('unknown names fall back to LBP', () {
-      expect(Currency.fromName('eur'), Currency.lbp);
-      expect(Currency.fromName(null), Currency.lbp);
-    });
+    expect(wallet.current.lbp, 200000);
+    expect(wallet.spent.usd, 4);
+    expect(wallet.received.lbp, 100);
+    expect(wallet.withdrawn.isZero, isTrue);
   });
 }

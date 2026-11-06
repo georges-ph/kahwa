@@ -1,0 +1,1454 @@
+{
+  "@@locale": "en",
+  "tagline": "Buy your favorite Lebanese creators a kahwa",
+  "welcomeSubtitle": "Support the people who make what you love, one cup at a time. Monthly memberships, posts and goals, all in one page.",
+  "madeInLebanon": "Made in Lebanon",
+  "exploreCreators": "Explore creators",
+  "startYourPage": "Start your page",
+  "howItWorks": "How it works",
+  "step1": "Top up your balance with WHISH MONEY.",
+  "step2": "Buy a creator kahwas, or join their monthly membership.",
+  "step3": "Creators withdraw what they receive to their WHISH account.",
+  "meetCreators": "Meet the creators",
+  "seeAll": "See all",
+  "openSource": "kahwa is open source",
+  "featureKahwaTitle": "Kahwas that add up",
+  "featureKahwaBody": "Buy a kahwa or a few, leave a message, and watch your support grow their goal.",
+  "featureMembersTitle": "Monthly memberships",
+  "featureMembersBody": "Support every month and unlock members-only posts and perks.",
+  "featurePageTitle": "Your page in two minutes",
+  "featurePageBody": "Pick a color, an avatar and a price. Share your link and start receiving kahwas.",
+  "signIn": "Sign in",
+  "signOut": "Sign out",
+  "cancel": "Cancel",
+  "save": "Save",
+  "saved": "Saved",
+  "delete": "Delete",
+  "edit": "Edit",
+  "remove": "Remove",
+  "send": "Send",
+  "next": "Next",
+  "back": "Back",
+  "retry": "Try again",
+  "clear": "Clear",
+  "all": "All",
+  "or": "or",
+  "share": "Share",
+  "continueAction": "Continue",
+  "somethingWrong": "Something went wrong. Try again.",
+  "loadFailed": "Couldn't load this",
+  "loadFailedHint": "Check your connection and try again.",
+  "linkFailed": "Couldn't open the link",
+  "justNow": "just now",
+  "someone": "Someone",
+  "private": "Private",
+  "today": "Today",
+  "thisWeek": "This week",
+  "earlier": "Earlier",
+  "showMore": "Show more",
+  "more": "More",
+  "fewer": "Fewer",
+  "tabHome": "Home",
+  "tabExplore": "Explore",
+  "tabActivity": "Activity",
+  "tabMe": "Me",
+  "tabWall": "Wall",
+  "tabPosts": "Posts",
+  "tabMemberships": "Memberships",
+  "tabAbout": "About",
+  "signInTitle": "Welcome to kahwa",
+  "signInSubtitle": "Sign in, or create your account with the same form.",
+  "email": "Email",
+  "password": "Password",
+  "showPassword": "Show password",
+  "hidePassword": "Hide password",
+  "forgotPassword": "Forgot password?",
+  "continueWithGoogle": "Continue with Google",
+  "newAccountHint": "New here? Enter your email and a password and your account is created.",
+  "emailMissing": "Enter your email",
+  "emailInvalid": "That email doesn't look right",
+  "passwordMissing": "Enter your password",
+  "passwordShort": "Use at least 6 characters",
+  "passwordWrong": "Wrong email or password",
+  "tooManyAttempts": "Too many attempts. Try again later.",
+  "noInternet": "Check your internet connection",
+  "signInFailed": "Couldn't sign in. Try again.",
+  "googleFailed": "Google sign in didn't work. Try again.",
+  "googleUsesPassword": "This email signs in with a password",
+  "resetTitle": "Reset your password",
+  "resetSubtitle": "We'll email you a link to choose a new one.",
+  "sendResetLink": "Send link",
+  "resetSentTitle": "Check your inbox",
+  "resetSent": "A link to reset your password was sent to {email}.",
+  "@resetSent": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "setupNameTitle": "What should we call you?",
+  "setupNameSubtitle": "Your name shows on your page and next to the kahwas you buy.",
+  "setupLookTitle": "Pick your look",
+  "setupLookSubtitle": "An avatar and a color for your page. You can change them any time.",
+  "setupRoleTitle": "How will you use kahwa?",
+  "setupRoleSubtitle": "You can always do both later.",
+  "setupCreatorTitle": "Open your page",
+  "setupCreatorSubtitle": "Tell people what you make and set the price of a kahwa.",
+  "roleCreatorTitle": "I make things",
+  "roleCreatorBody": "Open a page and receive kahwas and memberships.",
+  "roleSupporterTitle": "I'm here to support",
+  "roleSupporterBody": "Find creators and buy them kahwas.",
+  "yourName": "Your name",
+  "username": "Username",
+  "usernameHint": "The address of your page. Optional.",
+  "usernameLength": "Use {min} to {max} characters",
+  "@usernameLength": {
+    "placeholders": {
+      "min": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "usernameCharacters": "Use only letters, numbers and underscores",
+  "usernameReserved": "This username isn't available",
+  "usernameTaken": "Someone already has this username",
+  "nameMissing": "Enter a name",
+  "avatar": "Avatar",
+  "pageColor": "Page color",
+  "pageColorHint": "Your color is used for your banner and every button on your page.",
+  "bannerPattern": "Banner pattern",
+  "taglineLabel": "Tagline",
+  "taglineHint": "One line under your name.",
+  "taglineExample": "Illustrator in Beirut",
+  "whatYouMake": "What you make",
+  "kahwaPrice": "Price of a kahwa",
+  "kahwaPriceHint": "Supporters pay in L.L. or $, so set both.",
+  "priceInvalid": "Enter a price above 0 in both currencies",
+  "openMyPage": "Open my page",
+  "categoryArt": "Art",
+  "categoryMusic": "Music",
+  "categoryWriting": "Writing",
+  "categoryVideo": "Video",
+  "categoryPhotography": "Photography",
+  "categoryGaming": "Gaming",
+  "categoryPodcast": "Podcasts",
+  "categoryFood": "Food",
+  "categoryEducation": "Education",
+  "categoryTech": "Tech",
+  "categoryComedy": "Comedy",
+  "categoryCommunity": "Community",
+  "categoryOther": "Other",
+  "exploreTitle": "Explore",
+  "explore": "Explore",
+  "searchHint": "Search creators",
+  "sortPopular": "Most fans",
+  "sortNewest": "Newest",
+  "creatorsCount": "{count, plural, =1{1 creator} other{{count} creators}}",
+  "@creatorsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noResultsTitle": "No creators found",
+  "noResultsBody": "Try another name or category.",
+  "noTagline": "A creator on kahwa",
+  "kahwasLabel": "{count, plural, =1{kahwa} other{kahwas}}",
+  "@kahwasLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "supportersLabel": "{count, plural, =1{supporter} other{supporters}}",
+  "@supportersLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fansTitle": "Fans",
+  "fansLabel": "{count, plural, =1{fan} other{fans}}",
+  "@fansLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "kahwasCount": "{count, plural, =1{1 kahwa} other{{count} kahwas}}",
+  "@kahwasCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "boughtKahwas": "{count, plural, =1{bought a kahwa} other{bought {count} kahwas}}",
+  "@boughtKahwas": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "paidMembership": "supports monthly · {tier}",
+  "@paidMembership": {
+    "placeholders": {
+      "tier": {
+        "type": "String"
+      }
+    }
+  },
+  "buyKahwaFor": "Buy {name} a kahwa",
+  "@buyKahwaFor": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notAcceptingYet": "Not accepting kahwas yet",
+  "becomeFan": "Become a fan",
+  "unfan": "Stop being a fan",
+  "shareMyPage": "Share my page",
+  "editPage": "Edit page",
+  "wallEmptyTitle": "No kahwas yet",
+  "wallEmptyBody": "Be the first to buy {name} a kahwa.",
+  "@wallEmptyBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "reply": "Reply",
+  "editReply": "Edit reply",
+  "sayThanks": "Say thanks",
+  "replyHint": "Thank you so much!",
+  "removeMessage": "Remove message",
+  "removeMessageTitle": "Remove this message?",
+  "removeMessageBody": "It will no longer show on your page. The kahwas stay.",
+  "newPost": "New post",
+  "postsEmptyTitle": "No posts yet",
+  "postsEmptyOwner": "Share news, work in progress, or a thank you.",
+  "postsEmptyBody": "{name} has not posted anything yet.",
+  "@postsEmptyBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "membershipsIntro": "Support {name} every month and get more in return.",
+  "@membershipsIntro": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "membershipsHowItWorks": "Paid from your kahwa balance every 30 days, when you open kahwa. Cancel any time.",
+  "perMonth": "a month",
+  "kahwasEachMonth": "{count, plural, =1{1 kahwa each month} other{{count} kahwas each month}}",
+  "@kahwasEachMonth": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "yourTier": "Your tier",
+  "youAreMember": "You're a member",
+  "join": "Join",
+  "rejoin": "Join again",
+  "becomeMember": "Become a member",
+  "cancelledUntil": "Cancelled, perks until {date}",
+  "@cancelledUntil": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "aboutTitle": "About {name}",
+  "@aboutTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "noAbout": "Nothing written here yet.",
+  "joinedOn": "On kahwa since {date}",
+  "@joinedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "pageNotFound": "This page doesn't exist",
+  "pageNotFoundBody": "The link may be wrong, or the username changed.",
+  "goalLabel": "Goal",
+  "goalReached": "Reached",
+  "goalOf": "of {target}",
+  "@goalOf": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "membersOnly": "Members",
+  "lockedPost": "This post is for members.",
+  "edited": "edited",
+  "like": "Like",
+  "unlike": "Unlike",
+  "deletePostTitle": "Delete this post?",
+  "deletePostBody": "It's removed for everyone.",
+  "editPost": "Edit post",
+  "publish": "Publish",
+  "postHint": "What's new?",
+  "postEmpty": "Write something first",
+  "posted": "Posted",
+  "membersOnlyPost": "For members only",
+  "membersOnlyHint": "Only you and paying members can read it.",
+  "membersOnlyNeedsTiers": "Add a membership first, in Prices and memberships.",
+  "shareTitle": "{name}'s page",
+  "@shareTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "shareText": "Buy {name} a kahwa: {link}",
+  "@shareText": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "link": {
+        "type": "String"
+      }
+    }
+  },
+  "copyLink": "Copy link",
+  "linkCopied": "Link copied",
+  "buyTitle": "Buy {name} a kahwa",
+  "@buyTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "joinTitle": "Join {name}'s membership",
+  "@joinTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "oneTime": "One time",
+  "monthly": "Monthly",
+  "payIn": "Pay in",
+  "message": "Message",
+  "messageHint": "Say something nice (optional)",
+  "keepPrivate": "Keep it private",
+  "keepPrivateHint": "Only {name} sees your name and message.",
+  "@keepPrivateHint": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "total": "Total",
+  "eachMonth": "Each month",
+  "yourBalance": "Your balance",
+  "afterThis": "After this",
+  "notEnoughShort": "Not enough",
+  "membershipRenewHint": "Renews from your balance every 30 days, the next time you open kahwa. Cancel any time from Me, My memberships.",
+  "topUpToContinue": "Top up to continue",
+  "supportFor": "Support {amount}",
+  "@supportFor": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "joinFor": "Join for {amount} a month",
+  "@joinFor": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "confirmBuyTitle": "{count, plural, =1{Buy a kahwa?} other{Buy {count} kahwas?}}",
+  "@confirmBuyTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "confirmBuyBody": "{amount} goes from your balance to {name}.",
+  "@confirmBuyBody": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "confirmJoinTitle": "Join {tier}?",
+  "@confirmJoinTitle": {
+    "placeholders": {
+      "tier": {
+        "type": "String"
+      }
+    }
+  },
+  "confirmJoinBody": "{amount} now, then every 30 days.",
+  "@confirmJoinBody": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "buy": "Buy",
+  "pageChanged": "This page just changed. Check the price and try again.",
+  "paymentFailed": "The payment didn't go through. Nothing was taken.",
+  "notEnoughTitle": "Not enough balance",
+  "notEnoughBody": "You need {amount} more. Top up now and come back to finish: your kahwa is kept for you.",
+  "@notEnoughBody": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "topUpAmount": "Top up {amount}",
+  "@topUpAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "resumedKahwa": "Your kahwa was kept while you topped up.",
+  "cannotSupportTitle": "You can't support this page",
+  "cannotSupportBody": "It's your own page, or it doesn't accept kahwas yet.",
+  "thankYouKahwas": "{count, plural, =1{Your kahwa is on its way!} other{Your {count} kahwas are on their way!}}",
+  "@thankYouKahwas": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "thankYouMember": "Welcome to {tier}!",
+  "@thankYouMember": {
+    "placeholders": {
+      "tier": {
+        "type": "String"
+      }
+    }
+  },
+  "defaultThanks": "Thank you so much for the kahwa!",
+  "backToPage": "Back to {name}'s page",
+  "@backToPage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "tellFriends": "Tell your friends",
+  "goodMorning": "Good morning, {name}",
+  "@goodMorning": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "goodAfternoon": "Good afternoon, {name}",
+  "@goodAfternoon": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "goodEvening": "Good evening, {name}",
+  "@goodEvening": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "yourCreators": "Your creators",
+  "noCreatorsTitle": "Find creators you love",
+  "noCreatorsBody": "Tap the heart on a page to see it here.",
+  "latestPosts": "Latest posts",
+  "feedEmpty": "Posts from creators you are a fan of show up here.",
+  "startPageTitle": "Start your creator page",
+  "startPageBody": "Set a price and start receiving kahwas.",
+  "setUpPage": "Set up your page",
+  "checkUsername": "Pick a username",
+  "checkAbout": "Write about yourself",
+  "checkLinks": "Add your links",
+  "checkGoal": "Set a goal",
+  "checkTiers": "Offer a membership",
+  "checkPost": "Write your first post",
+  "membershipUnpaidTitle": "A membership couldn't renew",
+  "membershipUnpaidBody": "Your membership to {name} needs {amount}. Top up and it renews the next time you open kahwa.",
+  "@membershipUnpaidBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "finishKahwaTitle": "Finish your kahwa",
+  "finishKahwaBody": "{count, plural, =1{1 kahwa for {name}} other{{count} kahwas for {name}}}",
+  "@finishKahwaBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "finish": "Finish",
+  "forget": "Forget it",
+  "topUpCheckingTitle": "Top up being checked",
+  "topUpChecking": "Your transfer of {amount} is being checked. Your balance goes up as soon as it is found.",
+  "@topUpChecking": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "markAllRead": "Mark all read",
+  "clearRead": "Clear read",
+  "activityEmptyTitle": "Nothing here yet",
+  "activityEmptyBody": "Kahwas, new fans and replies show up here.",
+  "activityKahwa": "{count, plural, =1{{name} bought you a kahwa} other{{name} bought you {count} kahwas}}",
+  "@activityKahwa": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "activityMembership": "{name} supports you monthly · {amount}",
+  "@activityMembership": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "activityFan": "{name} is now your fan",
+  "@activityFan": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "activityReply": "{name} replied to your message",
+  "@activityReply": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "activityTopUpOk": "{amount} was added to your balance",
+  "@activityTopUpOk": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "activityTopUpFailed": "Your top up of {amount} couldn't be found",
+  "@activityTopUpFailed": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "activityWithdrawOk": "{amount} was sent to your WHISH",
+  "@activityWithdrawOk": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "activityWithdrawRefused": "Your withdrawal of {amount} was refused",
+  "@activityWithdrawRefused": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "yourPage": "Your page",
+  "viewMyPage": "View my page",
+  "noUsername": "No username yet",
+  "editPageHint": "Name, avatar, colors, links",
+  "pricesAndMemberships": "Prices and memberships",
+  "pricesHint": "{price} a kahwa · {count, plural, =0{no memberships} =1{1 membership} other{{count} memberships}}",
+  "@pricesHint": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "goal": "Goal",
+  "goalHint": "What you are saving for",
+  "newPostHint": "Share an update",
+  "stats": "Stats",
+  "statsHint": "Kahwas over time, top supporters",
+  "supportersAndMembers": "Supporters and members",
+  "youSupport": "You support",
+  "myMemberships": "My memberships",
+  "activeMemberships": "{count, plural, =0{None active} =1{1 active} other{{count} active}}",
+  "@activeMemberships": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "history": "History",
+  "historyHint": "Everything that moved your balance",
+  "account": "Account",
+  "settings": "Settings",
+  "settingsHint": "Account, security, theme, language",
+  "billingDetails": "Billing details",
+  "billingHint": "Where withdrawals are paid",
+  "admin": "Admin",
+  "feedback": "Send feedback",
+  "balance": "Balance",
+  "topUp": "Top up",
+  "withdraw": "Withdraw",
+  "myMembershipsSubtitle": "Creators you support every month.",
+  "noMembershipsTitle": "No memberships yet",
+  "noMembershipsBody": "Join a creator to support them every month.",
+  "cancelMembership": "Cancel",
+  "keepMembership": "Keep it",
+  "cancelMembershipTitle": "Cancel this membership?",
+  "cancelMembershipBody": "It stops renewing. Your perks last until {date}.",
+  "@cancelMembershipBody": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "membershipDue": "Renews now: open kahwa with enough balance",
+  "renewsOn": "Renews {date}",
+  "@renewsOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "membershipEnded": "Ended",
+  "changeTier": "Change tier",
+  "appearance": "Appearance",
+  "themeSystem": "Same as device",
+  "themeLight": "Light",
+  "themeDark": "Dark",
+  "language": "Language",
+  "languageDevice": "Device's language",
+  "changeEmail": "Change email",
+  "changeEmailHint": "We send a link to the new address",
+  "newEmail": "New email",
+  "currentPassword": "Current password",
+  "emailChangeSent": "We sent a link to {email}. Open it to finish the change, then sign in with your new email.",
+  "@emailChangeSent": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "emailInUse": "Another account already uses this email",
+  "emailSame": "That's already your email",
+  "passwordFieldHint": "At least 6 characters",
+  "oneTimeHint": "A one-off thank you. It doesn't unlock members-only posts.",
+  "monthlyHint": "Charged from your balance every 30 days. Unlocks members-only posts and the perks of your tier.",
+  "alreadyInTier": "You're already in this tier. It renews {date}.",
+  "@alreadyInTier": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "goalCurrencyLocked": "Kahwas have already counted towards this goal, so its currency stays.",
+  "changePassword": "Change password",
+  "changePasswordHint": "Your current password, then a new one",
+  "aboutKahwa": "About kahwa",
+  "about": "About",
+  "aboutHint": "Who you are and what kahwas help you do.",
+  "links": "Links",
+  "linksHint": "Instagram, YouTube, your website... up to 8.",
+  "addLink": "Add a link",
+  "linkInvalid": "That link doesn't look right",
+  "openPageSubtitle": "Setting a price opens your page to kahwas and lists it on Explore.",
+  "pageOpen": "Your page is open!",
+  "memberships": "Memberships",
+  "tiersHint": "Up to 3 monthly tiers. Each is a number of kahwas a month at your price.",
+  "tierNumber": "Tier {number}",
+  "@tierNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "tierName": "Name",
+  "tierNameExample": "Regular",
+  "kahwasPerMonth": "Kahwas a month",
+  "tierCosts": "{lbp} or {usd} a month",
+  "@tierCosts": {
+    "placeholders": {
+      "lbp": {
+        "type": "String"
+      },
+      "usd": {
+        "type": "String"
+      }
+    }
+  },
+  "perks": "Perks",
+  "perksExample": "Members-only posts, early access...",
+  "addTier": "Add a membership",
+  "tierNameMissing": "Give this membership a name",
+  "tierKahwasInvalid": "Use 1 to 1000 kahwas",
+  "thankYouNote": "Thank you note",
+  "thankYouNoteHint": "Shown to supporters right after they buy you a kahwa.",
+  "goalSubtitle": "Kahwas bought in the currency of the goal count towards it.",
+  "goalTitle": "Title",
+  "goalTitleExample": "A new drawing tablet",
+  "goalTitleMissing": "Give your goal a title",
+  "goalDescription": "Description",
+  "goalDescriptionHint": "Why it matters to you",
+  "goalTarget": "Target",
+  "goalTargetInvalid": "Enter an amount above 0",
+  "goalCurrencyHint": "You can change the currency until the first kahwa counts towards the goal.",
+  "startGoal": "Start goal",
+  "startNewGoal": "Start a new goal",
+  "editGoal": "Edit goal",
+  "endGoal": "End goal",
+  "endGoalTitle": "End this goal?",
+  "endGoalBody": "It moves to your past goals.",
+  "replaceGoalTitle": "Start a new goal?",
+  "replaceGoalBody": "The current one moves to your past goals.",
+  "pastGoals": "Past goals",
+  "last30Days": "30 days",
+  "last12Months": "12 months",
+  "allTime": "All time",
+  "statKahwas": "Kahwas",
+  "statSupporters": "Supporters",
+  "receivedIn": "Received in {currency}",
+  "@receivedIn": {
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
+  "payingMembers": "Paying members",
+  "monthlyFromMembers": "Monthly from members",
+  "kahwasOverTime": "Kahwas over time",
+  "topSupporters": "Top supporters",
+  "noSupportersYet": "No supporters yet",
+  "noSupportersBody": "Share your page to get your first kahwa.",
+  "noMembersYet": "No members yet.",
+  "allSupporters": "All supporters",
+  "supporterSummary": "{count, plural, =1{Once} other{{count} times}} · last {when}",
+  "@supporterSummary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "walletSubtitle": "What you buy kahwas with, and what you received.",
+  "received": "Received",
+  "spent": "Spent",
+  "withdrawn": "Withdrawn",
+  "lastTopUp": "Your last top up",
+  "topUpAdded": "{amount} was added to your balance.",
+  "@topUpAdded": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "topUpNotFound": "Your transfer of {amount} couldn't be found, so nothing was added. If you did send it, try again with the same details.",
+  "@topUpNotFound": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "topUpSubtitle": "Your balance is what you buy kahwas with. You add to it by sending money with WHISH MONEY.",
+  "topUpUnavailable": "Top ups aren't available right now.",
+  "amount": "Amount",
+  "amountInvalid": "Enter an amount above 0",
+  "currency": "Currency",
+  "sendWith": "Send {amount} from your {currency} balance with WHISH MONEY, then come back and confirm.",
+  "@sendWith": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
+  "payingFounder": "You pay kahwa itself, through its founder’s WHISH account, so no creator has to share their phone number. Each transfer is checked by hand before it reaches your balance, which also stops fraud.",
+  "payWithWhish": "Pay with WHISH",
+  "whishUpdate": "WHISH didn't open on the payment? Install or update the WHISH app and try again.",
+  "scanFromOtherPhone": "Paying from another phone? Scan this code in the WHISH app.",
+  "scanCode": "Scan this code in the WHISH app.",
+  "senderPhone": "The WHISH number you sent from",
+  "senderPhoneHint": "So we can find your transfer.",
+  "senderPhoneCheck": "So we can find your transfer. Check it is the number you sent from this time.",
+  "senderPhoneMissing": "Enter the number you sent the money from",
+  "iSentTheMoney": "I sent the money",
+  "cancelRequest": "Cancel request",
+  "withdrawSubtitle": "Get your balance out to your WHISH account. Requests are paid by hand.",
+  "available": "Available",
+  "billingFirstTitle": "Billing details first",
+  "billingFirst": "Add your billing details first, so we know where to send your money.",
+  "withdrawWaitingTitle": "Your request is waiting",
+  "withdrawWaiting": "You asked for {amount}, which you get through WHISH MONEY once it is sent. To ask for another amount, cancel this request first.",
+  "@withdrawWaiting": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "paidTo": "Paid to WHISH {phone}",
+  "@paidTo": {
+    "placeholders": {
+      "phone": {
+        "type": "String"
+      }
+    }
+  },
+  "requestWithdraw": "Request withdrawal",
+  "withdrawAmountMissing": "Enter an amount to withdraw",
+  "withdrawTooMuch": "You can't withdraw more than your balance",
+  "requestSent": "Request sent",
+  "yourRequests": "Your requests",
+  "noRequests": "No requests yet.",
+  "statusPaid": "Paid",
+  "statusRefused": "Refused",
+  "statusWaiting": "Waiting",
+  "billingSubtitle": "Withdrawals are sent here with WHISH MONEY.",
+  "fullName": "Full name",
+  "whishNumber": "WHISH number",
+  "whishNumberHint": "The number of your WHISH account.",
+  "phoneMissing": "Enter your WHISH number",
+  "phoneInvalid": "Enter a phone number, such as 70 123 456",
+  "billingPrivate": "Only you and the kahwa team can see these.",
+  "filterBought": "Bought",
+  "filterReceived": "Received",
+  "filterTopUps": "Top ups",
+  "filterWithdrawals": "Withdrawals",
+  "historyEmptyTitle": "Nothing here yet",
+  "historyEmptyBody": "Kahwas, top ups and withdrawals show up here.",
+  "historyBought": "{count, plural, =1{A kahwa for {name}} other{{count} kahwas for {name}}}",
+  "@historyBought": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "historyReceived": "{count, plural, =1{A kahwa from {name}} other{{count} kahwas from {name}}}",
+  "@historyReceived": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "historyMembershipTo": "Membership to {name}",
+  "@historyMembershipTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "historyMembershipFrom": "Membership from {name}",
+  "@historyMembershipFrom": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "historyTopUp": "Top up",
+  "historyTopUpFailed": "Top up not found",
+  "historyWithdrawal": "Withdrawal",
+  "historyWithdrawalRefused": "Withdrawal refused",
+  "adminOnly": "For admins only",
+  "heldForUsers": "Held for users",
+  "heldForUsersHint": "Your WHISH balance should never go below this.",
+  "users": "Users",
+  "creators": "Creators",
+  "topUpRequests": "Top ups",
+  "withdrawRequests": "Withdrawals",
+  "nothingWaiting": "Nothing waiting.",
+  "sentFrom": "from {phone}",
+  "@sentFrom": {
+    "placeholders": {
+      "phone": {
+        "type": "String"
+      }
+    }
+  },
+  "markReceived": "Mark as received?",
+  "markNotReceived": "Mark as not received?",
+  "notReceived": "Not received",
+  "markPaid": "Mark as paid?",
+  "paid": "Paid",
+  "refuse": "Refuse",
+  "resume": "Resume",
+  "resumeTitle": "Resume {tier}?",
+  "@resumeTitle": {
+    "placeholders": {
+      "tier": {
+        "type": "String"
+      }
+    }
+  },
+  "resumeBody": "Nothing is charged now. It renews {date}.",
+  "@resumeBody": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "resumeHint": "Your month is paid until {date}, so taking it back is free.",
+  "@resumeHint": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "copyFailed": "Couldn't copy the link",
+  "finishMembershipTitle": "Finish your membership",
+  "finishMembershipBody": "{tier} with {name}",
+  "@finishMembershipBody": {
+    "placeholders": {
+      "tier": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "colorOption": "Color {n}",
+  "@colorOption": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "patternOption": "Pattern {n}",
+  "@patternOption": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "aboutExample": "I draw Beirut, one street at a time. Every kahwa buys me paper and paint.",
+  "addMoney": "Add",
+  "takeMoneyOut": "Take out",
+  "adjustBody": "This is kept for good. The user sees it with your reason in their history and their activity.",
+  "adjustFailed": "Could not correct the balance. A balance cannot go below zero.",
+  "adjustNote": "Only for mistakes, such as a transfer counted twice. Answer requests the usual way.",
+  "adjustAddTitle": "Add {amount} to {name}?",
+  "@adjustAddTitle": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "adjustRemoveTitle": "Take {amount} out of {name}’s balance?",
+  "@adjustRemoveTitle": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "correctBalance": "Correct balance",
+  "reason": "Reason",
+  "reasonHint": "What happened, so anyone can understand it later",
+  "reasonMissing": "Say why, in a few words.",
+  "adminRequests": "Requests",
+  "adminLog": "Log",
+  "answered": "Answered",
+  "changePasswordTitle": "Change your password?",
+  "changePasswordBody": "We will email a link to {email}. Open it to choose a new password.",
+  "@changePasswordBody": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "codeInvalid": "Enter the 6 digits.",
+  "codeWrong": "That code is not right. Try the one on screen now.",
+  "confirmItsYou": "Confirm it’s you",
+  "confirmItsYouBody": "Enter your password to go on.",
+  "copy": "Copy",
+  "copied": "Copied",
+  "creator": "Creator",
+  "devices": "Signed in devices",
+  "devicesHint": "See where you are signed in",
+  "devicesSubtitle": "Every phone and browser where your account is open.",
+  "devicesNote": "A device you sign out leaves as soon as it is online. If you think someone else has your password, also change it.",
+  "thisDevice": "This device",
+  "unknownDevice": "Unknown device",
+  "lastActive": "Active {time}",
+  "@lastActive": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "signOutDeviceTitle": "Sign out of {device}?",
+  "@signOutDeviceTitle": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "signOutDeviceBody": "You will have to sign in again there to use kahwa.",
+  "signOutOthers": "Sign out of all other devices",
+  "signOutOthersTitle": "Sign out everywhere else?",
+  "signedOutOthers": "Your other devices are signed out.",
+  "signOutTitle": "Sign out?",
+  "signOutBody": "You can sign back in any time with the same account.",
+  "tapToChangeEmail": "Tap to change it",
+  "noEmailYet": "No email on this account yet. Tap to add one.",
+  "addEmail": "Add an email",
+  "security": "Security",
+  "securityHint": "Email and password",
+  "securitySubtitle": "kahwa holds money, so keep your account locked tight.",
+  "emailVerified": "Verified",
+  "emailNotVerified": "Not verified yet. Verify it to buy, top up or withdraw.",
+  "iVerified": "I opened the link",
+  "notVerifiedYet": "Not verified yet. Open the link in the email we sent.",
+  "sendLink": "Send link",
+  "verificationSent": "A link to verify your email was sent to {email}.",
+  "@verificationSent": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "verifyEmailTitle": "Verify your email",
+  "verifyEmailBody": "Money only moves on verified accounts. Open the link we sent to {email}, or ask for a new one.",
+  "@verifyEmailBody": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "verifyEmailBanner": "Open the link we sent to {email} before buying, topping up or withdrawing.",
+  "@verifyEmailBanner": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "emailWait": "An email was just sent. You can ask again in {seconds} s.",
+  "@emailWait": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "twoStep": "Two-step verification",
+  "twoStepIsOn": "On: signing in asks for a code",
+  "twoStepIsOff": "Off",
+  "twoStepExplain": "Signing in on a new device will also ask for a 6 digit code from an authenticator app, such as Google Authenticator or Microsoft Authenticator. Your password alone is no longer enough.",
+  "twoStepBackup": "Keep your authenticator app backed up, such as with Google Authenticator’s cloud backup. Without it, getting back into your account means contacting us.",
+  "turnOn": "Turn on",
+  "turnOff": "Turn off",
+  "twoStepOn": "Two-step verification is on.",
+  "twoStepOff": "Two-step verification is off.",
+  "twoStepOffTitle": "Turn off two-step verification?",
+  "twoStepOffBody": "Your password alone will be enough to sign in again.",
+  "twoStepUnavailable": "Two-step verification is not available yet. Try again later.",
+  "twoStepSetupTitle": "Set up your authenticator",
+  "twoStepSetupBody": "Scan this code with your authenticator app, or type the key into it. Then enter the 6 digit code it shows.",
+  "twoStepKey": "Key",
+  "twoStepCodeLabel": "Code from the app",
+  "twoStepCodeTitle": "Enter your code",
+  "twoStepCodeBody": "Open your authenticator app and enter the 6 digit code for kahwa.",
+  "openAuthenticator": "Open in authenticator app",
+  "getStarted": "Get started",
+  "lookAroundFirst": "Look around first",
+  "skip": "Skip",
+  "historyAdjustment": "Correction by kahwa",
+  "paidByWhish": "paid by WHISH",
+  "kahwaKeptForTopUp": "Your kahwa is kept. Finish it from Home once your top up is in.",
+  "markReceivedBody": "{amount} will be added to their balance. Check the transfer is in your WHISH account first.",
+  "@markReceivedBody": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "markNotReceivedBody": "Nothing is added. They are told the transfer was not found.",
+  "markPaidBody": "Send this to the WHISH number above first. It is taken out of their balance once you confirm.",
+  "refuseBody": "Nothing is sent and their balance stays the same.",
+  "user": "User",
+  "sentAt": "Sent at",
+  "requestedAt": "Asked on",
+  "reference": "Reference",
+  "status": "Status",
+  "statusApproved": "Received",
+  "statusRejected": "Not received",
+  "statusPending": "Waiting",
+  "noResults": "Nobody found.",
+  "nothingYet": "Nothing yet.",
+  "searchUsers": "Search by name or username",
+  "usersCount": "{users} users, {creators} of them creators",
+  "@usersCount": {
+    "placeholders": {
+      "users": {
+        "type": "int"
+      },
+      "creators": {
+        "type": "int"
+      }
+    }
+  },
+  "viewPage": "View page",
+  "statSpent": "Spent ({currency})",
+  "@statSpent": {
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
+  "statReceived": "Received ({currency})",
+  "@statReceived": {
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
+  "statWithdrawn": "Withdrawn ({currency})",
+  "@statWithdrawn": {
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
+  "paysTo": "Member of {name}",
+  "@paysTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "paidBy": "{name} is a member",
+  "@paidBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "logTopUpApproved": "Top up of {name} received",
+  "@logTopUpApproved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "logTopUpRejected": "Top up of {name} not received",
+  "@logTopUpRejected": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "logWithdrawPaid": "Withdrawal of {name} paid",
+  "@logWithdrawPaid": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "logWithdrawRefused": "Withdrawal of {name} refused",
+  "@logWithdrawRefused": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "logAdjustment": "{admin} corrected the balance of {name}",
+  "@logAdjustment": {
+    "placeholders": {
+      "admin": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "activityAdjustment": "kahwa corrected your balance: {amount}",
+  "@activityAdjustment": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "activityDirectPayment": "{name} says they sent you {amount} by WHISH. Check and confirm it.",
+  "@activityDirectPayment": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "activityDirectConfirmed": "{name} received your {amount}. Thank you!",
+  "@activityDirectConfirmed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "activityDirectRejected": "{name} did not find your {amount} in WHISH.",
+  "@activityDirectRejected": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "directPayTitle": "Get paid to your WHISH",
+  "directPayHint": "Let supporters pay you directly",
+  "directPaySubtitle": "Supporters can send kahwas straight to your WHISH account instead of from their kahwa balance.",
+  "directPaySwitch": "Take payments to my WHISH account",
+  "directPaySwitchHint": "Paying from a kahwa balance keeps working too.",
+  "directPayNoticeTitle": "What changes",
+  "directPayNotice": "Supporters who pay this way open your link in WHISH and see your name there, never your number. kahwa cannot see these payments: you confirm each one when it arrives, and only then do the kahwas count on your page. They never go through your kahwa balance.",
+  "directPayLinksHint": "In the WHISH app, open Whish Me and take a screenshot of your QR code. Then tap the QR button below and pick that screenshot. Add one for each currency you take: WHISH only pays a code from a balance in its currency.",
+  "directPayLinkFor": "Whish Me code in {currency}",
+  "@directPayLinkFor": {
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
+  "directPayFromPicture": "Read it from your QR screenshot",
+  "directPayNoCode": "No WHISH code found in this picture. Pick the screenshot of your QR code from Whish Me.",
+  "directPayCodeRead": "Code read",
+  "directPayLinkInvalid": "Not a WHISH code. Pick your Whish Me picture, or paste its link.",
+  "directPayLinkMissing": "Add at least one link.",
+  "directPaymentsTitle": "Payments to confirm",
+  "directPaymentsSubtitle": "Kahwas supporters say they sent to your WHISH account. Confirm the ones you find there.",
+  "directPaymentsEmpty": "No payments yet.",
+  "directPaymentsWaiting": "{count, plural, =1{1 waiting for you} other{{count} waiting for you}}",
+  "@directPaymentsWaiting": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "directConfirmBody": "Only if {amount} from {phone} is in your WHISH account. The kahwas then count on your page and the supporter is told.",
+  "@directConfirmBody": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "phone": {
+        "type": "String"
+      }
+    }
+  },
+  "directRejectBody": "The kahwas will not count, and the supporter is told you did not find the transfer.",
+  "payWith": "Pay with",
+  "payWithBalance": "My balance",
+  "payWithWhishTo": "WHISH to {name}",
+  "@payWithWhishTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "directSendTo": "Send {amount} with WHISH to {name}.",
+  "@directSendTo": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "directNotice": "This goes straight to {name}, not through kahwa. The kahwas show on the page once {name} confirms the money arrived.",
+  "@directNotice": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "senderPhoneHintDirect": "The number you send from, so they can find your transfer.",
+  "iSentAmount": "I sent {amount}",
+  "@iSentAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "directSentTitle": "Did you send {amount}?",
+  "@directSentTitle": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "directSentBody": "Only confirm once the transfer went through in WHISH. {name} will check it arrived.",
+  "@directSentBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "directWaitingTitle": "Sent! Waiting for confirmation",
+  "directWaitingBody": "{name} will confirm the money arrived. You will see it in your activity.",
+  "@directWaitingBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "currencyLbp": "Lebanese lira",
+  "currencyUsd": "US dollar",
+  "devicesNoteTwoStep": "A device you sign out leaves as soon as it is online. If you think someone else has your password, also change it and turn on two-step verification.",
+  "newPassword": "New password",
+  "passwordChanged": "Your password was changed.",
+  "currentPasswordWrong": "That is not your current password.",
+  "senderPhoneOf": "Sent from WHISH number",
+  "directPaymentsHint": "Kahwas sent straight to your WHISH",
+  "directPaymentsNoneWaiting": "Nothing to confirm right now."
+}

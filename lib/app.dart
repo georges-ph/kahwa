@@ -1,37 +1,52 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:go_router/go_router.dart';
-import 'package:kahwa/core/router.dart';
-import 'package:kahwa/core/theme.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:kahwa/l10n/app_localizations.dart';
+import 'package:kahwa/router.dart';
+import 'package:kahwa/state/providers.dart';
+import 'package:kahwa/state/settings.dart';
+import 'package:kahwa/theme/app_theme.dart';
 
-class KahwaApp extends StatefulWidget {
+class KahwaApp extends ConsumerWidget {
   const KahwaApp({super.key});
 
   @override
-  State<KahwaApp> createState() => _KahwaAppState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(settingsProvider);
+    final router = ref.watch(routerProvider);
+    // This device in the user's list, and signing out when told to.
+    ref.watch(deviceSessionProvider);
+    final arabic = settings.locale?.languageCode == 'ar';
 
-class _KahwaAppState extends State<KahwaApp> {
-  late final GoRouter _router = createRouter();
-
-  @override
-  void dispose() {
-    _router.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
-      title: 'kahwa',
-      theme: appTheme(),
-      routerConfig: _router,
-      // For the pages without an app bar, such as sign in.
+      onGenerateTitle: (context) => 'kahwa',
+      theme: buildTheme(brightness: Brightness.light, arabic: arabic),
+      darkTheme: buildTheme(brightness: Brightness.dark, arabic: arabic),
+      themeMode: settings.themeMode,
+      locale: settings.locale,
+      supportedLocales: AppSettings.supportedLocales,
+      localizationsDelegates: const [
+        L10n.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      routerConfig: router,
       builder: (context, child) {
+        final theme = Theme.of(context);
+        // The device language can be Arabic while no choice was saved.
+        final isArabic = Localizations.localeOf(context).languageCode == 'ar';
+        final themed = isArabic && !arabic
+            ? Theme(
+                data: buildTheme(brightness: theme.brightness, arabic: true),
+                child: child!,
+              )
+            : child!;
         return AnnotatedRegion<SystemUiOverlayStyle>(
-          value: appOverlayStyle,
-          child: child!,
+          value: overlayStyle(theme.brightness, theme.scaffoldBackgroundColor),
+          child: themed,
         );
       },
     );
