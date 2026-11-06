@@ -1,14 +1,14 @@
 rules_version = '2';
 
-// Firestore security rules kahwa expects. All of its data lives under
-// kahwa/AppCollections, so these rules can sit next to the rules of other
-// apps in a shared Firebase project.
+// Firestore security rules kahwa 3 expects. All of its data lives under
+// kahwa/AppData, so these rules can sit next to the rules of other apps in a
+// shared Firebase project.
 //
 // This file is a reference copy and is not deployed from this repository:
 // deploying rules replaces the rules of the whole project.
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /kahwa/AppCollections {
+    match /kahwa/AppData {
       function signedIn() {
         return request.auth != null;
       }
@@ -23,12 +23,36 @@ service cloud.firestore {
         return signedIn() && exists(path('Admins', request.auth.uid));
       }
 
+      // Money only moves for users who opened the link that verifies their
+      // email, or who signed in with Google: Google already checked the
+      // account, and old Google accounts may have no email of their own.
+      function isVerified() {
+        return signedIn() && (request.auth.token.email_verified == true
+          || request.auth.token.firebase.sign_in_provider == "google.com");
+      }
+
       function changedKeys() {
         return request.resource.data.diff(resource.data).affectedKeys();
       }
 
       function path(collection, id) {
-        return /databases/$(database)/documents/kahwa/AppCollections/$(collection)/$(id);
+        return /databases/$(database)/documents/kahwa/AppData/$(collection)/$(id);
+      }
+
+      function isText(value, max) {
+        return value is string && value.size() <= max;
+      }
+
+      function isPrice(value) {
+        return value == null || (value is int && value > 0);
+      }
+
+      // [after] is [before] with the signed in user added or removed, and
+      // nothing else changed. For fans and likes.
+      function onlyTogglesMe(before, after) {
+        return after.toSet().difference(before.toSet())
+            .union(before.toSet().difference(after.toSet()))
+          == [request.auth.uid].toSet();
       }
 
       // The donation with this id is being created by the same transaction
@@ -50,79 +74,134 @@ service cloud.firestore {
           : donation(id).supporter_id;
       }
 
-      // Creator pages are public: anyone can read a profile, its goal and
-      // the public donations, without an account.
-      match /Users/{uid} {
+      // Who made a donation that already exists.
+      function supporterOfExisting(id) {
+        let d = get(path('Donations', id)).data;
+        return d.keep_private
+          ? get(path('DonationDetails', id)).data.supporter_id
+          : d.supporter_id;
+      }
+
+      // The signed in user paid a membership of this creator recently enough
+      // to see members-only posts. A cancelled membership keeps them until
+      // the month it paid for is over, plus one day.
+      function isPaidMember(creatorId) {
+        let membership = path('Memberships', creatorId + '_' + request.auth.uid);
+        return exists(membership)
+          && request.time < get(membership).data.last_charged_at + duration.value(31, 'd');
+      }
+
+      // Every user has a public profile. It becomes a creator page, listed
+      // on Explore, once it has a kahwa price in both currencies.
+      match /Profiles/{uid} {
+        function isValid() {
+          let p = request.resource.data;
+          return p.name is string && p.name.size() > 0 && p.name.size() <= 60
+            && isText(p.tagline, 120)
+            && isText(p.about, 3000)
+            && isText(p.thanks, 500)
+            && (p.emoji == null || isText(p.emoji, 16))
+            && p.color is int
+            && p.cover is int
+            && p.links is list && p.links.size() <= 8
+            && p.tiers is map && p.tiers.size() <= 3
+            && isPrice(p.price_lbp)
+            && isPrice(p.price_usd)
+            && p.is_creator == (p.price_lbp != null && p.price_usd != null)
+            && p.onboarded is bool;
+        }
+
         allow read: if true;
         allow create: if isOwner(uid)
+          && isValid()
           && request.resource.data.id == uid
-          && request.resource.data.fans == []
-          && request.resource.data.get('username', null) == null
-          && !('email' in request.resource.data);
-        // Owners edit their profile. Everyone else may only add or remove
-        // themselves in the list of fans.
-        // A username can only be set together with the Usernames document
-        // that reserves it.
+          && request.resource.data.fan_ids == []
+          && request.resource.data.username == null
+          && request.resource.data.created_at == request.time;
+        // Owners edit their page. A username can only be set together with
+        // the Usernames document that reserves it. Everyone else may only
+        // add or remove themselves in the list of fans.
         allow update: if (isOwner(uid)
-            && changedKeys().hasOnly(['name', 'about', 'website', 'color', 'image', 'username', 'email'])
-            // Emails do not belong on a public page, they can only be removed.
-            && !('email' in request.resource.data)
+            && isValid()
+            && !changedKeys().hasAny(['id', 'fan_ids', 'created_at'])
             && (!changedKeys().hasAny(['username'])
-                || request.resource.data.username == null
-                || getAfter(path('Usernames', request.resource.data.username)).data.user_id == uid))
+              || request.resource.data.username == null
+              || getAfter(path('Usernames', request.resource.data.username)).data.user_id == uid))
           || (signedIn()
-            && changedKeys().hasOnly(['fans'])
-            && request.resource.data.fans.toSet().difference(resource.data.fans.toSet())
-                 .union(resource.data.fans.toSet().difference(request.resource.data.fans.toSet()))
-               == [request.auth.uid].toSet());
+            && request.auth.uid != uid
+            && changedKeys().hasOnly(['fan_ids'])
+            && onlyTogglesMe(resource.data.fan_ids, request.resource.data.fan_ids));
 
-        match /ArchivedGoals/{goalId} {
-          allow read, create: if isOwner(uid);
+        match /PastGoals/{goalId} {
+          allow read: if true;
+          allow create, delete: if isOwner(uid);
         }
       }
 
-      // One document per username, named after it, so two creators cannot
-      // hold the same one. It always changes together with the user document.
+      // One document per username, named after it, so two pages cannot hold
+      // the same one. It always changes together with the profile.
       match /Usernames/{username} {
         allow read: if true;
         allow create: if signedIn()
           && username.matches('^[a-z0-9_]{3,20}$')
           && request.resource.data.keys().hasOnly(['user_id'])
           && request.resource.data.user_id == request.auth.uid
-          && getAfter(path('Users', request.auth.uid)).data.username == username;
+          && getAfter(path('Profiles', request.auth.uid)).data.username == username;
         allow delete: if signedIn()
           && resource.data.user_id == request.auth.uid
-          && getAfter(path('Users', request.auth.uid)).data.username != username;
-      }
-
-      match /kahwaPrices/{uid} {
-        allow read: if signedIn();
-        allow write: if isOwner(uid)
-          && request.resource.data.lbp is int && request.resource.data.lbp > 0
-          && request.resource.data.usd is int && request.resource.data.usd > 0;
+          && getAfter(path('Profiles', request.auth.uid)).data.username != username;
       }
 
       match /Goals/{uid} {
+        function isValidGoal() {
+          let g = request.resource.data;
+          return isText(g.title, 80)
+            && isText(g.description, 500)
+            && g.target is int && g.target > 0
+            && g.currency in ['lbp', 'usd'];
+        }
+
         allow read: if true;
-        allow create, delete: if isOwner(uid);
-        // A supporter may only raise the goal by the total of the donation
-        // they are making in the same transaction, when it is in the
-        // currency of the goal (LBP for goals saved before currencies).
-        allow update: if isOwner(uid) || (signedIn()
-          && changedKeys().hasOnly(['current', 'last_donation'])
-          && isNewDonation(request.resource.data.last_donation)
-          && donation(request.resource.data.last_donation).creator_id == uid
-          && supporterOf(request.resource.data.last_donation) == request.auth.uid
-          && donation(request.resource.data.last_donation).currency
-               == resource.data.get('currency', 'lbp')
-          && request.resource.data.current
-               == resource.data.current + donation(request.resource.data.last_donation).total);
+        allow create: if isOwner(uid)
+          && isValidGoal()
+          && request.resource.data.current == 0
+          && request.resource.data.created_at == request.time;
+        allow delete: if isOwner(uid);
+        // The owner edits the words and the target, the currency while
+        // nothing counted towards the goal yet, or replaces the goal
+        // with a new one that starts at zero. A supporter may only raise it
+        // by the total of the donation they are making in the same
+        // transaction, in the currency of the goal.
+        allow update: if (isOwner(uid)
+            && isValidGoal()
+            && (changedKeys().hasOnly(['title', 'description', 'target'])
+              || (changedKeys().hasOnly(['title', 'description', 'target', 'currency'])
+                && resource.data.current == 0)
+              || (request.resource.data.current == 0
+                && request.resource.data.created_at == request.time)))
+          || (isOwner(uid)
+            && changedKeys().hasOnly(['current', 'last_donation'])
+            && isNewDonation(request.resource.data.last_donation)
+            && donation(request.resource.data.last_donation).kind == 'direct'
+            && donation(request.resource.data.last_donation).creator_id == uid
+            && donation(request.resource.data.last_donation).currency == resource.data.currency
+            && request.resource.data.current
+                 == resource.data.current + donation(request.resource.data.last_donation).total)
+          || (signedIn()
+            && changedKeys().hasOnly(['current', 'last_donation'])
+            && isNewDonation(request.resource.data.last_donation)
+            && donation(request.resource.data.last_donation).creator_id == uid
+            && supporterOf(request.resource.data.last_donation) == request.auth.uid
+            && donation(request.resource.data.last_donation).currency == resource.data.currency
+            && request.resource.data.current
+                 == resource.data.current + donation(request.resource.data.last_donation).total);
       }
 
-      // Balances only move in three ways. A donation: the supporter's goes
+      // Balances only move in five ways. A donation: the supporter's goes
       // down and the creator's goes up by its total, in the same transaction.
       // A top up or a withdrawal: an admin applies a request of the user.
-      match /Balances/{uid} {
+      // A correction: an admin records it, with a reason, in Adjustments.
+      match /Wallets/{uid} {
         function isDebit() {
           let id = request.resource.data.last_donation;
           let d = donation(id);
@@ -182,6 +261,20 @@ service cloud.firestore {
             && request.resource.data.current_usd >= 0;
         }
 
+        // An admin corrects the balance by what an adjustment created in the
+        // same write says, never below zero.
+        function isAdjustment() {
+          let id = request.resource.data.last_adjustment;
+          let a = getAfter(path('Adjustments', id)).data;
+          let current = 'current_' + a.currency;
+          return isAdmin()
+            && !exists(path('Adjustments', id))
+            && a.user_id == uid
+            && changedKeys().hasOnly([current, 'last_adjustment'])
+            && request.resource.data[current] == resource.data[current] + a.amount
+            && request.resource.data[current] >= 0;
+        }
+
         allow read: if isOwner(uid) || isAdmin();
         allow create: if isOwner(uid)
           && request.resource.data.keys().hasOnly([
@@ -195,69 +288,340 @@ service cloud.firestore {
           && request.resource.data.received_usd == 0
           && request.resource.data.withdrawn_lbp == 0
           && request.resource.data.withdrawn_usd == 0;
-        allow update: if isDebit() || isCredit() || isTopUp() || isWithdraw();
+        allow update: if isDebit() || isCredit() || isTopUp() || isWithdraw()
+          || isAdjustment();
       }
 
       // Donations are public, so pages can show them to visitors. A private
-      // donation says nothing about who made it: that and the message are in
-      // DonationDetails.
+      // donation says nothing about who made it: that, the message and the
+      // reply are in DonationDetails.
       match /Donations/{donationId} {
+        function profile() {
+          return get(path('Profiles', request.resource.data.creator_id)).data;
+        }
+
+        // A month of a membership: the membership records this donation as
+        // its last charge, and the kahwas are those of its tier.
+        function isMembershipCharge() {
+          let d = request.resource.data;
+          let membership = getAfter(path('Memberships', d.creator_id + '_' + request.auth.uid)).data;
+          let tier = profile().tiers[d.tier];
+          return membership.last_charge == donationId
+            && membership.tier == d.tier
+            && d.kahwas == tier.kahwas
+            && d.tier_name == tier.name;
+        }
+
+        // Kahwas paid straight to the creator's WHISH account: the creator
+        // confirms a payment the supporter told them about, and the donation
+        // repeats what it says. No balance moves.
+        function isDirectDonation() {
+          let d = request.resource.data;
+          let p = get(path('DirectPayments', donationId)).data;
+          return d.kind == 'direct'
+            && d.keys().hasOnly([
+                 'creator_id', 'supporter_id', 'message', 'keep_private', 'currency',
+                 'kahwas', 'kahwa_price', 'total', 'kind', 'timestamp'])
+            && d.creator_id == request.auth.uid
+            && p.creator_id == request.auth.uid
+            && p.status == 'pending'
+            && getAfter(path('DirectPayments', donationId)).data.status == 'confirmed'
+            && d.currency == p.currency
+            && d.kahwas == p.kahwas
+            && d.kahwa_price == p.kahwa_price
+            && d.total == p.total
+            && d.keep_private == p.keep_private
+            && (d.keep_private
+              ? (!d.keys().hasAny(['supporter_id', 'message'])
+                && getAfter(path('DonationDetails', donationId)).data.supporter_id
+                     == p.supporter_id)
+              : (d.supporter_id == p.supporter_id && d.message == p.message))
+            && d.timestamp == request.time;
+        }
+
         allow read: if true;
+        allow create: if signedIn() && isDirectDonation();
         // The price comes from the creator, the total from the price, and
         // both balances must be updated for this donation in the same
         // transaction.
-        allow create: if signedIn()
+        allow create: if isVerified()
+          && request.resource.data.keys().hasOnly([
+               'creator_id', 'supporter_id', 'message', 'keep_private', 'currency',
+               'kahwas', 'kahwa_price', 'total', 'kind', 'tier', 'tier_name', 'timestamp'])
           && request.resource.data.keep_private is bool
           && (request.resource.data.keep_private
             ? (!request.resource.data.keys().hasAny(['supporter_id', 'message'])
               && getAfter(path('DonationDetails', donationId)).data.supporter_id
                    == request.auth.uid)
-            : request.resource.data.supporter_id == request.auth.uid)
+            : (request.resource.data.supporter_id == request.auth.uid
+              && isText(request.resource.data.message, 500)))
           && request.resource.data.creator_id != request.auth.uid
           && request.resource.data.currency in ['lbp', 'usd']
           && request.resource.data.kahwas is int
           && request.resource.data.kahwas > 0
+          && request.resource.data.kahwas <= 1000
           && request.resource.data.kahwa_price
-               == get(path('kahwaPrices', request.resource.data.creator_id))
-                    .data[request.resource.data.currency]
+               == profile()['price_' + request.resource.data.currency]
           && request.resource.data.total
                == request.resource.data.kahwa_price * request.resource.data.kahwas
           && request.resource.data.timestamp == request.time
-          && getAfter(path('Balances', request.auth.uid)).data.last_donation == donationId
-          && getAfter(path('Balances', request.resource.data.creator_id)).data.last_donation
+          && (request.resource.data.kind == 'kahwa'
+            ? !request.resource.data.keys().hasAny(['tier', 'tier_name'])
+            : (request.resource.data.kind == 'membership' && isMembershipCharge()))
+          && getAfter(path('Wallets', request.auth.uid)).data.last_donation == donationId
+          && getAfter(path('Wallets', request.resource.data.creator_id)).data.last_donation
                == donationId;
-        // The creator may remove a message from their page.
+        // The creator may take the message off their page, and answer it.
         allow update: if signedIn()
           && resource.data.creator_id == request.auth.uid
-          && changedKeys().hasOnly(['message'])
-          && request.resource.data.message == '';
+          && changedKeys().hasOnly(['message', 'reply', 'reply_at'])
+          && (!changedKeys().hasAny(['message']) || request.resource.data.message == '')
+          && isText(request.resource.data.get('reply', ''), 500)
+          && (!changedKeys().hasAny(['reply_at']) || request.resource.data.reply_at == request.time);
       }
 
-      // Who made a private donation and their message, readable only by
-      // the creator and the supporter. Created together with its donation.
+      // Who made a private donation, the message and the reply, readable
+      // only by the creator and the supporter. Created with its donation.
       match /DonationDetails/{donationId} {
-        allow read: if signedIn()
+        allow read: if isAdmin() || (signedIn()
           && (resource.data.creator_id == request.auth.uid
-            || resource.data.supporter_id == request.auth.uid);
+            || resource.data.supporter_id == request.auth.uid));
+        // The creator, for a direct payment they confirm in the same write.
+        allow create: if signedIn()
+          && request.resource.data.keys().hasOnly(['creator_id', 'supporter_id', 'message'])
+          && request.resource.data.creator_id == request.auth.uid
+          && isNewDonation(donationId)
+          && donation(donationId).kind == 'direct'
+          && donation(donationId).keep_private == true
+          && get(path('DirectPayments', donationId)).data.supporter_id
+               == request.resource.data.supporter_id
+          && get(path('DirectPayments', donationId)).data.message
+               == request.resource.data.message;
         allow create: if signedIn()
           && request.resource.data.keys().hasOnly(['creator_id', 'supporter_id', 'message'])
           && request.resource.data.supporter_id == request.auth.uid
+          && isText(request.resource.data.message, 500)
           && isNewDonation(donationId)
           && donation(donationId).keep_private == true
           && donation(donationId).creator_id == request.resource.data.creator_id;
+        allow update: if signedIn()
+          && resource.data.creator_id == request.auth.uid
+          && changedKeys().hasOnly(['message', 'reply', 'reply_at'])
+          && (!changedKeys().hasAny(['message']) || request.resource.data.message == '')
+          && isText(request.resource.data.get('reply', ''), 500)
+          && (!changedKeys().hasAny(['reply_at']) || request.resource.data.reply_at == request.time);
+      }
+
+      // A supporter's monthly membership, named creator_supporter. kahwa
+      // has no server: the supporter's app charges each month when it
+      // opens, and these rules check the month is over.
+      match /Memberships/{membershipId} {
+        // This write records a charge: a membership donation made in the
+        // same transaction, matching the membership.
+        function isCharged() {
+          let m = request.resource.data;
+          let id = m.last_charge;
+          let d = donation(id);
+          return isNewDonation(id)
+            && d.kind == 'membership'
+            && d.creator_id == m.creator_id
+            && supporterOf(id) == request.auth.uid
+            && d.tier == m.tier
+            && d.tier_name == m.tier_name
+            && d.currency == m.currency
+            && d.kahwas == m.kahwas
+            && d.total == m.total
+            && d.keep_private == m.keep_private
+            && m.status == 'active'
+            && m.last_charged_at == request.time;
+        }
+
+        // Also its own membership before it exists: the app reads it in the
+        // transaction that charges the first month.
+        allow read: if isAdmin() || signedIn()
+          && ((resource == null && membershipId.matches('[^_]+_' + request.auth.uid))
+            || resource.data.creator_id == request.auth.uid
+            || resource.data.supporter_id == request.auth.uid);
+        allow create: if signedIn()
+          && request.resource.data.supporter_id == request.auth.uid
+          && membershipId == request.resource.data.creator_id + '_' + request.auth.uid
+          && request.resource.data.keys().hasOnly([
+               'creator_id', 'supporter_id', 'tier', 'tier_name', 'kahwas', 'currency',
+               'total', 'status', 'keep_private', 'last_charge', 'last_charged_at', 'started_at'])
+          && request.resource.data.started_at == request.time
+          && isCharged();
+        // The supporter cancels, takes back a cancelled membership while
+        // the month it paid for lasts (nothing to charge), or pays a new
+        // month: when the last one is over, to come back after cancelling,
+        // or to switch tier.
+        allow update: if signedIn()
+          && resource.data.supporter_id == request.auth.uid
+          && ((changedKeys().hasOnly(['status'])
+              && request.resource.data.status == 'cancelled')
+            || (changedKeys().hasOnly(['status'])
+              && resource.data.status == 'cancelled'
+              && request.resource.data.status == 'active'
+              && request.time < resource.data.last_charged_at + duration.value(30, 'd'))
+            || (changedKeys().hasOnly([
+                  'tier', 'tier_name', 'kahwas', 'currency', 'total', 'status',
+                  'keep_private', 'last_charge', 'last_charged_at'])
+              && isCharged()
+              && (resource.data.status == 'cancelled'
+                || request.time >= resource.data.last_charged_at + duration.value(30, 'd')
+                || request.resource.data.tier != resource.data.tier
+                || request.resource.data.currency != resource.data.currency)));
+      }
+
+      // Creators' updates. A members-only post keeps its text in PostBodies.
+      match /Posts/{postId} {
+        allow read: if true;
+        allow create: if signedIn()
+          && request.resource.data.keys().hasOnly(['creator_id', 'text', 'members_only', 'liked_by', 'created_at'])
+          && request.resource.data.creator_id == request.auth.uid
+          && request.resource.data.members_only is bool
+          && isText(request.resource.data.text, 2000)
+          && (!request.resource.data.members_only || request.resource.data.text == '')
+          && request.resource.data.liked_by == []
+          && request.resource.data.created_at == request.time;
+        allow update: if (signedIn()
+            && resource.data.creator_id == request.auth.uid
+            && changedKeys().hasOnly(['text', 'members_only', 'edited_at'])
+            && request.resource.data.members_only is bool
+            && isText(request.resource.data.text, 2000)
+            && (!request.resource.data.members_only || request.resource.data.text == '')
+            && request.resource.data.edited_at == request.time)
+          || (signedIn()
+            && changedKeys().hasOnly(['liked_by'])
+            && onlyTogglesMe(resource.data.liked_by, request.resource.data.liked_by));
+        allow delete: if signedIn() && resource.data.creator_id == request.auth.uid;
+      }
+
+      // Read one at a time, by the creator or a paying member.
+      match /PostBodies/{postId} {
+        allow get: if signedIn()
+          && (resource.data.creator_id == request.auth.uid
+            || isPaidMember(resource.data.creator_id));
+        allow create, update: if signedIn()
+          && request.resource.data.keys().hasOnly(['creator_id', 'text'])
+          && request.resource.data.creator_id == request.auth.uid
+          && isText(request.resource.data.text, 2000)
+          && (resource == null || resource.data.creator_id == request.auth.uid);
+        allow delete: if signedIn() && resource.data.creator_id == request.auth.uid;
+      }
+
+      // A user's inbox. Each entry is written by whoever caused it, in the
+      // same write, and must match what happened.
+      match /Activity/{entryId} {
+        function isByMe() {
+          let a = request.resource.data;
+          return a.actor_id == request.auth.uid
+            && a.actor_name == get(path('Profiles', request.auth.uid)).data.name;
+        }
+
+        function isAboutDonation() {
+          let a = request.resource.data;
+          let d = donation(entryId);
+          return a.kind in ['kahwa', 'membership']
+            && isByMe()
+            && a.ref == entryId
+            && isNewDonation(entryId)
+            && d.creator_id == a.user_id
+            && d.kind == a.kind
+            && supporterOf(entryId) == request.auth.uid
+            && a.kahwas == d.kahwas
+            && a.amount == d.total
+            && a.currency == d.currency;
+        }
+
+        // Written in the same batch that adds the user to the fans, under an
+        // id the fan can delete again when they stop being one.
+        function isNewFan() {
+          let a = request.resource.data;
+          return a.kind == 'fan'
+            && entryId == 'fan_' + a.user_id + '_' + request.auth.uid
+            && isByMe()
+            && a.ref == request.auth.uid
+            && request.auth.uid in getAfter(path('Profiles', a.user_id)).data.fan_ids
+            && !(request.auth.uid in get(path('Profiles', a.user_id)).data.fan_ids);
+        }
+
+        function isReply() {
+          let a = request.resource.data;
+          return a.kind == 'reply'
+            && isByMe()
+            && get(path('Donations', a.ref)).data.creator_id == request.auth.uid
+            && supporterOfExisting(a.ref) == a.user_id;
+        }
+
+        function isAnswer() {
+          let a = request.resource.data;
+          return a.kind in ['top_up', 'withdraw', 'adjustment']
+            && isAdmin()
+            && a.actor_id == null;
+        }
+
+        // Tells a creator about a payment to their WHISH account, made in
+        // the same write under the same id.
+        function isDirectPayment() {
+          let a = request.resource.data;
+          let p = getAfter(path('DirectPayments', entryId)).data;
+          return a.kind == 'direct_payment'
+            && isByMe()
+            && a.ref == entryId
+            && !exists(path('DirectPayments', entryId))
+            && p.supporter_id == request.auth.uid
+            && p.creator_id == a.user_id
+            && a.amount == p.total
+            && a.currency == p.currency;
+        }
+
+        // Tells the supporter the creator answered their payment, in the
+        // same write.
+        function isDirectAnswer() {
+          let a = request.resource.data;
+          let before = get(path('DirectPayments', a.ref)).data;
+          let after = getAfter(path('DirectPayments', a.ref)).data;
+          return a.kind == 'direct_answer'
+            && isByMe()
+            && before.creator_id == request.auth.uid
+            && before.status == 'pending'
+            && after.status == (a.ok ? 'confirmed' : 'rejected')
+            && a.user_id == before.supporter_id;
+        }
+
+        allow read, delete: if signedIn() && resource.data.user_id == request.auth.uid;
+        // A fan who stops being one takes back the entry that said so.
+        allow delete: if signedIn()
+          && entryId.matches('fan_[^_]+_' + request.auth.uid)
+          && (resource == null || resource.data.actor_id == request.auth.uid);
+        allow update: if signedIn()
+          && resource.data.user_id == request.auth.uid
+          && changedKeys().hasOnly(['read']);
+        allow create: if signedIn()
+          && request.resource.data.keys().hasOnly([
+               'user_id', 'kind', 'actor_id', 'actor_name', 'kahwas', 'amount',
+               'currency', 'message', 'ref', 'ok', 'created_at', 'read'])
+          && request.resource.data.read == false
+          && request.resource.data.created_at == request.time
+          && isText(request.resource.data.message, 500)
+          && (isAboutDonation() || isNewFan() || isReply() || isAnswer()
+            || isDirectPayment() || isDirectAnswer());
       }
 
       match /BillingDetails/{uid} {
         allow read: if isOwner(uid) || isAdmin();
-        allow write: if isOwner(uid);
+        allow write: if isOwner(uid)
+          && request.resource.data.keys().hasOnly(['full_name', 'whish_phone'])
+          && isText(request.resource.data.full_name, 100)
+          && isText(request.resource.data.whish_phone, 30);
       }
 
       match /Admins/{uid} {
         allow get: if isOwner(uid);
       }
 
-      // Settings an admin edits in the console, such as the number top ups
-      // are sent to.
+      // Settings an admin edits in the console, such as the WHISH codes top
+      // ups are sent to.
       match /Config/{name} {
         allow read: if signedIn();
       }
@@ -275,35 +639,40 @@ service cloud.firestore {
             && request.resource.data.currency in ['lbp', 'usd']
             && request.resource.data.reference is string
             && request.resource.data.reference.size() >= 6
-            && request.resource.data.sender_phone is string
+            && isText(request.resource.data.sender_phone, 30)
             && request.resource.data.timestamp == request.time;
         }
 
         allow read: if isOwner(uid) || isAdmin();
-        allow create: if isOwner(uid) && isNewRequest();
+        allow create: if isOwner(uid) && isVerified() && isNewRequest();
         allow delete: if isOwner(uid);
         // The user may replace a request that was answered. An admin may
         // reject a pending one, or approve it together with the balance.
         allow update: if (isOwner(uid)
+            && isVerified()
             && resource.data.status != 'pending'
             && isNewRequest())
           || (isAdmin()
             && resource.data.status == 'pending'
             && changedKeys().hasOnly(['status', 'resolved_at'])
+            && request.resource.data.resolved_at == request.time
             && (request.resource.data.status == 'rejected'
               || (request.resource.data.status == 'approved'
-                && get(path('Balances', uid)).data.get('last_top_up', '') != resource.data.reference
-                && getAfter(path('Balances', uid)).data.last_top_up == resource.data.reference)));
+                && get(path('Wallets', uid)).data.get('last_top_up', '') != resource.data.reference
+                && getAfter(path('Wallets', uid)).data.last_top_up == resource.data.reference)));
       }
 
       match /WithdrawRequests/{requestId} {
         allow read: if signedIn()
           && (resource.data.user_id == request.auth.uid || isAdmin());
-        allow create: if signedIn()
+        allow create: if isVerified()
+          && request.resource.data.keys().hasOnly(['user_id', 'lbp', 'usd', 'status', 'timestamp'])
           && request.resource.data.user_id == request.auth.uid
           && request.resource.data.status == 'pending'
           && request.resource.data.lbp is int && request.resource.data.lbp >= 0
-          && request.resource.data.usd is int && request.resource.data.usd >= 0;
+          && request.resource.data.usd is int && request.resource.data.usd >= 0
+          && request.resource.data.lbp + request.resource.data.usd > 0
+          && request.resource.data.timestamp == request.time;
         // The user may cancel a request nobody has answered yet.
         allow delete: if signedIn()
           && resource.data.user_id == request.auth.uid
@@ -311,10 +680,11 @@ service cloud.firestore {
         // An admin marks it as paid together with the balance, or refuses it.
         allow update: if isAdmin()
           && resource.data.status == 'pending'
-          && changedKeys().hasOnly(['status', 'resolved_at'])
+          && changedKeys().hasOnly(['status', 'resolved_at', 'resolved_by'])
+          && request.resource.data.get('resolved_by', request.auth.uid) == request.auth.uid
           && (request.resource.data.status == 'refused'
             || (request.resource.data.status == 'paid'
-              && getAfter(path('Balances', resource.data.user_id)).data.last_withdraw == requestId));
+              && getAfter(path('Wallets', resource.data.user_id)).data.last_withdraw == requestId));
       }
 
       // A record of each answered top up, written by the admin who answered
@@ -323,8 +693,116 @@ service cloud.firestore {
         allow read: if signedIn()
           && (resource.data.user_id == request.auth.uid || isAdmin());
         allow create: if isAdmin()
-          && request.resource.data.keys().hasOnly(['user_id', 'amount', 'currency', 'status', 'resolved_at'])
+          && request.resource.data.keys().hasOnly([
+               'user_id', 'amount', 'currency', 'status', 'resolved_at',
+               'resolved_by', 'sender_phone'])
+          && request.resource.data.get('resolved_by', request.auth.uid) == request.auth.uid
           && request.resource.data.status in ['approved', 'rejected'];
+      }
+
+      // Corrections admins made to balances, with the reason. Never edited
+      // or deleted: the user sees them in their history, admins in the log.
+      match /Adjustments/{adjustmentId} {
+        allow read: if isAdmin()
+          || (signedIn() && resource.data.user_id == request.auth.uid);
+        allow create: if isAdmin()
+          && request.resource.data.keys().hasOnly([
+               'user_id', 'admin_id', 'currency', 'amount', 'reason', 'created_at'])
+          && request.resource.data.admin_id == request.auth.uid
+          && request.resource.data.currency in ['lbp', 'usd']
+          && request.resource.data.amount is int
+          && request.resource.data.amount != 0
+          && request.resource.data.reason is string
+          && request.resource.data.reason.size() >= 5
+          && request.resource.data.reason.size() <= 300
+          && request.resource.data.created_at == request.time
+          && getAfter(path('Wallets', request.resource.data.user_id)).data.last_adjustment
+               == adjustmentId;
+      }
+
+      // A creator who takes payments to their own WHISH account, and its
+      // number, which signed in supporters see.
+      // A creator's "Whish Me" pay links, one per currency, never a phone
+      // number: supporters see the creator's name in WHISH, not their number.
+      match /DirectPay/{uid} {
+        function isWhishLink(v) {
+          return v is string
+            && (v == '' || v.matches('^https://whish[.]money/pay/[A-Za-z0-9._~%-]{1,100}$'));
+        }
+
+        allow read: if signedIn();
+        allow write: if isOwner(uid)
+          && request.resource.data.keys().hasOnly(['enabled', 'whish_link_lbp', 'whish_link_usd', 'updated_at'])
+          && request.resource.data.enabled is bool
+          && isWhishLink(request.resource.data.whish_link_lbp)
+          && isWhishLink(request.resource.data.whish_link_usd)
+          && (!request.resource.data.enabled
+            || request.resource.data.whish_link_lbp != ''
+            || request.resource.data.whish_link_usd != '')
+          && request.resource.data.updated_at == request.time;
+      }
+
+      // Kahwas a supporter says they paid to a creator's WHISH account. The
+      // creator confirms them, which makes the donation of the same id, or
+      // turns them down.
+      match /DirectPayments/{paymentId} {
+        function profile() {
+          return get(path('Profiles', request.resource.data.creator_id)).data;
+        }
+
+        allow read: if isAdmin() || (signedIn()
+          && (resource.data.creator_id == request.auth.uid
+            || resource.data.supporter_id == request.auth.uid));
+        allow create: if isVerified()
+          && request.resource.data.keys().hasOnly([
+               'creator_id', 'supporter_id', 'kahwas', 'kahwa_price', 'total',
+               'currency', 'sender_phone', 'message', 'keep_private', 'status',
+               'created_at'])
+          && request.resource.data.supporter_id == request.auth.uid
+          && request.resource.data.creator_id != request.auth.uid
+          && get(path('DirectPay', request.resource.data.creator_id)).data.enabled == true
+          && request.resource.data.currency in ['lbp', 'usd']
+          // Only in a currency the creator has a WHISH link for.
+          && get(path('DirectPay', request.resource.data.creator_id)).data
+               .get('whish_link_' + request.resource.data.currency, '') != ''
+          && request.resource.data.kahwas is int
+          && request.resource.data.kahwas > 0
+          && request.resource.data.kahwas <= 1000
+          && request.resource.data.kahwa_price
+               == profile()['price_' + request.resource.data.currency]
+          && request.resource.data.total
+               == request.resource.data.kahwa_price * request.resource.data.kahwas
+          && isText(request.resource.data.sender_phone, 30)
+          && request.resource.data.sender_phone.size() > 0
+          && isText(request.resource.data.message, 500)
+          && request.resource.data.keep_private is bool
+          && request.resource.data.status == 'pending'
+          && request.resource.data.created_at == request.time;
+        // The creator answers it once. Confirming makes its donation in the
+        // same write.
+        allow update: if signedIn()
+          && resource.data.creator_id == request.auth.uid
+          && resource.data.status == 'pending'
+          && changedKeys().hasOnly(['status', 'resolved_at'])
+          && request.resource.data.resolved_at == request.time
+          && (request.resource.data.status == 'rejected'
+            || (request.resource.data.status == 'confirmed'
+              && getAfter(path('Donations', paymentId)).data.kind == 'direct'));
+        // The supporter takes back one nobody answered.
+        allow delete: if signedIn()
+          && resource.data.supporter_id == request.auth.uid
+          && resource.data.status == 'pending';
+      }
+
+      // The devices a user is signed in on. Each device writes its own
+      // entry and signs out when it is deleted from another one.
+      match /Accounts/{uid}/Devices/{deviceId} {
+        allow read, delete: if isOwner(uid);
+        allow create, update: if isOwner(uid)
+          && request.resource.data.keys().hasOnly(['name', 'platform', 'last_seen', 'signed_in_at'])
+          && isText(request.resource.data.name, 80)
+          && isText(request.resource.data.platform, 20)
+          && request.resource.data.last_seen == request.time;
       }
 
       // The kahwa a user was buying when their balance ran short, kept until
