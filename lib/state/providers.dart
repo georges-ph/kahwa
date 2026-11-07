@@ -110,6 +110,19 @@ final myProfileProvider = FutureProvider<Profile?>((ref) {
   return ref.watch(profileRepositoryProvider).get(id);
 });
 
+/// Reads the user's profile again and waits for it. Every screen that saves
+/// the profile calls it before closing, so the app never shows, or fills a
+/// form with, the profile from before the save (which takes seconds on a
+/// slow connection).
+Future<void> reloadMyProfile(WidgetRef ref) async {
+  ref.invalidate(myProfileProvider);
+  try {
+    await ref.read(myProfileProvider.future);
+  } catch (_) {
+    // Saved anyway; the next page change reads it again.
+  }
+}
+
 final myWalletProvider = FutureProvider<Wallet>((ref) {
   final id = ref.watch(userIdProvider);
   if (id == null) return Future.value(const Wallet());

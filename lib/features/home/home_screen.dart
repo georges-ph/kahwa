@@ -44,6 +44,8 @@ class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   Future<void> _refresh(WidgetRef ref) async {
+    // Profile, wallet and inbox, shown on this screen too.
+    refreshMyData(ref.invalidate);
     ref
       ..invalidate(myCreatorsProvider)
       ..invalidate(pendingKahwaProvider)

@@ -124,6 +124,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       await ref
           .read(profileRepositoryProvider)
           .save(profile, previousUsername: me.username);
+      // The router still holds the profile read before the setup, and would
+      // send the user back here.
+      await reloadMyProfile(ref);
       if (mounted) context.go(creator ? Routes.me : Routes.explore);
     } on UsernameTakenException {
       if (!mounted) return;

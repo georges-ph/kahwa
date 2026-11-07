@@ -99,7 +99,9 @@ class _GoalScreenState extends ConsumerState<GoalScreen> {
           currency: running.current == 0 ? _currency : null,
         );
       }
-      ref.invalidate(_pastGoalsProvider);
+      ref
+        ..invalidate(goalProvider(id))
+        ..invalidate(_pastGoalsProvider);
       if (!mounted) return;
       showSnack(context, l10n.saved);
       setState(() => _creating = false);

@@ -105,6 +105,7 @@ class _EditPageState extends ConsumerState<_EditPage> {
       await ref
           .read(profileRepositoryProvider)
           .save(updated, previousUsername: widget.me.username);
+      await reloadMyProfile(ref);
       if (!mounted) return;
       showSnack(context, l10n.saved);
       context.pop();

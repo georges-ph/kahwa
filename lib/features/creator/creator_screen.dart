@@ -72,6 +72,10 @@ class _CreatorScreenState extends ConsumerState<CreatorScreen> {
   String get _id => widget.creatorId;
 
   void _refresh() {
+    ref.invalidate(profileProvider(_id));
+    ref.invalidate(goalProvider(_id));
+    // The fans on the About tab.
+    ref.invalidate(profilesProvider);
     ref.invalidate(donationsToProvider(_id));
     ref.invalidate(postsOfProvider(_id));
     ref.invalidate(myMembershipsProvider);
@@ -271,7 +275,10 @@ class _CreatorScreenState extends ConsumerState<CreatorScreen> {
       body: RefreshIndicator(
         onRefresh: () async {
           _refresh();
-          await ref.read(donationsToProvider(_id).future);
+          await Future.wait([
+            ref.read(profileProvider(_id).future),
+            ref.read(donationsToProvider(_id).future),
+          ]);
         },
         child: ListView(
           padding: EdgeInsets.zero,

@@ -120,6 +120,7 @@ class _PricesState extends ConsumerState<_Prices> {
       await ref
           .read(profileRepositoryProvider)
           .save(updated, previousUsername: widget.me.username);
+      await reloadMyProfile(ref);
       if (!mounted) return;
       showSnack(context, widget.me.isCreator ? l10n.saved : l10n.pageOpen);
       context.pop();
